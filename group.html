@@ -2613,7 +2613,7 @@ function updateFormulaPreview(){
   const maxN=formulaMaxN(item);
   if(N<1||N>maxN){el.textContent='名次不合法（请输入 1~'+maxN+'）';el.className='formula-preview none';return;}
   const r=formulaTotal(item,N);
-  if(r===null){el.textContent='名次需 ≤ '+item.formula.minN;el.className='formula-preview none';return;}
+  if(r===null){el.textContent='该名次无对应计分规则';el.className='formula-preview none';return;}
   el.textContent=(r.total>0?'+':'')+r.total+' 分';
   el.className='formula-preview '+(r.total>0?'pos':(r.total<0?'neg':''));
 }
@@ -2625,7 +2625,7 @@ function applyFormula(){
   const maxN=formulaMaxN(item);
   if(N<1||N>maxN){toast('名次不合法（请输入 1~'+maxN+'）');return;}
   const r=formulaTotal(item,N);
-  if(r===null){toast('名次需 ≤ '+item.formula.minN+'（或按扣分档）');return;}
+  if(r===null){toast('该名次无对应计分规则');return;}
   const label='名次'+N+(r.parts.length?'（'+r.parts.join('、')+'）':'');
   const dk=fmt(currentDate);
   const tg=targets();
