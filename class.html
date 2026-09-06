@@ -23,6 +23,7 @@ input,select{font-family:inherit;color:inherit;outline:none}
 }
 .brand{font-size:17px;font-weight:800;padding:4px 10px 16px;border-bottom:1px solid rgba(255,255,255,.12);display:flex;align-items:center;gap:8px}
 .brand .ico{font-size:20px}
+.brand-name{font-size:15px;font-weight:800}
 .sidebar-user{font-size:11.5px;color:rgba(247,241,230,.6);padding:12px 10px 4px}
 .nav{flex:1;margin-top:10px}
 .nav-item{padding:10px 12px;border-radius:9px;font-size:13.5px;cursor:pointer;color:rgba(247,241,230,.82);margin-bottom:3px;transition:all .15s;display:flex;align-items:center;gap:9px}
@@ -180,8 +181,13 @@ tr:hover td{background:rgba(246,241,232,.5)}
   }
   .brand{padding:0 6px;border-bottom:none;font-size:14px;flex:none}
   .brand .ico{font-size:15px}
+  .brand-name{font-size:13px}
   .sidebar-user{display:none}
   /* 手机端独立 UI：底部固定 Tab 栏（App 风格） */
+  .nav-item .ico{font-size:17px;width:auto}
+  .topbar .btn{display:none}
+  .dis-tabs{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .dis-tabs::-webkit-scrollbar{display:none}
   .nav{
     position:fixed;bottom:0;left:0;right:0;top:auto;flex:none;
     width:100%;display:flex;justify-content:space-around;align-items:stretch;
@@ -258,14 +264,14 @@ tr:hover td{background:rgba(246,241,232,.5)}
 
 <div class="app">
   <aside class="sidebar">
-    <div class="brand"><span class="ico">🏫</span></div>
+    <div class="brand"><span class="ico">🏫</span><span class="brand-name">班级管理</span></div>
     <div class="sidebar-user" id="sidebarUser"></div>
     <nav class="nav">
-      <div class="nav-item active" data-view="eye" onclick="switchView('eye')">👁️ 当天眼操</div>
-      <div class="nav-item" data-view="dis" onclick="switchView('dis')">📋 当天纪律</div>
-      <div class="nav-item" data-view="members" onclick="switchView('members')">👥 成员管理</div>
-      <div class="nav-item" data-view="order" onclick="switchView('order')">🔀 调整顺序</div>
-      <div class="nav-item" data-view="export" onclick="switchView('export')">📤 数据导出</div>
+      <div class="nav-item active" data-view="eye" onclick="switchView('eye')"><span class="ico">👁️</span><span class="txt">当天眼操</span></div>
+      <div class="nav-item" data-view="dis" onclick="switchView('dis')"><span class="ico">📋</span><span class="txt">当天纪律</span></div>
+      <div class="nav-item" data-view="members" onclick="switchView('members')"><span class="ico">👥</span><span class="txt">成员管理</span></div>
+      <div class="nav-item" data-view="order" onclick="switchView('order')"><span class="ico">🔀</span><span class="txt">调整顺序</span></div>
+      <div class="nav-item" data-view="export" onclick="switchView('export')"><span class="ico">📤</span><span class="txt">数据导出</span></div>
     </nav>
     <div class="sidebar-sync" id="sidebarSync">☁️ 未同步</div>
     <button class="sidebar-logout" onclick="logout()">退出登录</button>
@@ -524,9 +530,13 @@ function loadSession(){
   try{const r=localStorage.getItem(SESSION_KEY);return r?JSON.parse(r):null;}catch(e){return null;}
 }
 function logout(){
-  localStorage.removeItem(SESSION_KEY);
-  if(SB)SB.auth.signOut().catch(()=>{});
-  location.href='index.html';
+  const done=function(){
+    localStorage.removeItem(SESSION_KEY);
+    if(SB)SB.auth.signOut().catch(()=>{});
+    location.href='index.html';
+  };
+  if(classSaveTimer){clearTimeout(classSaveTimer);classSaveTimer=null;}
+  saveClassData(state).then(done).catch(done);
 }
 async function doChangePwdMe(){
   const old=document.getElementById('pwdMeOld').value;
@@ -790,7 +800,17 @@ function dedupeStudents(st){
 async function autoSyncOnce(){
   // 自动同步已关闭：仅在打开页面时拉取一次，退出时手动上传
 }
-window.addEventListener('pagehide',()=>{});
+window.addEventListener('pagehide',()=>{
+  if(!state||!sbAccessToken)return;
+  const body={id:'class',data:state,updated_at:new Date().toISOString()};
+  try{
+    fetch(SUPABASE_URL+'/rest/v1/class_data?on_conflict=id',{
+      method:'POST',keepalive:true,
+      headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'},
+      body:JSON.stringify(body)
+    }).catch(()=>{});
+  }catch(e){}
+});
 document.addEventListener('visibilitychange',()=>{});
 
 /* ================= 视图切换 ================= */
