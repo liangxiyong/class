@@ -735,7 +735,7 @@ td.total-col.zero{color:#cfc4b4}
       <span class="batch-hint" id="batchHint">已进入批量模式：勾选成员后点击格子，可同时给多人加减分</span>
       <button class="btn btn-ghost btn-sm print-btn" onclick="printView()">🖨️ 打印</button>
       <button class="btn btn-ghost btn-sm" onclick="exportExcel()">⬇️ 导出Excel</button>
-      <button class="btn btn-ghost btn-sm" onclick="openWeightModal()" title="对选定时间段的数据加权">⚖️ 加权</button>
+      <button class="btn btn-ghost btn-sm" id="weightBtn" onclick="openWeightModal()" title="对全组个人总分（含基础分）加权">⚖️ 加权</button>
       <div class="batch-toggle" id="baseToggle" onclick="toggleBase()" title="今日是否加基础分10分">
         <div class="switch"></div><span id="baseToggleText">基础分10</span>
       </div>
@@ -1110,18 +1110,10 @@ td.total-col.zero{color:#cfc4b4}
         <input type="number" id="weightPercent" value="4" min="0" max="100" style="width:80px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;font-size:14px;font-family:var(--font-mono);outline:none;text-align:center">
         <span class="pct-suffix">%</span>
       </div>
-      <div class="weight-group">
-        <span style="font-size:13px;color:var(--ink-soft)">时间段</span>
-        <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer"><input type="checkbox" id="weightAll" checked onchange="document.getElementById('weightStart').disabled=this.checked;document.getElementById('weightEnd').disabled=this.checked"> 全部</label>
-        <span style="color:var(--ink-soft);font-size:12px">或</span>
-        <input type="date" id="weightStart" disabled style="padding:7px 10px;border:1px solid var(--line);border-radius:10px;font-size:13px;outline:none">
-        <span style="color:var(--ink-soft)">至</span>
-        <input type="date" id="weightEnd" disabled style="padding:7px 10px;border:1px solid var(--line);border-radius:10px;font-size:13px;outline:none">
-      </div>
       <div style="font-size:12px;color:var(--ink-soft);line-height:1.7">
-        只填开始日期 = 从该日起加权；只填结束日期 = 该日以前加权；都不填或勾选全部 = 全部数据加权。<br>
-        加权 = 分数 × (1+百分比/100)；还原 = 分数 ÷ (1+百分比/100)。<br>
-        仅调整「加减分记录」，基础分（10分）与项目默认分不参与加权。
+        对全组<b>所有日期的个人总分</b>（含基础分10、默认分、加减分记录）统一加权。<br>
+        加权 = 总分 × (1+百分比/100)；还原 = 总分 ÷ (1+百分比/100)。<br>
+        当前加权系数：<b id="weightFactorNow">×1</b>
       </div>
     </div>
     <div class="modal-foot">
@@ -2221,19 +2213,20 @@ function isSchoolDay(d,dk){
   const wd=d.getDay();
   return wd>=1&&wd<=5;
 }
+function weightF(){return (state&&state.weightFactor&&state.weightFactor>0)?state.weightFactor:1;}
 function dayScore(sid,dk){
   if(isArchived(dk))return 0;
   if(!isSchoolDay(parseDate(dk),dk))return 0;
   const base=(state.baseOff&&state.baseOff[dk])?0:10;
-  return Math.round((base+state.items.reduce((a,it)=>a+cellVal(sid,it.id,dk),0))*100)/100;
+  return Math.round((base+state.items.reduce((a,it)=>a+cellVal(sid,it.id,dk),0))*weightF()*100)/100;
 }
 function dayGroupTotal(dk){return Math.round(state.students.reduce((a,st)=>a+dayScore(st.id,dk),0)*100)/100;}
 function weekTotal(sid,monday){let t=0;for(let i=0;i<7;i++){const d=addDays(monday,i);const dk=fmt(d);if(isSchoolDay(d,dk))t+=dayScore(sid,dk);}return Math.round(t*100)/100;}
 function monthTotal(sid,y,m){let t=0;const n=monthDays(y,m);for(let d=1;d<=n;d++){const dt=new Date(y,m,d);const dk=fmt(dt);if(isSchoolDay(dt,dk))t+=dayScore(sid,dk);}return Math.round(t*100)/100;}
 function weekGroupTotal(monday){return Math.round(state.students.reduce((a,st)=>a+weekTotal(st.id,monday),0)*100)/100;}
 function monthGroupTotal(y,m){return Math.round(state.students.reduce((a,st)=>a+monthTotal(st.id,y,m),0)*100)/100;}
-function itemWeekSum(sid,iid,monday){let t=0;for(let i=0;i<7;i++){const d=addDays(monday,i);const dk=fmt(d);if(isSchoolDay(d,dk))t+=cellVal(sid,iid,dk);}return Math.round(t*100)/100;}
-function itemMonthSum(sid,iid,y,m){let t=0;const n=monthDays(y,m);for(let d=1;d<=n;d++){const dt=new Date(y,m,d);const dk=fmt(dt);if(isSchoolDay(dt,dk))t+=cellVal(sid,iid,dk);}return Math.round(t*100)/100;}
+function itemWeekSum(sid,iid,monday){let t=0;for(let i=0;i<7;i++){const d=addDays(monday,i);const dk=fmt(d);if(isSchoolDay(d,dk))t+=cellVal(sid,iid,dk);}return Math.round(t*weightF()*100)/100;}
+function itemMonthSum(sid,iid,y,m){let t=0;const n=monthDays(y,m);for(let d=1;d<=n;d++){const dt=new Date(y,m,d);const dk=fmt(dt);if(isSchoolDay(dt,dk))t+=cellVal(sid,iid,dk);}return Math.round(t*weightF()*100)/100;}
 function studentName(id){const s=state.students.find(x=>x.id===id);return s?s.name:'(已删除)';}
 function allTimeTotal(sid){
   const dks=Object.keys(state.scores||{}).filter(dk=>/^\d{4}-\d{2}-\d{2}$/.test(dk)).sort();
@@ -2260,7 +2253,7 @@ function cellText(sid,iid,dk){
   return parts.join('、');
 }
 function cellTextSimple(sid,iid,dk){
-  const v=cellVal(sid,iid,dk);
+  const v=Math.round(cellVal(sid,iid,dk)*weightF()*100)/100;
   if(v===0)return '';
   return v>0?'+'+v:v;
 }
@@ -2330,6 +2323,8 @@ function renderDaily(){
     const bt=document.getElementById('baseToggleText');
     if(bt)bt.textContent=off?'无基础分':'基础分10';
   }
+  const wb=document.getElementById('weightBtn');
+  if(wb){const f=weightF();wb.textContent=f===1?'⚖️ 加权':'⚖️ 加权 ×'+Math.round(f*1000)/1000;}
   if(currentDate<MIN_DATE){
     document.getElementById('dailySummary').innerHTML=`<div class="summary-card" style="grid-column:1/-1"><div class="k">数据已归档</div><div class="v accent">—</div></div>`;
     document.getElementById('dailyTable').innerHTML=`<div class="empty-tip"><div class="big">🗄️</div><div class="t">该日期数据不可访问</div><div class="s">2026-08-30 及以前的数据已归档，仅可查看 2026-08-31 起的数据</div></div>`;
@@ -3492,6 +3487,8 @@ function exportConfig(){
 }
 function openWeightModal(){
   document.getElementById('weightModal').style.display='flex';
+  const now=document.getElementById('weightFactorNow');
+  if(now)now.textContent='×'+Math.round(weightF()*1000)/1000;
 }
 function closeWeightModal(){
   document.getElementById('weightModal').style.display='none';
@@ -3499,36 +3496,13 @@ function closeWeightModal(){
 function applyWeight(mode){
   const p=parseFloat(document.getElementById('weightPercent').value);
   if(!p||p<=0){toast('请输入有效的加权百分比');return;}
-  const all=document.getElementById('weightAll').checked;
-  const start=document.getElementById('weightStart').value;
-  const end=document.getElementById('weightEnd').value;
-  if(!all&&!start&&!end){toast('请选择时间段或勾选全部');return;}
-  const factor=mode==='add'?(1+p/100):(1/(1+p/100));
-  let count=0;
-  for(const dk in state.scores){
-    if(!/^\d{4}-\d{2}-\d{2}$/.test(dk))continue;
-    if(!all){
-      if(start&&dk<start)continue;
-      if(end&&dk>end)continue;
-    }
-    for(const sid in state.scores[dk]){
-      for(const iid in state.scores[dk][sid]){
-        const arr=state.scores[dk][sid][iid];
-        if(!Array.isArray(arr))continue;
-        arr.forEach(e=>{
-          if(typeof e.v==='number'){
-            e.v=Math.round(e.v*factor*100)/100;
-            count++;
-          }
-        });
-      }
-    }
-  }
-  if(!count){toast('所选时间段内没有可加权的数据');return;}
-  save();
-  render();
+  const f=weightF();
+  const nf=mode==='add'?Math.round(f*(1+p/100)*1000)/1000:Math.round(f/(1+p/100)*1000)/1000;
+  if(nf<=0){toast('无法还原到 0 以下');return;}
+  state.weightFactor=nf;
+  save();render();
   closeWeightModal();
-  toast((mode==='add'?'已加权':'已还原')+' '+count+' 条记录（'+p+'%）');
+  toast((mode==='add'?'已加权，全部总分 ×':'已还原，全部总分 ×')+Math.round(nf*1000)/1000);
 }
 function exportData(){
   download('积分数据备份_'+fmt(new Date())+'.json',JSON.stringify(state,null,2),'application/json');
