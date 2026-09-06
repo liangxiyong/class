@@ -2282,6 +2282,9 @@ function switchView(v){
   if(v==='daily')renderDaily();
   if(v==='weekly')renderWeekly();
   if(v==='monthly')renderMonthly();
+  if(v==='myrecords')renderMyRecords();
+  if(v==='members')renderMembers();
+  if(v==='settings')renderSettings();
 }
 function render(){
   // 只渲染当前可见视图：全量渲染在手机端会造成卡顿/闪退（每次轮询重建 6 个视图的 DOM）
