@@ -2317,6 +2317,31 @@ function renderDaily(){
     wrap.innerHTML=`<div class="empty-tip"><div class="big">📋</div><div class="t">还没有成员</div><div class="s">请先到「成员管理」添加小组成员</div><button class="btn btn-primary" onclick="switchView('members')">去添加成员</button></div>`;
     return;
   }
+  // 手机端转置：行=项目、列=人名（14 项竖排，不用横滑）
+  if(window.innerWidth<=768){
+    let h=`<div class="table-wrap"><table class="score-table"><thead><tr><th class="sticky-col">项目</th>`;
+    state.students.forEach(st=>{h+=`<th>${esc(st.name)}</th>`;});
+    h+=`<th class="total-col">全班</th></tr></thead><tbody>`;
+    state.items.forEach(it=>{
+      h+=`<tr><td class="sticky-col">${esc(it.name)}</td>`;
+      let total=0;
+      state.students.forEach(st=>{
+        const v=cellVal(st.id,it.id,dk);
+        total+=v;
+        const cls=v>0?'pos':(v<0?'neg':'zero');
+        const disp=v===0?'·':(v>0?'+'+v:v);
+        const evs=cellEvents(st.id,it.id,dk);
+        const evBadge=evs.length>1?`<span class="ev-count">${evs.length}</span>`:'';
+        const hasNote=(state.notes[dk]||{})[st.id]?.[it.id]?'<span class="note-dot" title="有备注"></span>':'';
+        h+=`<td class="cell" onclick="openScoreModal('${st.id}','${it.id}')"><span class="val ${cls}">${disp}</span>${evBadge}${hasNote}</td>`;
+      });
+      const tcls=total>0?'pos':(total<0?'neg':'zero');
+      h+=`<td class="total-col ${tcls}">${total===0?'·':total}</td></tr>`;
+    });
+    h+=`</tbody></table></div>`;
+    wrap.innerHTML=h;
+    return;
+  }
   let h=`<div class="table-wrap"><table class="score-table"><thead><tr><th class="sticky-col">${batchMode?'勾选成员':'姓名'}</th>`;
   state.items.forEach(it=>{h+=`<th>${esc(it.name)}</th>`;});
   h+=`<th class="total-col">个人总分</th></tr></thead><tbody>`;
@@ -3895,6 +3920,41 @@ setSyncStatus(cloudCfg.lastSync?('上次同步：'+new Date(cloudCfg.lastSync).t
   preloadMonth(now.getFullYear(),now.getMonth()+1);
 })();
 render();
+// 手机端：左右滑动切换日期/周/月（竖滑正常滚动）
+(function bindSwipe(){
+  if(typeof window==='undefined'||!('ontouchstart'in window))return;
+  const bind=function(el,onLeft,onRight){
+    if(!el)return;
+    let sx=0,sy=0,moved=false;
+    el.addEventListener('touchstart',function(e){const t=e.touches[0];sx=t.clientX;sy=t.clientY;moved=false;},{passive:true});
+    el.addEventListener('touchmove',function(e){const t=e.touches[0];if(Math.abs(t.clientX-sx)>8||Math.abs(t.clientY-sy)>8)moved=true;},{passive:true});
+    el.addEventListener('touchend',function(e){
+      if(!moved)return;
+      const t=e.changedTouches[0];
+      const dx=t.clientX-sx,dy=t.clientY-sy;
+      if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.5){
+        if(dx<0)onLeft();else onRight();
+      }
+    },{passive:true});
+  };
+  bind(document.getElementById('view-daily'),function(){shiftDate(1);},function(){shiftDate(-1);});
+  bind(document.getElementById('view-weekly'),function(){shiftWeek(1);},function(){shiftWeek(-1);});
+  bind(document.getElementById('view-monthly'),function(){shiftMonth(1);},function(){shiftMonth(-1);});
+})();
+// 拦截手机系统左滑/返回键退出（留在当前页；正常退出走「退出登录」按钮）
+(function guardHistory(){
+  try{
+    if(history&&history.pushState&&history.state===null){
+      history.replaceState({jfzGuard:1},'');
+      history.pushState({jfzGuard:1},'');
+      window.addEventListener('popstate',function(){
+        if(history.state&&history.state.jfzGuard){
+          history.pushState({jfzGuard:1},'');
+        }
+      });
+    }
+  }catch(e){}
+})();
 (async function(){
   try{
     // 会话检查：无有效 JWT 会话直接回登录页
