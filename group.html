@@ -1407,10 +1407,7 @@ async function exportAllGroupsExcel(){
   if(!(isAdmin()||isAdmin2()))return;
   const range=getBatchRange('batchExport');
   if(!range){toast('请选择导出日期范围');return;}
-  if(typeof XLSX==='undefined'){
-    try{await loadXLSX();}catch(e){toast('Excel库加载失败');return;}
-  }
-  const wb=XLSX.utils.book_new();
+  let body='';
   let count=0;
   const savedState=state;
   try{
@@ -1423,8 +1420,9 @@ async function exportAllGroupsExcel(){
       if(!data){
         try{data=loadLocalGroup(gid);}catch(e){}
       }
-      if(!data)data=initGroupState(gid); // 未初始化小组用默认成员+项目兜底，保证每组都能导出
+      if(!data)data=initGroupState(gid);
       if(!data)continue;
+      normalizeGroupData(data,gid);
       state=data;
       const sts=data.students||[];
       const rows=[];
@@ -1435,9 +1433,7 @@ async function exportAllGroupsExcel(){
         rows.push([]);
       }
       if(rows.length){
-        const ws=XLSX.utils.aoa_to_sheet(rows);
-        beautifySheet(ws);
-        XLSX.utils.book_append_sheet(wb,ws,GROUP_NAMES[gid]);
+        body+='<table>'+rowsToStyledTable(rows,GROUP_NAMES[gid])+'</table><br><br>';
         count++;
       }
     }
@@ -1445,8 +1441,9 @@ async function exportAllGroupsExcel(){
     state=savedState;
   }
   if(!count){toast('没有可导出的数据');return;}
-  XLSX.writeFile(wb,'班级批量导出_'+fmt(range.start)+'_至_'+fmt(range.end)+'.xlsx');
-  toast('已导出 '+count+' 个小组');
+  const html=styledExcelDoc('批量导出',body);
+  download('班级批量导出_'+fmt(range.start)+'_至_'+fmt(range.end)+'.xls','\uFEFF'+html,'application/vnd.ms-excel');
+  toast('已导出 '+count+' 个小组（带样式）');
 }
 async function adminBatchBaseOff(){
   if(!(isAdmin()||isAdmin2()))return;
@@ -1801,17 +1798,23 @@ function initGroupState(groupId){
   s.students=(GROUP_MEMBERS[groupId]||[]).map(n=>({id:uid(),name:n}));
   return s;
 }
+/* 规范化小组数据（迁移+修复，批量导出时云端原始数据必须经过此处理） */
+function normalizeGroupData(s,groupId){
+  if(!s||!s.items)return s;
+  if(!s.groupName)s.groupName=GROUP_NAMES[groupId]||('第'+groupId+'组');
+  if(s.itemsVer!==3){migrateItems(s);s.itemsVer=3;}
+  fixGoodWeights(s);
+  fixFormulaMinN(s);
+  normalizeScores(s);
+  return s;
+}
 async function loadGroupIntoState(groupId){
   let s=null;
   try{
     const row=await loadGroupData(groupId);
     if(row&&row.data&&row.data.items){
       s=row.data;
-      if(!s.groupName)s.groupName=GROUP_NAMES[groupId]||('第'+groupId+'组');
-      if(s.itemsVer!==3){migrateItems(s);s.itemsVer=3;}
-      fixGoodWeights(s);
-      fixFormulaMinN(s);
-      normalizeScores(s);
+      normalizeGroupData(s,groupId);
       lastRemoteUpdatedAt=row.updated_at||0;
     }
   }catch(e){}
@@ -3627,6 +3630,58 @@ function beautifySheet(ws, opts){
   }
   return ws;
 }
+/* ================= HTML 样式化 Excel 导出（支持颜色/边框/字体/合并） ================= */
+function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+const STYLED_CSS=`
+table{border-collapse:collapse;font-family:'微软雅黑','Microsoft YaHei',sans-serif;mso-number-format:'\\@';}
+td,th{border:1px solid #B4C6E7;padding:3px 7px;font-size:10pt;vertical-align:middle;white-space:nowrap;}
+th{background-color:#4472C4;color:#ffffff;font-weight:bold;text-align:center;}
+.day-title{background-color:#2F5496;color:#ffffff;font-weight:bold;font-size:12pt;text-align:center;height:26px;}
+.group-title{background-color:#1F3864;color:#ffffff;font-weight:bold;font-size:14pt;text-align:center;height:30px;}
+.total-row{background-color:#FFF2CC;font-weight:bold;}
+.total-row td{color:#806000;}
+.avg-row{background-color:#E2EFDA;font-weight:bold;}
+.avg-row td{color:#375623;}
+.pos{color:#C00000;font-weight:bold;}
+.neg{color:#00B050;font-weight:bold;}
+.spacer{border:none;height:10px;background-color:#ffffff;}
+`;
+function rowsToStyledTable(rows, groupTitle){
+  let h='';
+  const maxCols=rows.reduce((m,r)=>Math.max(m,r?r.length:0),1);
+  if(groupTitle)h+='<tr><td class="group-title" colspan="'+maxCols+'">'+escHtml(groupTitle)+'</td></tr>';
+  rows.forEach(r=>{
+    if(!r||!r.length||r.every(c=>c==null||String(c).trim()==='')){h+='<tr><td class="spacer" colspan="'+maxCols+'">&nbsp;</td></tr>';return;}
+    const filled=r.filter(c=>c!=null&&String(c).trim()!=='').length;
+    if(filled===1&&r.length>1){
+      const val=r.find(c=>c!=null&&String(c).trim()!=='');
+      h+='<tr><td class="day-title" colspan="'+r.length+'">'+escHtml(val)+'</td></tr>';
+      return;
+    }
+    const isHeader=r.some(c=>c==='序号'||c==='姓名'||c==='名次');
+    const isTotal=r.some(c=>typeof c==='string'&&c.indexOf('小组总分')>=0);
+    const isAvg=r.some(c=>typeof c==='string'&&c.indexOf('平均分')>=0);
+    let trClass='';
+    if(isTotal)trClass=' class="total-row"';
+    else if(isAvg)trClass=' class="avg-row"';
+    h+='<tr'+trClass+'>';
+    r.forEach(c=>{
+      const tag=isHeader?'th':'td';
+      let cls='';
+      if(typeof c==='number'){if(c>0)cls=' class="pos"';else if(c<0)cls=' class="neg"';}
+      else if(typeof c==='string'&&/^[+-]?\d/.test(c.trim())){
+        const num=parseFloat(c);
+        if(num>0)cls=' class="pos"';else if(num<0)cls=' class="neg"';
+      }
+      h+='<'+tag+cls+'>'+escHtml(c)+'</'+tag+'>';
+    });
+    h+='</tr>';
+  });
+  return h;
+}
+function styledExcelDoc(sheetName, bodyHtml){
+  return '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>'+escHtml(sheetName)+'</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--><style>'+STYLED_CSS+'</style></head><body>'+bodyHtml+'</body></html>';
+}
 function buildDayBlock(dk,students){
   const d=parseDate(dk);
   const rows=[];
@@ -3730,18 +3785,11 @@ function loadXLSX(){
   return xlsxLoading;
 }
 function exportExcel(){
-  if(typeof XLSX==='undefined'){
-    loadXLSX().then(()=>{
-      if(typeof XLSX==='undefined'){exportCSV();return;}
-      doExportExcel();
-    }).catch(()=>{toast('Excel库加载失败，已导出CSV');exportCSV();});
-    return;
-  }
   doExportExcel();
 }
 function doExportExcel(){
-  const wb=XLSX.utils.book_new();
   const groups=groupList();
+  let body='';
   if(currentView==='daily'||currentView==='weekly'){
     const monday=(currentView==='daily')?startOfWeek(currentDate):currentWeek;
     const dates=weekDates(monday);
@@ -3750,17 +3798,13 @@ function doExportExcel(){
       const rows=[];
       dates.forEach(d=>{rows.push(...buildDayBlock(fmt(d),sts));rows.push([]);});
       rows.push(...buildWeekSummaryRows(monday,sts));
-      const ws=XLSX.utils.aoa_to_sheet(rows);
-      beautifySheet(ws);
-      XLSX.utils.book_append_sheet(wb,ws,g);
+      body+='<table>'+rowsToStyledTable(rows,g)+'</table><br><br>';
     });
   }else if(currentView==='monthly'){
     const {y,m}=currentMonth;
     groups.forEach(g=>{
       const sts=studentsOfGroup(g);
-      const ws=XLSX.utils.aoa_to_sheet(buildMonthSummaryRows(y,m,sts));
-      beautifySheet(ws);
-      XLSX.utils.book_append_sheet(wb,ws,g);
+      body+='<table>'+rowsToStyledTable(buildMonthSummaryRows(y,m,sts),g+' · 月汇总')+'</table><br><br>';
       const dRows=[];
       const n=monthDays(y,m);
       for(let d=1;d<=n;d++){
@@ -3768,20 +3812,17 @@ function doExportExcel(){
         if(!isSchoolDay(dt,fmt(dt)))continue;
         dRows.push(...buildDayBlock(fmt(dt),sts));dRows.push([]);
       }
-      const ws2=XLSX.utils.aoa_to_sheet(dRows);
-      beautifySheet(ws2);
-      XLSX.utils.book_append_sheet(wb,ws2,g+'明细');
+      if(dRows.length)body+='<table>'+rowsToStyledTable(dRows,g+' · 每日明细')+'</table><br><br>';
     });
   }else if(currentView==='semester'){
     groups.forEach(g=>{
       const sts=studentsOfGroup(g);
-      const ws=XLSX.utils.aoa_to_sheet(buildSemesterRows(sts));
-      beautifySheet(ws);
-      XLSX.utils.book_append_sheet(wb,ws,g);
+      body+='<table>'+rowsToStyledTable(buildSemesterRows(sts),g)+'</table><br><br>';
     });
   }
-  XLSX.writeFile(wb,'班级小组积分表.xlsx');
-  toast('Excel 已导出（按组分表）');
+  const html=styledExcelDoc('小组积分',body);
+  download('班级小组积分表.xls','\uFEFF'+html,'application/vnd.ms-excel');
+  toast('Excel 已导出（带样式）');
 }
 function exportCSV(){
   let rows=[];
