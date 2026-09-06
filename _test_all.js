@@ -38,9 +38,9 @@ function authStub(win){
             return{data:{session:null},error:null};
           },
           updateUser:async({password})=>{client._updatedPwd=password;return{data:{user:{}},error:null};},
-          rpc:async(name,args)=>{client._rpc={name,args};return{data:{},error:null};},
           signOut:async()=>({error:null})
-        }
+        },
+        rpc:async(name,args)=>{client._rpc={name,args};return{data:{},error:null};}
       };
       win.__client=client;
       return client;
