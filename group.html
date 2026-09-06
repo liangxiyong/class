@@ -3719,7 +3719,7 @@ function rowsToXlsxSheet(worksheet,rows,groupTitle){
     worksheet.getColumn(c).width=Math.min(max+2,28);
   }
   // 冻结
-  worksheet.views=[{state:'frozen',ySplit:groupTitle?2:1}];
+  worksheet.views=[{state:'frozen',ySplit:1}];
 }
 function safeSheetName(name){
   return String(name).replace(/[:\\\/\?\*\[\]]/g,'_').substring(0,31);
@@ -3893,12 +3893,14 @@ async function exportExcel(){
 async function doExportExcel(){
   if(typeof ExcelJS==='undefined'){await loadExcelJS();}
   const workbook=new ExcelJS.Workbook();
-  const groups=groupList();
+  const hasSubGroups=state.students.some(st=>st.group);
+  const groups=hasSubGroups?groupList():[state.groupName||GROUP_NAMES[currentGroupId]||'小组积分'];
+  const stsOf=(g)=>hasSubGroups?studentsOfGroup(g):state.students;
   if(currentView==='daily'||currentView==='weekly'){
     const monday=(currentView==='daily')?startOfWeek(currentDate):currentWeek;
     const dates=weekDates(monday);
     groups.forEach(g=>{
-      const sts=studentsOfGroup(g);
+      const sts=stsOf(g);
       const rows=[];
       dates.forEach(d=>{rows.push(...buildDayBlock(fmt(d),sts));rows.push([]);});
       rows.push(...buildWeekSummaryRows(monday,sts));
@@ -3908,7 +3910,7 @@ async function doExportExcel(){
   }else if(currentView==='monthly'){
     const {y,m}=currentMonth;
     groups.forEach(g=>{
-      const sts=studentsOfGroup(g);
+      const sts=stsOf(g);
       const ws=workbook.addWorksheet(safeSheetName(g+'·汇总'));
       rowsToXlsxSheet(ws,buildMonthSummaryRows(y,m,sts),g+' · 月汇总');
       const dRows=[];
@@ -3925,7 +3927,7 @@ async function doExportExcel(){
     });
   }else if(currentView==='semester'){
     groups.forEach(g=>{
-      const sts=studentsOfGroup(g);
+      const sts=stsOf(g);
       const ws=workbook.addWorksheet(safeSheetName(g));
       rowsToXlsxSheet(ws,buildSemesterRows(sts),g);
     });
