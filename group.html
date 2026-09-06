@@ -2334,17 +2334,15 @@ function renderDaily(){
     wrap.innerHTML=`<div class="empty-tip"><div class="big">📋</div><div class="t">还没有成员</div><div class="s">请先到「成员管理」添加小组成员</div><button class="btn btn-primary" onclick="switchView('members')">去添加成员</button></div>`;
     return;
   }
-  // 手机端转置：行=项目、列=人名（14 项竖排，不用横滑）
+  // 手机端转置：行=项目、列=人名，底部=个人总分（14 项竖排，不用横滑）
   if(window.innerWidth<=768){
     let h=`<div class="table-wrap"><table class="score-table"><thead><tr><th class="sticky-col">项目</th>`;
     state.students.forEach(st=>{h+=`<th>${esc(st.name)}</th>`;});
-    h+=`<th class="total-col">全班</th></tr></thead><tbody>`;
+    h+=`</tr></thead><tbody>`;
     state.items.forEach(it=>{
       h+=`<tr><td class="sticky-col">${esc(it.name)}</td>`;
-      let total=0;
       state.students.forEach(st=>{
         const v=cellVal(st.id,it.id,dk);
-        total+=v;
         const cls=v>0?'pos':(v<0?'neg':'zero');
         const disp=v===0?'·':(v>0?'+'+v:v);
         const evs=cellEvents(st.id,it.id,dk);
@@ -2352,10 +2350,15 @@ function renderDaily(){
         const hasNote=(state.notes[dk]||{})[st.id]?.[it.id]?'<span class="note-dot" title="有备注"></span>':'';
         h+=`<td class="cell" onclick="openScoreModal('${st.id}','${it.id}')"><span class="val ${cls}">${disp}</span>${evBadge}${hasNote}</td>`;
       });
-      const tcls=total>0?'pos':(total<0?'neg':'zero');
-      h+=`<td class="total-col ${tcls}">${total===0?'·':total}</td></tr>`;
+      h+=`</tr>`;
     });
-    h+=`</tbody></table></div>`;
+    h+=`<tr><td class="sticky-col" style="font-weight:700">个人总分</td>`;
+    state.students.forEach(st=>{
+      const t=dayScore(st.id,dk);
+      const tcls=t>0?'pos':(t<0?'neg':'zero');
+      h+=`<td class="total-col ${tcls}" style="font-weight:700">${t===0?'·':t}</td>`;
+    });
+    h+=`</tr></tbody></table></div>`;
     wrap.innerHTML=h;
     return;
   }
@@ -2669,24 +2672,28 @@ function buildWeekTable(monday,dates){
 }
 function buildItemTable(scope,ref){
   if(!state.students.length)return emptyTip();
-  // 手机端转置：行=项目、列=人名（14 项竖排，手机宽度不用横滑）
+  // 手机端转置：行=项目、列=人名，底部=个人总分（14 项竖排，手机宽度不用横滑）
   if(window.innerWidth<=768){
     let h=`<table class="score-table"><thead><tr><th class="sticky-col">项目</th>`;
     state.students.forEach(st=>{h+=`<th>${esc(st.name)}</th>`;});
-    h+=`<th class="total-col">全班</th></tr></thead><tbody>`;
+    h+=`</tr></thead><tbody>`;
     state.items.forEach(it=>{
       h+=`<tr><td class="sticky-col">${esc(it.name)}</td>`;
-      let total=0;
       state.students.forEach(st=>{
         const v=scope==='week'?itemWeekSum(st.id,it.id,ref):itemMonthSum(st.id,it.id,ref.y,ref.m);
-        total+=v;
         const cls=v>0?'pos':(v<0?'neg':'zero');
         h+=`<td class="${cls}" style="font-family:var(--font-mono);font-weight:600">${v===0?'·':v}</td>`;
       });
-      const cls=Math.round(total*100)/100>0?'pos':(total<0?'neg':'zero');
-      h+=`<td class="total-col ${cls}">${Math.round(total*100)/100}</td></tr>`;
+      h+=`</tr>`;
     });
-    h+=`</tbody></table>`;
+    h+=`<tr><td class="sticky-col" style="font-weight:700">个人总分</td>`;
+    state.students.forEach(st=>{
+      let total=0;
+      state.items.forEach(it=>{total+=scope==='week'?itemWeekSum(st.id,it.id,ref):itemMonthSum(st.id,it.id,ref.y,ref.m);});
+      const cls=Math.round(total*100)/100>0?'pos':(total<0?'neg':'zero');
+      h+=`<td class="total-col ${cls}" style="font-weight:700">${Math.round(total*100)/100}</td>`;
+    });
+    h+=`</tr></tbody></table>`;
     return h;
   }
   let h=`<table class="score-table"><thead><tr><th class="sticky-col">姓名</th>`;
