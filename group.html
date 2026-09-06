@@ -1818,6 +1818,12 @@ function normalizeGroupData(s,groupId){
   });
   (s.items||[]).forEach(it=>{
     if((it.name||'').includes('?')&&itemNameMap[it.id])it.name=itemNameMap[it.id];
+    const defItem=DEFAULT_ITEMS.find(d=>d.id===it.id);
+    if(defItem&&defItem.presets&&it.presets){
+      it.presets.forEach((p,i)=>{
+        if((p.label||'').includes('?')&&defItem.presets[i])p.label=defItem.presets[i].label;
+      });
+    }
   });
   return s;
 }
