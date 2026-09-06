@@ -1232,9 +1232,9 @@ const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 const SB=window.supabase?window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;
 let sbAccessToken='';
 async function ensureSbToken(){
-  if(sbAccessToken)return sbAccessToken;
   if(!SB){requireLogin();return '';}
   try{
+    // 每次都取会话：SDK 会自行刷新过期 token，避免缓存旧 token 导致云端请求 401
     const {data}=await SB.auth.getSession();
     if(data&&data.session){sbAccessToken=data.session.access_token;return sbAccessToken;}
   }catch(e){}
@@ -1544,9 +1544,9 @@ function renderSidebarUser(){
 function showLogout(){
   if(!currentUser){location.href='index.html';return;}
   if(confirm('退出登录「'+currentUser.name+'」吗？')){
-    clearSession();
-    if(SB)SB.auth.signOut().catch(()=>{});
-    location.href='index.html';
+    // 先冲刷待上传的云端数据，避免退出瞬间丢失最后修改
+    const done=function(){clearSession();if(SB)SB.auth.signOut().catch(()=>{});location.href='index.html';};
+    flushSbSave().then(done,done);
   }
 }
 function requireLogin(){
@@ -1619,7 +1619,12 @@ function queueSbSave(){
   if(sbSaveTimer)clearTimeout(sbSaveTimer);
   sbSaveTimer=setTimeout(()=>{
     sbSaveTimer=null;
-    saveGroupData(currentGroupId,state).catch(()=>{});
+    saveGroupData(currentGroupId,state).then(()=>{
+      const st=document.getElementById('syncStatus');
+      if(st)st.textContent='☁️ 已同步 '+new Date().toLocaleTimeString('zh-CN');
+    }).catch(()=>{
+      toast('云端保存失败，已保存在本机，稍后重试');
+    });
   },300);
 }
 async function flushSbSave(){
@@ -1668,7 +1673,7 @@ document.addEventListener('keydown',e=>{
 });
 
 /* ================= Supabase 存储 ================= */
-async function sbFetch(path,options){
+async function sbFetch(path,options,retried){
   const token=await ensureSbToken();
   const ctrl=new AbortController();
   const timer=setTimeout(()=>ctrl.abort(),8000);
@@ -1678,6 +1683,14 @@ async function sbFetch(path,options){
     },options||{},{
       headers:Object.assign({'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+token,'Content-Type':'application/json'},(options&&options.headers)||{})
     }));
+    if(resp.status===401&&!retried&&SB){
+      // token 过期：先尝试刷新会话后重试一次，避免误踢用户且丢失本次写入
+      try{
+        const {data:rr}=await SB.auth.refreshSession();
+        if(rr&&rr.session){sbAccessToken=rr.session.access_token;}
+        return sbFetch(path,options,true);
+      }catch(e){}
+    }
     if(resp.status===401){clearSession();if(SB)SB.auth.signOut().catch(()=>{});location.href='index.html';throw new Error('HTTP 401');}
     if(!resp.ok)throw new Error('HTTP '+resp.status);
     return resp;
