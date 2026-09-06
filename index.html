@@ -120,7 +120,7 @@ input{font-family:inherit;color:inherit}
     </div>
 
     <div class="choose-box" id="chooseBox">
-      <div class="role-tag">已登录：<b id="chooseName"></b>（<span id="chooseRole">管理员</span>）</div>
+      <div class="role-tag">已登录：<b id="chooseName"></b></div>
       <button class="choose-btn" id="chooseBtnG" onclick="go('group.html')"><span class="ico">📊</span>小组积分</button>
       <button class="choose-btn" id="chooseClassBtn" onclick="go('class.html')"><span class="ico">🏫</span>班级管理</button>
       <div class="choose-back" onclick="backToLogin()">← 返回重新登录</div>
@@ -179,7 +179,6 @@ async function doLogin(){
     // 禁用仅影响班级管理：admin2 仍可登录、仍可进小组积分，只是班级管理入口置灰
     localStorage.setItem('jfz_admin2_class_enabled',(!chk.ok||chk.enabled)?'1':'0');
     document.getElementById('chooseName').textContent=name;
-    document.getElementById('chooseRole').textContent='管理员';
     document.getElementById('loginFields').style.display='none';
     document.getElementById('chooseBox').style.display='block';
     const cb=document.getElementById('chooseClassBtn');
@@ -188,7 +187,6 @@ async function doLogin(){
   }
   if(role==='admin'||role==='teacher'){
     document.getElementById('chooseName').textContent=name;
-    document.getElementById('chooseRole').textContent=role==='admin'?'管理员':'老师';
     document.getElementById('loginFields').style.display='none';
     document.getElementById('chooseBox').style.display='block';
     return;
