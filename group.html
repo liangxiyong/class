@@ -2904,14 +2904,11 @@ function renderMonthly(){
   const avg=avgOf(group);
   const schoolDays=monthSchoolDays(y,m);
   const dailyGroup=schoolDays?Math.round(group/schoolDays*100)/100:'·';
-  const dailyAvg=schoolDays?Math.round(avg/schoolDays*100)/100:'·';
   const best=totals.length?totals.reduce((a,b)=>b.t>a.t?b:a):null;
   document.getElementById('monthSummary').innerHTML=`
     <div class="summary-card"><div class="k">本月小组总分</div><div class="v accent">${group}</div></div>
     <div class="summary-card"><div class="k">人均月总分</div><div class="v">${avg}</div></div>
-    <div class="summary-card"><div class="k">实际上课天数</div><div class="v">${schoolDays} 天</div></div>
     <div class="summary-card"><div class="k">日均月总分</div><div class="v">${dailyGroup}</div></div>
-    <div class="summary-card"><div class="k">人均日均分</div><div class="v">${dailyAvg}</div></div>
     ${best?`<div class="summary-card"><div class="k">本月最高</div><div class="v pos">${esc(best.st.name)} · ${best.t}</div></div>`:''}`;
   document.getElementById('monthTable').innerHTML=buildMonthTable(y,m);
   document.getElementById('monthItemTable').innerHTML=buildItemTable('month',currentMonth);
