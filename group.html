@@ -591,6 +591,38 @@ td.total-col.zero{color:#cfc4b4}
   .modal{max-width:calc(100vw - 16px)}
   .login-box{padding:26px 20px}
 }
+
+/* ================= 手机版增强（触摸目标 / 流畅滚动 / 安全区） ================= */
+@media(max-width:768px){
+  .table-wrap{-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:10px;box-shadow:0 1px 6px rgba(30,24,20,.05)}
+  .score-table th,.score-table td{padding:8px 5px}
+  .sticky-col{box-shadow:2px 0 5px rgba(30,24,20,.07)}
+  .btn{min-height:40px;display:inline-flex;align-items:center;justify-content:center}
+  .preset-btn{min-height:40px;display:flex;align-items:center;justify-content:center}
+  .toolbar{flex-wrap:wrap}
+  .summary-row{overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px}
+  .modal-body{padding-bottom:calc(12px + env(safe-area-inset-bottom))}
+  .modal-foot{padding-bottom:calc(12px + env(safe-area-inset-bottom))}
+  .chart-card{padding:12px}
+  .myrec-item{padding:10px 12px}
+}
+@media(max-width:480px){
+  .btn{min-height:42px}
+  .preset-btn{min-height:44px;padding:6px 4px}
+  .nav{scrollbar-width:none;-ms-overflow-style:none}
+  .nav::-webkit-scrollbar{display:none}
+  .nav-item{padding:8px 9px}
+  .chart-card .chart-title{font-size:13px}
+  .summary-card .k{font-size:11.5px}
+  .summary-card .v{font-size:19px}
+  .toolbar{gap:6px}
+  .name-check span{font-size:13px}
+  .batch-hint{line-height:1.5}
+  .view-sub{line-height:1.5}
+  .modal-head{font-size:15px}
+  .modal-body input[type=text],.modal-body input[type=password],.modal-body input[type=number],.modal-body select{min-height:40px;font-size:15px}
+  .empty-tip{padding:26px 14px}
+}
 </style>
 </head>
 <body>
@@ -1613,6 +1645,8 @@ async function saveGroupData(groupId,data){
 let lastRemoteUpdatedAt=0;
 // 云端实时同步：检测他人（admin 批量关闭等）对当前组的修改，自动刷新
 async function pollRemote(){
+  // 页面不可见（切后台/锁屏）时跳过，降低手机端内存与电量压力，避免浏览器自动回收页面
+  if(typeof document!=='undefined'&&document.hidden)return;
   if(!currentGroupId||sbSavePending)return;
   try{
     const row=await loadGroupData(currentGroupId);
@@ -1623,11 +1657,18 @@ async function pollRemote(){
       if(hasLocal){lastRemoteUpdatedAt=prev;return;}
       await loadGroupIntoState(currentGroupId);
       render();
-      toast('检测到云端数据更新，已自动刷新');
+      const vt=document.getElementById('syncStatus');
+      if(vt)vt.textContent='☁️ 已自动同步 '+new Date().toLocaleTimeString('zh-CN');
     }
   }catch(e){}
 }
 setInterval(pollRemote,20000);
+if(typeof document!=='undefined'){
+  document.addEventListener('visibilitychange',function(){
+    // 回到前台立即检查一次云端更新
+    if(!document.hidden)pollRemote();
+  });
+}
 async function loadLeaders(){
   try{
     const resp=await sbFetch('leaders?select=name,group_id');
@@ -2189,12 +2230,16 @@ function switchView(v){
   if(v==='monthly')renderMonthly();
 }
 function render(){
-  renderDaily();
-  renderWeekly();
-  renderMonthly();
-  renderMyRecords();
-  renderMembers();
-  renderSettings();
+  // 只渲染当前可见视图：全量渲染在手机端会造成卡顿/闪退（每次轮询重建 6 个视图的 DOM）
+  try{
+    const v=currentView||'daily';
+    if(v==='weekly'){renderWeekly();return;}
+    if(v==='monthly'){renderMonthly();return;}
+    if(v==='myrecords'){renderMyRecords();return;}
+    if(v==='members'){renderMembers();return;}
+    if(v==='settings'){renderSettings();return;}
+    renderDaily();
+  }catch(e){}
 }
 
 /* ================= 每日评分 ================= */

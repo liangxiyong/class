@@ -221,6 +221,23 @@ tr:hover td{background:rgba(246,241,232,.5)}
   .dis-tab{padding:5px 10px;font-size:11.5px}
   .member-add .btn{flex:1;justify-content:center}
 }
+
+/* ================= 手机版增强（触摸目标 / 流畅滚动 / 安全区） ================= */
+@media(max-width:768px){
+  .btn{min-height:40px;display:inline-flex;align-items:center;justify-content:center}
+  .dis-modal-body{padding-bottom:calc(10px + env(safe-area-inset-bottom))}
+  .dis-modal-foot{padding-bottom:calc(10px + env(safe-area-inset-bottom))}
+  .export-actions{flex-wrap:wrap}
+  .toolbar{flex-wrap:wrap}
+}
+@media(max-width:480px){
+  .btn{min-height:42px}
+  .eye-btn{min-height:38px}
+  .dis-preset-btn{min-height:44px;padding:6px 4px}
+  .nav{scrollbar-width:none;-ms-overflow-style:none}
+  .nav::-webkit-scrollbar{display:none}
+  .modal input[type=text],.modal input[type=password],.modal input[type=number],.modal select{min-height:40px;font-size:15px}
+}
 </style>
 </head>
 <body>
@@ -258,7 +275,7 @@ tr:hover td{background:rgba(246,241,232,.5)}
       <div class="panel">
         <div class="panel-title">👁️ 当天眼操记录</div>
         <div class="dis-tabs" id="eyeTabs"></div>
-        <div style="overflow-x:auto">
+        <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
           <table id="eyeTable"></table>
         </div>
       </div>
@@ -269,7 +286,7 @@ tr:hover td{background:rgba(246,241,232,.5)}
       <div class="panel">
         <div class="panel-title">📋 当天纪律</div>
         <div class="dis-tabs" id="disTabs"></div>
-        <div style="overflow-x:auto">
+        <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">
           <table id="disTable"></table>
         </div>
       </div>
