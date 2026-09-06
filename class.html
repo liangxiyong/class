@@ -532,8 +532,8 @@ let lastCloudOp=0;
 function checkCloudThrottle(){
   const now=Date.now();
   const diff=now-lastCloudOp;
-  if(diff<90000){
-    const sec=Math.ceil((90000-diff)/1000);
+  if(diff<15000){
+    const sec=Math.ceil((15000-diff)/1000);
     toast('操作太频繁，请 '+sec+' 秒后再试');
     return false;
   }
