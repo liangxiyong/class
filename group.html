@@ -1203,14 +1203,14 @@ const DEFAULT_ITEMS = [
     {label:'100分', value:6},{label:'90分以上', value:4},{label:'85分以上', value:2},
     {label:'不及格', value:-4},
     {label:'倒数第3名', value:-2},{label:'倒数第2名', value:-4},{label:'倒数第1名', value:-6}]},
-  {id:'month', name:'月反馈', formula:{expr:'46-N+1', minN:5}, weights:[
+  {id:'month', name:'月反馈', formula:{expr:'47-N', minN:41, tiers:{42:-2,43:-4,44:-6,45:-8,46:-10}}, weights:[
     {id:'xw1', label:'馨菱1', pct:10, group:'xw'},
     {id:'xw2', label:'馨菱2', pct:5, group:'xw'},
     {id:'top20', label:'年级前20', pct:5, group:'top'}], presets:[
     {label:'倒数第5名', value:-2},{label:'倒数第4名', value:-4},
     {label:'倒数第3名', value:-6},{label:'倒数第2名', value:-8},
     {label:'倒数第1名', value:-10},{label:'不及格', value:-6}]},
-  {id:'good', name:'好人好事', formula:{expr:'46-N+1', minN:5}, weights:[
+  {id:'good', name:'好人好事', formula:{expr:'46-N+1', minN:41}, weights:[
     {id:'xw1', label:'馨菱1', pct:10, group:'xw'},
     {id:'xw2', label:'馨菱2', pct:5, group:'xw'}], presets:[
     {label:'一般', value:2}]}
@@ -1558,6 +1558,7 @@ function loadState(){
         if(s.groupName==='第3组')s.groupName='';
         if(s.itemsVer!==3){migrateItems(s);s.itemsVer=3;}
         fixGoodWeights(s);
+        fixFormulaMinN(s);
         normalizeScores(s);
         return s;
       }
@@ -1574,6 +1575,17 @@ function migrateItems(s){
   const have=new Set(out.map(i=>i.id));
   DEFAULT_ITEMS.forEach(d=>{if(!have.has(d.id))out.push(JSON.parse(JSON.stringify(d)));});
   s.items=out;
+}
+function fixFormulaMinN(s){
+  (s.items||[]).forEach(it=>{
+    if(it.formula&&(it.id==='month'||it.id==='good')){
+      if(it.formula.minN<=5)it.formula.minN=41;
+      if(it.id==='month'){
+        it.formula.expr='47-N';
+        if(!it.formula.tiers)it.formula.tiers={42:-2,43:-4,44:-6,45:-8,46:-10};
+      }
+    }
+  });
 }
 function fixGoodWeights(s){
   const good=(s.items||[]).find(i=>i.id==='good');
@@ -2261,7 +2273,9 @@ function cellTextSimple(sid,iid,dk){
 /* ================= 公式 ================= */
 function calcFormula(item,N){
   if(!item.formula)return null;
-  if(N<=item.formula.minN)return null;
+  const tiers=item.formula.tiers||{};
+  if(tiers[N]!==undefined)return tiers[N];
+  if(N>item.formula.minN)return null;
   const expr=String(item.formula.expr).replace(/N/g,'('+N+')');
   if(!/^[\d\s+\-*/().]+$/.test(expr))return null;
   try{const v=Function('"use strict";return ('+expr+')')();return Math.round(v*100)/100;}catch(e){return null;}
@@ -2595,7 +2609,7 @@ function updateFormulaPreview(){
   const el=document.getElementById('formulaPreview');
   if(isNaN(N)){el.textContent='—';el.className='formula-preview';return;}
   const r=formulaTotal(item,N);
-  if(r===null){el.textContent='名次需 > '+item.formula.minN;el.className='formula-preview none';return;}
+  if(r===null){el.textContent='名次需 ≤ '+item.formula.minN;el.className='formula-preview none';return;}
   el.textContent=(r.total>0?'+':'')+r.total+' 分';
   el.className='formula-preview '+(r.total>0?'pos':(r.total<0?'neg':''));
 }
@@ -2605,7 +2619,7 @@ function applyFormula(){
   const N=parseInt(document.getElementById('rankInput').value,10);
   if(isNaN(N)){toast('请输入名次');return;}
   const r=formulaTotal(item,N);
-  if(r===null){toast('名次需大于 '+item.formula.minN);return;}
+  if(r===null){toast('名次需 ≤ '+item.formula.minN+'（或按扣分档）');return;}
   const label='名次'+N+(r.parts.length?'（'+r.parts.join('、')+'）':'');
   const dk=fmt(currentDate);
   const tg=targets();
@@ -3382,8 +3396,8 @@ function renderSettings(){
         <div class="calc-formula-row" id="calcFormula-${it.id}" style="${isRank?'':'display:none'}">
           <label>公式</label>
           <input type="text" value="${it.formula?esc(it.formula.expr):''}" placeholder="如 46-N+1" onchange="setFormula('${it.id}','expr',this.value)">
-          <label>名次&gt;</label>
-          <input type="number" value="${it.formula?it.formula.minN:5}" onchange="setFormula('${it.id}','minN',this.value)">
+          <label>名次≤</label>
+          <input type="number" value="${it.formula?it.formula.minN:41}" onchange="setFormula('${it.id}','minN',this.value)">
         </div>
         <div class="calc-weights" id="calcWeights-${it.id}" style="${isRank?'':'display:none'}">
           ${(it.weights||[]).map((w,wi)=>`
