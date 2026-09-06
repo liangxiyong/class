@@ -1807,6 +1807,18 @@ function normalizeGroupData(s,groupId){
   fixGoodWeights(s);
   fixFormulaMinN(s);
   normalizeScores(s);
+  // 自动修复被编码污染的姓名（???）：通过 id 映射恢复，防止 localStorage 旧数据覆盖云端
+  const itemNameMap={};
+  DEFAULT_ITEMS.forEach(it=>itemNameMap[it.id]=it.name);
+  (s.students||[]).forEach(st=>{
+    if((st.name||'').includes('?')){
+      const m=st.id&&st.id.match(/^seed(\d+)_(\d+)$/);
+      if(m&&GROUP_MEMBERS[m[1]]&&GROUP_MEMBERS[m[1]][parseInt(m[2])-1])st.name=GROUP_MEMBERS[m[1]][parseInt(m[2])-1];
+    }
+  });
+  (s.items||[]).forEach(it=>{
+    if((it.name||'').includes('?')&&itemNameMap[it.id])it.name=itemNameMap[it.id];
+  });
   return s;
 }
 async function loadGroupIntoState(groupId){
