@@ -647,6 +647,23 @@ td.total-col.zero{color:#cfc4b4}
   .admin-switch-row{padding:12px}
   .admin-switch-title{font-size:14px}
   .admin-switch-sub{font-size:11.5px}
+  /* 手机端压缩：让表格尽量一页放下，去掉多余滚动 */
+  .view-head{margin-bottom:8px}
+  .view-head h2{font-size:15px}
+  .summary-card{padding:8px 8px;min-width:0}
+  .summary-card .k{font-size:10.5px;margin-bottom:2px}
+  .summary-card .v{font-size:16px}
+  .table-wrap{max-height:none}
+  .score-table th{padding:5px 3px;font-size:11px;letter-spacing:0}
+  .score-table td{padding:4px 2px;font-size:12px}
+  .score-table th.sticky-col,.score-table td.sticky-col{
+    min-width:64px;max-width:74px;padding-left:6px;padding-right:6px;
+    font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .cell{min-width:40px}
+  .cell .val{font-size:13px}
+  .name-check span{font-size:12.5px}
+  .name-check input{width:16px;height:16px}
 }
 @media(max-width:480px){
   .btn{min-height:42px}
@@ -655,8 +672,8 @@ td.total-col.zero{color:#cfc4b4}
   .nav::-webkit-scrollbar{display:none}
   .nav-item{padding:5px 2px}
   .chart-card .chart-title{font-size:13px}
-  .summary-card .k{font-size:11.5px}
-  .summary-card .v{font-size:19px}
+  .summary-card .k{font-size:10.5px}
+  .summary-card .v{font-size:16px}
   .toolbar{gap:6px}
   .name-check span{font-size:13px}
   .batch-hint{line-height:1.5}
@@ -3937,7 +3954,6 @@ render();
       }
     },{passive:true});
   };
-  bind(document.getElementById('view-daily'),function(){shiftDate(1);},function(){shiftDate(-1);});
   bind(document.getElementById('view-weekly'),function(){shiftWeek(1);},function(){shiftWeek(-1);});
   bind(document.getElementById('view-monthly'),function(){shiftMonth(1);},function(){shiftMonth(-1);});
 })();
