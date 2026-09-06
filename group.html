@@ -1344,7 +1344,7 @@ async function loadAdmin2Enabled(){
   }catch(e){}
 }
 function openAdminModal(){
-  if(!isAdmin())return;
+  if(!isAdmin()&&!isAdmin2())return;
   renderAdminModal();
   document.getElementById('adminModal').style.display='flex';
   const es=document.getElementById('batchExportStart');
