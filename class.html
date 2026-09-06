@@ -498,6 +498,19 @@ function save(){
     if(bak)localStorage.setItem(KEY+'_bak',bak);
   }catch(e){}
   localStorage.setItem(KEY,JSON.stringify(state));
+  queueClassSave();
+}
+let classSaveTimer=null;
+function queueClassSave(){
+  if(classSaveTimer)clearTimeout(classSaveTimer);
+  classSaveTimer=setTimeout(()=>{
+    classSaveTimer=null;
+    saveClassData(state).then(()=>{
+      setSyncStatus('✅ 已上传 '+new Date().toLocaleTimeString('zh-CN'),'var(--green)');
+    }).catch(()=>{
+      toast('云端保存失败，已保存在本机');
+    });
+  },300);
 }
 function saveLocal(){
   try{
@@ -561,7 +574,7 @@ function toggleAdmin2(){
   save();
   renderAdminModal();
   toast(enabling?'已启用 admin2 班级管理':'已禁用 admin2 班级管理');
-  if(cloudCfg.binId&&cloudCfg.apiKey)cloudPush(true);
+  cloudPush(true);
 }
 function checkAdmin2Kick(){
   if(state.admin2Enabled===false&&currentUser&&currentUser.role==='admin2'){
