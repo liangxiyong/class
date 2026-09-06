@@ -1808,6 +1808,7 @@ async function loadGroupIntoState(groupId){
       if(!s.groupName)s.groupName=GROUP_NAMES[groupId]||('第'+groupId+'组');
       if(s.itemsVer!==3){migrateItems(s);s.itemsVer=3;}
       fixGoodWeights(s);
+      fixFormulaMinN(s);
       normalizeScores(s);
       lastRemoteUpdatedAt=row.updated_at||0;
     }
