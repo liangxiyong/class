@@ -605,6 +605,10 @@ td.total-col.zero{color:#cfc4b4}
   .modal-foot{padding-bottom:calc(12px + env(safe-area-inset-bottom))}
   .chart-card{padding:12px}
   .myrec-item{padding:10px 12px}
+  /* 手机端不可用/不需要的功能：打印、批量模式 */
+  .print-btn{display:none!important}
+  #batchToggle{display:none}
+  #batchHint{display:none}
 }
 @media(max-width:480px){
   .btn{min-height:42px}
@@ -665,7 +669,7 @@ td.total-col.zero{color:#cfc4b4}
     <div class="toolbar">
       <div class="date-nav">
         <button class="nav-btn" onclick="shiftDate(-1)">◀</button>
-        <span class="date-label" id="dailyDate"></span>
+        <span class="date-label" id="dailyDate" style="display:none"></span>
         <button class="nav-btn" onclick="shiftDate(1)">▶</button>
       </div>
       <button class="btn btn-ghost btn-sm" onclick="goToday()">今天</button>
@@ -674,7 +678,7 @@ td.total-col.zero{color:#cfc4b4}
       <button class="btn btn-ghost btn-sm" onclick="redo()" title="重做 Ctrl+Y">↪️ 重做</button>
       <div style="flex:1"></div>
       <span class="batch-hint" id="batchHint">已进入批量模式：勾选成员后点击格子，可同时给多人加减分</span>
-      <button class="btn btn-ghost btn-sm" onclick="printView()">🖨️ 打印</button>
+      <button class="btn btn-ghost btn-sm print-btn" onclick="printView()">🖨️ 打印</button>
       <button class="btn btn-ghost btn-sm" onclick="exportExcel()">⬇️ 导出Excel</button>
       <button class="btn btn-ghost btn-sm" onclick="openWeightModal()" title="对选定时间段的数据加权">⚖️ 加权</button>
       <div class="batch-toggle" id="baseToggle" onclick="toggleBase()" title="今日是否加基础分10分">
@@ -702,7 +706,7 @@ td.total-col.zero{color:#cfc4b4}
       </div>
       <button class="btn btn-ghost btn-sm" onclick="goThisWeek()">本周</button>
       <div style="flex:1"></div>
-      <button class="btn btn-ghost btn-sm" onclick="printView()">🖨️ 打印</button>
+      <button class="btn btn-ghost btn-sm print-btn" onclick="printView()">🖨️ 打印</button>
       <button class="btn btn-ghost btn-sm" onclick="exportExcel()">⬇️ 导出Excel</button>
     </div>
     <div class="summary-row" id="weekSummary"></div>
@@ -744,7 +748,7 @@ td.total-col.zero{color:#cfc4b4}
       </div>
       <button class="btn btn-ghost btn-sm" onclick="goThisMonth()">本月</button>
       <div style="flex:1"></div>
-      <button class="btn btn-ghost btn-sm" onclick="printView()">🖨️ 打印</button>
+      <button class="btn btn-ghost btn-sm print-btn" onclick="printView()">🖨️ 打印</button>
       <button class="btn btn-ghost btn-sm" onclick="exportExcel()">⬇️ 导出Excel</button>
     </div>
     <div class="summary-row" id="monthSummary"></div>
@@ -780,7 +784,7 @@ td.total-col.zero{color:#cfc4b4}
     </div>
     <div class="toolbar">
       <div style="flex:1"></div>
-      <button class="btn btn-ghost btn-sm" onclick="printView()">🖨️ 打印</button>
+      <button class="btn btn-ghost btn-sm print-btn" onclick="printView()">🖨️ 打印</button>
       <button class="btn btn-ghost btn-sm" onclick="exportExcel()">⬇️ 导出Excel</button>
     </div>
     <div class="summary-row" id="semesterSummary"></div>
@@ -1478,12 +1482,7 @@ function renderSidebarUser(){
   const el=document.getElementById('sidebarUser');
   if(!el)return;
   if(!currentUser){el.textContent='🔑 点击登录';return;}
-  let label='👤 '+currentUser.name;
-  if(currentUser.role==='admin')label+='（管理员）';
-  else if(currentUser.role==='teacher')label+='（老师）';
-  else if(currentUser.role==='admin2')label+='（管理员2号·第1组）';
-  else if(currentUser.role==='leader')label+='（'+GROUP_NAMES[currentUser.groupId]+'组长）';
-  el.textContent=label;
+  el.textContent='👤 '+currentUser.name;
 }
 function showLogout(){
   if(!currentUser){location.href='index.html';return;}
