@@ -3937,7 +3937,7 @@ applyFont();
 renderSidebarUser();
 updateNavForRole();
 const adminBtn=document.getElementById('adminBtn');
-if(adminBtn)adminBtn.style.display=isAdmin()?'':'none';
+if(adminBtn)adminBtn.style.display=(isAdmin()||isAdmin2())?'':'none';
 if(isAdmin())loadAdmin2Enabled();
 setSyncStatus(cloudCfg.lastSync?('上次同步：'+new Date(cloudCfg.lastSync).toLocaleString('zh-CN')):'尚未同步','var(--ink-soft)');
 (function(){
