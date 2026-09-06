@@ -38,6 +38,7 @@ function authStub(win){
             return{data:{session:null},error:null};
           },
           updateUser:async({password})=>{client._updatedPwd=password;return{data:{user:{}},error:null};},
+          rpc:async(name,args)=>{client._rpc={name,args};return{data:{},error:null};},
           signOut:async()=>({error:null})
         }
       };
@@ -443,7 +444,7 @@ console.log('== group.html 修改密码 ==');
   els['pwdMeNew']._value='8888';
   els['pwdMeNew2']._value='8888';
   await api.doChangePwdMe();
-  t('组长正确密码可修改',win.__client&&win.__client._updatedPwd==='8888');
+  t('组长正确密码可修改',win.__client&&win.__client._rpc&&win.__client._rpc.name==='change_my_password'&&win.__client._rpc.args.new_password==='8888');
   t('修改成功后弹窗关闭',els['pwdMeModal'].style.display==='none');
   els['pwdMeModal'].style.display='flex';
   els['pwdMeOld']._value='wrong';
@@ -453,7 +454,7 @@ console.log('== group.html 修改密码 ==');
   els['pwdMeNew']._value='888';
   els['pwdMeNew2']._value='888';
   await api.doChangePwdMe();
-  t('短密码可修改（无长度限制）',win.__client&&win.__client._updatedPwd==='888');
+  t('短密码可修改（无长度限制）',win.__client&&win.__client._rpc&&win.__client._rpc.name==='change_my_password'&&win.__client._rpc.args.new_password==='888');
 }
 {
   // admin 重置他人密码 → 调用 RPC
