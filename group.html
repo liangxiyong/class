@@ -1082,7 +1082,7 @@ td.total-col.zero{color:#cfc4b4}
         <button class="btn btn-danger" onclick="adminBatchBaseOff()">🚫 关闭全部小组基础分</button>
       </div>
 
-      <div class="admin-section">
+      <div class="admin-section" id="resetPwdSection">
         <div class="admin-section-title">🔑 重置用户密码</div>
         <div class="admin-range-row">
           <input type="text" id="resetPwdName" placeholder="用户名" style="flex:1;min-width:80px">
@@ -1371,6 +1371,8 @@ function closeAdminModal(){
 function renderAdminModal(){
   const row=document.getElementById('admin2SwitchRow');
   if(row)row.style.display=(currentUser&&currentUser.role==='admin')?'':'none';
+  const sec=document.getElementById('resetPwdSection');
+  if(sec)sec.style.display=(currentUser&&currentUser.role==='admin')?'':'none';
   const sw=document.getElementById('admin2Switch');
   if(sw)sw.classList.toggle('on',admin2Enabled!==false);
 }
@@ -1411,7 +1413,7 @@ function getBatchRange(prefix){
   return {start,end};
 }
 async function exportAllGroupsExcel(){
-  if(!isAdmin())return;
+  if(!(isAdmin()||isAdmin2()))return;
   const range=getBatchRange('batchExport');
   if(!range){toast('请选择导出日期范围');return;}
   if(typeof XLSX==='undefined'){
@@ -1454,7 +1456,7 @@ async function exportAllGroupsExcel(){
   toast('已导出 '+count+' 个小组');
 }
 async function adminBatchBaseOff(){
-  if(!isAdmin())return;
+  if(!(isAdmin()||isAdmin2()))return;
   const range=getBatchRange('batchBase');
   if(!range){toast('请选择日期范围');return;}
   if(!confirm('确定对全部小组在 '+fmt(range.start)+' ~ '+fmt(range.end)+' 关闭基础分吗？'))return;
