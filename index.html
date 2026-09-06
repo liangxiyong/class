@@ -169,9 +169,13 @@ async function doLogin(){
     err.textContent='用户名或密码错误，请重试或联系管理员重置';
     return;
   }
-  const meta=(data.user.user_metadata)||{};
-  const role=meta.role||'user';
-  const gid=meta.group_id||null;
+  // 权威角色从 users 表读取（JWT user_metadata 用户可自行篡改，不可信）
+  let role='user',gid=null;
+  try{
+    const rresp=await fetch(SUPABASE_URL+'/rest/v1/users?username=eq.'+encodeURIComponent(name)+'&select=role,group_id',{headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+data.session.access_token}});
+    const rrows=await rresp.json();
+    if(rrows&&rrows.length){role=rrows[0].role||'user';gid=rrows[0].group_id||null;}
+  }catch(e){}
   if(role==='user'){err.textContent='该账号无权限，请联系管理员';await SB.auth.signOut();return;}
   localStorage.setItem(SESSION_KEY,JSON.stringify({name,role,groupId:gid||undefined}));
   if(role==='admin2'){

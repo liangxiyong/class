@@ -25,12 +25,32 @@ create table if not exists leaders (
 );
 
 -- 2.1 用户表：账号角色信息（登录/改密走 Supabase Auth，本表不再存密码）
+-- email 列用于 RLS 角色判定关联（JWT user_metadata 用户可自行篡改，不再可信）
 create table if not exists users (
   username text primary key,            -- 登录用户名
   password text not null default '',    -- 保留列（不再使用，置空）
   role     text not null,               -- admin / admin2 / teacher / leader / user
-  group_id text                         -- 组长所属组 '1' ~ '10'
+  group_id text,                        -- 组长所属组 '1' ~ '10'
+  email    text                         -- 登录邮箱（拼音@jfz.local），新建账号时务必同步填写
 );
+-- 现有账号补齐 email（与前端 emailOf 拼音映射一致）
+update users set email = case username
+  when 'admin' then 'admin@jfz.local'
+  when 'admin2' then 'admin2@jfz.local'
+  when 'teacher' then 'teacher@jfz.local'
+  when '张益铭' then 'zhangyiming@jfz.local'
+  when '董子瑜' then 'dongziyu@jfz.local'
+  when '梁锡永' then 'liangxiyong@jfz.local'
+  when '杨佳诺' then 'yangjianuo@jfz.local'
+  when '马语秋' then 'mayuqiu@jfz.local'
+  when '刘亦峻' then 'liuyijun@jfz.local'
+  when '冯馨熠' then 'fengxinyi@jfz.local'
+  when '黄詩宸' then 'huangshichen@jfz.local'
+  when '谭梦瑶' then 'tanmengyao@jfz.local'
+  when '张邵宸' then 'zhangshaochen@jfz.local'
+  else username || '@jfz.local'
+end
+where email is null or email = '';
 
 -- 2.2 班级数据表：整班眼操/纪律数据存单行（id='class'）
 create table if not exists class_data (
@@ -45,12 +65,14 @@ alter table leaders enable row level security;
 alter table users enable row level security;
 alter table class_data enable row level security;
 
--- 3.0 辅助函数：读取当前登录用户（JWT user_metadata）的角色与组号
-create or replace function jfz_role() returns text language sql stable as $$
-  select coalesce(nullif(auth.jwt()->'user_metadata'->>'role',''),'')
+-- 3.0 辅助函数：读取当前登录用户角色与组号
+-- 安全加固：改查 users 表（仅 admin/teacher 可写，用户不可篡改）；
+-- JWT user_metadata 用户可自行修改（updateUser），此前存在提权漏洞，已弃用。
+create or replace function jfz_role() returns text language sql stable security definer set search_path = public as $$
+  select coalesce(nullif((select role from public.users where email = auth.jwt()->>'email'),''),'')
 $$;
-create or replace function jfz_group() returns text language sql stable as $$
-  select coalesce(nullif(auth.jwt()->'user_metadata'->>'group_id',''),'')
+create or replace function jfz_group() returns text language sql stable security definer set search_path = public as $$
+  select coalesce(nullif((select group_id from public.users where email = auth.jwt()->>'email'),''),'')
 $$;
 
 -- 3.1 group_data：admin/teacher 全权；admin2/组长仅自己组（读写删均按组）
@@ -123,7 +145,7 @@ set search_path = public, extensions
 as $$
 declare v_uid uuid;
 begin
-  if (auth.jwt()->'user_metadata'->>'role') not in ('admin','teacher') then
+  if jfz_role() not in ('admin','teacher') then
     raise exception '无权限：仅管理员可重置密码';
   end if;
   if p_new_password is null then

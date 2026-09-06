@@ -3999,10 +3999,22 @@ render();
     const {data:sd}=await SB.auth.getSession();
     if(!sd||!sd.session){requireLogin();return;}
     sbAccessToken=sd.session.access_token;
-    // 从 JWT 用户信息重建 currentUser（兼容旧 localStorage 会话缺失）
-    const meta=(sd.session.user&&sd.session.user.user_metadata)||{};
+    // 从 users 表重建 currentUser（权威角色；user_metadata 用户可改，仅作兜底）
+    let cu=null;
     if(!currentUser){
-      currentUser={name:meta.username||'',role:meta.role||'user',groupId:meta.group_id||null};
+      try{
+        const em=(sd.session.user&&sd.session.user.email)||'';
+        if(em){
+          const rresp=await sbFetch('users?email=eq.'+encodeURIComponent(em)+'&select=username,role,group_id');
+          const rrows=await rresp.json();
+          if(rrows&&rrows.length)cu={name:rrows[0].username||'',role:rrows[0].role||'user',groupId:rrows[0].group_id||null};
+        }
+      }catch(e){}
+      if(!cu){
+        const meta=(sd.session.user&&sd.session.user.user_metadata)||{};
+        cu={name:meta.username||'',role:meta.role||'user',groupId:meta.group_id||null};
+      }
+      currentUser=cu;
       try{saveSession();}catch(e){}
     }
     await loadLeaders();
