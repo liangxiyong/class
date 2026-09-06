@@ -2599,11 +2599,19 @@ function renderFormulaSection(){
     wsec.style.display='none';
   }
 }
+function formulaMaxN(item){
+  let m=item.formula.minN;
+  const t=item.formula.tiers||{};
+  for(const k in t){const n=+k;if(n>m)m=n;}
+  return m;
+}
 function updateFormulaPreview(){
   const item=state.items.find(i=>i.id===activeCell.iid);
   const N=parseInt(document.getElementById('rankInput').value,10);
   const el=document.getElementById('formulaPreview');
   if(isNaN(N)){el.textContent='—';el.className='formula-preview';return;}
+  const maxN=formulaMaxN(item);
+  if(N<1||N>maxN){el.textContent='名次不合法（请输入 1~'+maxN+'）';el.className='formula-preview none';return;}
   const r=formulaTotal(item,N);
   if(r===null){el.textContent='名次需 ≤ '+item.formula.minN;el.className='formula-preview none';return;}
   el.textContent=(r.total>0?'+':'')+r.total+' 分';
@@ -2614,6 +2622,8 @@ function applyFormula(){
   const item=state.items.find(i=>i.id===activeCell.iid);
   const N=parseInt(document.getElementById('rankInput').value,10);
   if(isNaN(N)){toast('请输入名次');return;}
+  const maxN=formulaMaxN(item);
+  if(N<1||N>maxN){toast('名次不合法（请输入 1~'+maxN+'）');return;}
   const r=formulaTotal(item,N);
   if(r===null){toast('名次需 ≤ '+item.formula.minN+'（或按扣分档）');return;}
   const label='名次'+N+(r.parts.length?'（'+r.parts.join('、')+'）':'');
