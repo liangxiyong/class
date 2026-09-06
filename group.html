@@ -1210,9 +1210,7 @@ const DEFAULT_ITEMS = [
     {label:'倒数第5名', value:-2},{label:'倒数第4名', value:-4},
     {label:'倒数第3名', value:-6},{label:'倒数第2名', value:-8},
     {label:'倒数第1名', value:-10},{label:'不及格', value:-6}]},
-  {id:'good', name:'好人好事', formula:{expr:'46-N+1', minN:41}, weights:[
-    {id:'xw1', label:'馨菱1', pct:10, group:'xw'},
-    {id:'xw2', label:'馨菱2', pct:5, group:'xw'}], presets:[
+  {id:'good', name:'好人好事', presets:[
     {label:'一般', value:2}]}
 ];
 const DEFAULT_STATE = {
@@ -1578,20 +1576,18 @@ function migrateItems(s){
 }
 function fixFormulaMinN(s){
   (s.items||[]).forEach(it=>{
-    if(it.formula&&(it.id==='month'||it.id==='good')){
+    if(it.formula&&it.id==='month'){
       if(it.formula.minN<=5)it.formula.minN=41;
-      if(it.id==='month'){
-        it.formula.expr='47-N';
-        if(!it.formula.tiers)it.formula.tiers={42:-2,43:-4,44:-6,45:-8,46:-10};
-      }
+      it.formula.expr='47-N';
+      if(!it.formula.tiers)it.formula.tiers={42:-2,43:-4,44:-6,45:-8,46:-10};
     }
   });
 }
 function fixGoodWeights(s){
   const good=(s.items||[]).find(i=>i.id==='good');
-  if(good&&Array.isArray(good.weights)){
-    good.weights=good.weights.filter(w=>w.id!=='top20');
-  }
+  if(!good)return;
+  if(good.formula)delete good.formula;
+  good.weights=[];
 }
 function normalizeScores(s){
   if(!s.scores)return;
