@@ -446,14 +446,29 @@ const STUDENT_NAMES=[
   [5,'马语秋'],[5,'张儒溪'],[5,'邓泽雨'],[5,'马雨欣'],
   [6,'刘亦峻'],[6,'郭一涵'],[6,'章浩宸'],[6,'梁馨悦'],
   [7,'冯馨熠'],[7,'李晞玥'],[7,'盖俊杰'],[7,'王玺朝'],
-  [8,'黄靖宸'],[8,'刘若安'],[8,'李恩'],[8,'王琳钰'],
+  [8,'黄詩宸'],[8,'刘若安'],[8,'李恩'],[8,'王珮钰'],
   [9,'谭梦瑶'],[9,'周倾淳'],[9,'姚静怡'],[9,'陈浩天'],
-  [10,'张邵宸'],[10,'王仁可'],[10,'刘祖希'],[10,'张天阳']
+  [10,'张邵宸'],[10,'王仁可'],[10,'刘相希'],[10,'张天阳']
 ];
+// 旧名单 → 新名单（与小组积分 GROUP_MEMBERS 对齐），改名时保留原学生 id 与记录
+const STUDENT_RENAME={'黄靖宸':'黄詩宸','王琳钰':'王珮钰','刘祖希':'刘相希'};
+function syncStudentNames(st){
+  if(!st||!Array.isArray(st.students))return false;
+  let changed=false;
+  st.students.forEach(s=>{
+    const nw=STUDENT_RENAME[s.name];
+    if(nw){s.name=nw;changed=true;}
+  });
+  const has=new Map(st.students.map(s=>[s.group+':'+s.name,s]));
+  STUDENT_NAMES.forEach(([g,n])=>{
+    if(!has.has(g+':'+n)){st.students.push({id:uid(),name:n,group:g});has.set(g+':'+n,1);changed=true;}
+  });
+  return changed;
+}
 
 /* ================= 状态 ================= */
 let state=loadState();
-if(dedupeStudents(state)){localStorage.setItem(KEY,JSON.stringify(state));}
+if(syncStudentNames(state)||dedupeStudents(state)){localStorage.setItem(KEY,JSON.stringify(state));}
 let currentUser=loadSession();
 let currentView='eye';
 let exportWeekStart=getMonday(new Date());
@@ -708,6 +723,7 @@ function mergeState(local,remote){
   (remote.students||[]).forEach(s=>{if(!stMap.has(s.id))stMap.set(s.id,s);});
   out.students=[...stMap.values()];
   if(remote.admin2Enabled!==undefined)out.admin2Enabled=remote.admin2Enabled;
+  syncStudentNames(out);
   dedupeStudents(out);
   return out;
 }
