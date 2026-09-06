@@ -511,7 +511,7 @@ function queueClassSave(){
   if(classSaveTimer)clearTimeout(classSaveTimer);
   classSaveTimer=setTimeout(()=>{
     classSaveTimer=null;
-    saveClassData(state).then(()=>{
+    uploadClassState().then(()=>{
       setSyncStatus('✅ 已上传 '+new Date().toLocaleTimeString('zh-CN'),'var(--green)');
     }).catch(()=>{
       toast('云端保存失败，已保存在本机');
@@ -536,7 +536,7 @@ function logout(){
     location.href='index.html';
   };
   if(classSaveTimer){clearTimeout(classSaveTimer);classSaveTimer=null;}
-  saveClassData(state).then(done).catch(done);
+  uploadClassState().then(done).catch(done);
 }
 async function doChangePwdMe(){
   const old=document.getElementById('pwdMeOld').value;
@@ -655,6 +655,17 @@ async function saveClassData(data){
   const body={id:'class',data:data,updated_at:new Date().toISOString()};
   await sbFetch('class_data?on_conflict=id',{method:'POST',body:JSON.stringify(body),headers:{'Prefer':'resolution=merge-duplicates,return=minimal'}});
 }
+async function uploadClassState(){
+  // 上传前合并云端 admin2Enabled：避免用本地旧缓存覆盖 group 页刚改的开关状态
+  let a2e;
+  try{
+    const remote=await loadClassData();
+    if(remote&&remote.admin2Enabled!==undefined)a2e=remote.admin2Enabled;
+  }catch(e){}
+  const final=JSON.parse(JSON.stringify(state));
+  if(a2e!==undefined)final.admin2Enabled=a2e;
+  await saveClassData(final);
+}
 async function loadClassData(){
   const resp=await sbFetch('class_data?id=eq.class&select=data');
   const rows=await resp.json();
@@ -692,7 +703,7 @@ async function cloudPush(silent){
         }
       }catch(e){}
     }
-    await saveClassData(state);
+    await uploadClassState();
     cloudCfg.lastSync=Date.now();saveCloudCfg();
     setSyncStatus('✅ 已上传 '+new Date().toLocaleTimeString('zh-CN'),'var(--green)');
     if(!silent)toast('已上传到云端');
