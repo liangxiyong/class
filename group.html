@@ -1435,7 +1435,9 @@ async function exportAllGroupsExcel(){
         rows.push([]);
       }
       if(rows.length){
-        XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),GROUP_NAMES[gid]);
+        const ws=XLSX.utils.aoa_to_sheet(rows);
+        beautifySheet(ws);
+        XLSX.utils.book_append_sheet(wb,ws,GROUP_NAMES[gid]);
         count++;
       }
     }
@@ -3573,6 +3575,58 @@ function clearAllData(){
 }
 
 /* ================= Excel 导出 ================= */
+/* 美化工作表：列宽自适应、标题行合并、冻结表头、数字格式 */
+function beautifySheet(ws, opts){
+  opts=opts||{};
+  if(!ws||!ws['!ref'])return ws;
+  const range=XLSX.utils.decode_range(ws['!ref']);
+  const R0=range.s.r, C0=range.s.c, R1=range.e.r, C1=range.e.c;
+  // 1. 列宽自适应（中文按2字符宽）
+  const cols=[];
+  for(let C=C0;C<=C1;C++){
+    let max=5;
+    for(let R=R0;R<=R1;R++){
+      const cell=ws[XLSX.utils.encode_cell({r:R,c:C})];
+      if(cell&&cell.v!=null&&String(cell.v).trim()!==''){
+        const s=String(cell.v);
+        const cjk=(s.match(/[\u4e00-\u9fa5]/g)||[]).length;
+        const w=s.length+cjk;
+        if(w>max)max=w;
+      }
+    }
+    cols.push({wch:Math.min(max+2,28)});
+  }
+  ws['!cols']=cols;
+  // 2. 合并标题行（只有A列有内容且看起来是标题的行）
+  const merges=ws['!merges']||[];
+  const titleKeywords=['月','日','周','学期','统计','报告','汇总'];
+  for(let R=R0;R<=R1;R++){
+    let filled=0, firstVal='';
+    for(let C=C0;C<=C1;C++){
+      const cell=ws[XLSX.utils.encode_cell({r:R,c:C})];
+      if(cell&&cell.v!=null&&String(cell.v).trim()!==''){
+        filled++;
+        if(filled===1)firstVal=String(cell.v);
+      }
+    }
+    if(filled===1&&C1>C0&&titleKeywords.some(k=>firstVal.indexOf(k)>=0)){
+      merges.push({s:{r:R,c:C0},e:{r:R,c:C1}});
+    }
+  }
+  if(merges.length)ws['!merges']=merges;
+  // 3. 冻结前两行（标题+表头）
+  ws['!freeze']={xSplit:0,ySplit:opts.freezeRows||2};
+  // 4. 数字列格式（分数列保留1位小数）
+  for(let R=R0;R<=R1;R++){
+    for(let C=C0;C<=C1;C++){
+      const cell=ws[XLSX.utils.encode_cell({r:R,c:C})];
+      if(cell&&cell.t==='n'&&typeof cell.v==='number'&&!Number.isInteger(cell.v)){
+        cell.z='0.0';
+      }
+    }
+  }
+  return ws;
+}
 function buildDayBlock(dk,students){
   const d=parseDate(dk);
   const rows=[];
@@ -3697,6 +3751,7 @@ function doExportExcel(){
       dates.forEach(d=>{rows.push(...buildDayBlock(fmt(d),sts));rows.push([]);});
       rows.push(...buildWeekSummaryRows(monday,sts));
       const ws=XLSX.utils.aoa_to_sheet(rows);
+      beautifySheet(ws);
       XLSX.utils.book_append_sheet(wb,ws,g);
     });
   }else if(currentView==='monthly'){
@@ -3704,6 +3759,7 @@ function doExportExcel(){
     groups.forEach(g=>{
       const sts=studentsOfGroup(g);
       const ws=XLSX.utils.aoa_to_sheet(buildMonthSummaryRows(y,m,sts));
+      beautifySheet(ws);
       XLSX.utils.book_append_sheet(wb,ws,g);
       const dRows=[];
       const n=monthDays(y,m);
@@ -3713,12 +3769,14 @@ function doExportExcel(){
         dRows.push(...buildDayBlock(fmt(dt),sts));dRows.push([]);
       }
       const ws2=XLSX.utils.aoa_to_sheet(dRows);
+      beautifySheet(ws2);
       XLSX.utils.book_append_sheet(wb,ws2,g+'明细');
     });
   }else if(currentView==='semester'){
     groups.forEach(g=>{
       const sts=studentsOfGroup(g);
       const ws=XLSX.utils.aoa_to_sheet(buildSemesterRows(sts));
+      beautifySheet(ws);
       XLSX.utils.book_append_sheet(wb,ws,g);
     });
   }

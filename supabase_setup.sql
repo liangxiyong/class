@@ -75,6 +75,13 @@ create or replace function jfz_group() returns text language sql stable security
   select coalesce(nullif((select group_id from public.users where email = auth.jwt()->>'email'),''),'')
 $$;
 
+-- 3.0.1 admin2 开关读取（security definer 绕过 RLS，避免 class_data 策略循环依赖）
+-- 修复：admin2Enabled=false 时 admin2 不应通过 API 访问 class_data（此前 RLS 只查 role，开关形同虚设）
+create or replace function public.is_admin2_enabled() returns boolean
+language sql stable security definer set search_path = public as $$
+  select coalesce((select (data->>'admin2Enabled')::boolean from public.class_data where id='class'), true)
+$$;
+
 -- 3.1 group_data：admin/teacher 全权；admin2/组长仅自己组（读写删均按组）
 drop policy if exists "group_data_all" on group_data;
 drop policy if exists "group_data_select" on group_data;
@@ -121,14 +128,14 @@ drop policy if exists "class_data_insert" on class_data;
 drop policy if exists "class_data_update" on class_data;
 drop policy if exists "class_data_delete" on class_data;
 create policy "class_data_select" on class_data
-  for select using (jfz_role() in ('admin','teacher','admin2'));
+  for select using (jfz_role() in ('admin','teacher') or (jfz_role()='admin2' and public.is_admin2_enabled()));
 create policy "class_data_insert" on class_data
-  for insert with check (jfz_role() in ('admin','teacher','admin2'));
+  for insert with check (jfz_role() in ('admin','teacher') or (jfz_role()='admin2' and public.is_admin2_enabled()));
 create policy "class_data_update" on class_data
-  for update using (jfz_role() in ('admin','teacher','admin2'))
-  with check (jfz_role() in ('admin','teacher','admin2'));
+  for update using (jfz_role() in ('admin','teacher') or (jfz_role()='admin2' and public.is_admin2_enabled()))
+  with check (jfz_role() in ('admin','teacher') or (jfz_role()='admin2' and public.is_admin2_enabled()));
 create policy "class_data_delete" on class_data
-  for delete using (jfz_role() in ('admin','teacher','admin2'));
+  for delete using (jfz_role() in ('admin','teacher') or (jfz_role()='admin2' and public.is_admin2_enabled()));
 
 -- 3.5 表级授权（策略负责行级过滤）
 grant select, insert, update, delete on group_data to anon, authenticated;
