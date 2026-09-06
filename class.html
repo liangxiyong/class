@@ -175,14 +175,28 @@ tr:hover td{background:rgba(246,241,232,.5)}
   .app{flex-direction:column;height:auto;min-height:100vh}
   .sidebar{
     width:100%;flex-direction:row;align-items:center;padding:6px 8px;
-    position:sticky;top:0;z-index:50;flex-shrink:0;
+    position:fixed;top:0;left:0;right:0;z-index:120;flex-shrink:0;
     box-shadow:0 2px 14px rgba(30,24,20,.2);
   }
   .brand{padding:0 6px;border-bottom:none;font-size:14px;flex:none}
   .brand .ico{font-size:15px}
   .sidebar-user{display:none}
-  .nav{flex:1;display:flex;gap:2px;margin-top:0;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
-  .nav-item{flex:none;padding:10px 13px;font-size:14px;margin-bottom:0;gap:5px;white-space:nowrap}
+  /* 手机端独立 UI：底部固定 Tab 栏（App 风格） */
+  .nav{
+    position:fixed;bottom:0;left:0;right:0;top:auto;flex:none;
+    width:100%;display:flex;justify-content:space-around;align-items:stretch;
+    gap:2px;padding:5px 4px calc(5px + env(safe-area-inset-bottom));
+    margin-top:0;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;
+    background:rgba(255,255,255,.98);
+    border-top:1px solid var(--line);
+    box-shadow:0 -3px 14px rgba(30,24,20,.1);
+    z-index:120;
+  }
+  .nav-item{
+    flex:1 1 0;flex-direction:column;gap:2px;
+    padding:6px 2px;font-size:10.5px;white-space:nowrap;
+    text-align:center;border-radius:10px;min-width:50px;
+  }
   .sidebar-sync{display:none}
   .sidebar-logout{
     display:block;margin:0 2px 0 4px;padding:6px 8px;border-radius:7px;
@@ -190,7 +204,7 @@ tr:hover td{background:rgba(246,241,232,.5)}
     flex:none;white-space:nowrap;
   }
   .admin-btn{padding:5px 8px;font-size:11px;gap:4px}
-  .main{padding:14px 12px 60px}
+  .main{padding:64px 12px 80px}
   .topbar .title{font-size:19px}
   .date-box{flex:1;min-width:0}
   .sync-status{display:none}
@@ -211,10 +225,10 @@ tr:hover td{background:rgba(246,241,232,.5)}
 @media(max-width:480px){
   .brand .ico{display:none}
   .brand{font-size:13px;padding:0 4px}
-  .nav-item{padding:9px 12px;font-size:13.5px}
+  .nav-item{padding:5px 2px;font-size:10px}
   .sidebar-logout{padding:5px 7px;font-size:10.5px}
   .admin-btn{padding:4px 7px;font-size:10.5px}
-  .main{padding:12px 10px 56px}
+  .main{padding:12px 10px 78px}
   .topbar .title{font-size:17px}
   .panel{padding:12px 10px}
   .eye-btn{padding:4px 7px;font-size:10.5px}
