@@ -1654,9 +1654,9 @@ function queueSbSave(){
   sbSaveTimer=setTimeout(()=>{
     sbSaveTimer=null;
     saveGroupData(currentGroupId,state).then(()=>{
-      const st=document.getElementById('syncStatus');
-      if(st)st.textContent='☁️ 已同步 '+new Date().toLocaleTimeString('zh-CN');
-    }).catch(()=>{
+      setSyncStatus('✅ 已同步 '+new Date().toLocaleTimeString('zh-CN'),'var(--green)');
+    }).catch(err=>{
+      setSyncStatus('❌ 云端保存失败：'+(err&&err.message?err.message:'未知错误'),'var(--red)');
       toast('云端保存失败，已保存在本机，稍后重试');
     });
   },300);
@@ -1744,7 +1744,11 @@ async function saveGroupData(groupId,data){
   const out=Object.assign({},data);
   // 防御：绝不让历史残留的 _allStudents 字段上传到云端
   delete out._allStudents;
-  // 防御：名单为空时拒绝覆盖云端（防止坏缓存把整组名单冲掉）
+  // 防御：名单为空时用默认名单兜底恢复，避免阻断正常保存（比直接拒绝更安全）
+  if(!out.students||!out.students.length){
+    const def=initGroupState(groupId);
+    if(def&&def.students&&def.students.length)out.students=def.students;
+  }
   if(!out.students||!out.students.length)throw new Error('名单为空，已阻止覆盖云端');
   const body={group_id:groupId,group_name:GROUP_NAMES[groupId]||('第'+groupId+'组'),data:out,updated_at:new Date().toISOString()};
   // 用 UPSERT（on_conflict=group_id + merge-duplicates）：行不存在时自动插入，
