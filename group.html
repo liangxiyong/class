@@ -1526,6 +1526,14 @@ function applyPersonalMode(s){
   s.students=(s.students||[]).filter(st=>st.name===currentUser.name);
   return s;
 }
+// 自愈历史坏缓存：早期个人模式把截断版+_allStudents 存进了本地缓存，读回时用 _allStudents 还原完整名单
+function repairPersonalCache(s){
+  if(s&&Array.isArray(s._allStudents)&&s._allStudents.length>=1){
+    s.students=s._allStudents;
+  }
+  delete s._allStudents;
+  return s;
+}
 function canManageMembers(){if(isPersonalMode())return false;return isAdmin()||isLeader()||isAdmin2();}
 function canAccessSettings(){return !!currentUser;}
 function canAccessCloud(){return isAdmin()||isAdmin2();}
@@ -1574,6 +1582,7 @@ function loadState(){
     if(raw){
       const s=JSON.parse(raw);
       if(s&&s.items){
+        repairPersonalCache(s);
         if(!s.font)s.font='sans';
         if(!s.groupName)s.groupName='';
         if(s.groupName==='第3组')s.groupName='';
@@ -1626,13 +1635,14 @@ function normalizeScores(s){
 }
 function save(){
   state.lastModified=Date.now();
+  const snap=personalSnapshot(state);
   try{
     const bak=localStorage.getItem(KEY);
     if(bak)localStorage.setItem(KEY+'_bak',bak);
   }catch(e){}
-  try{localStorage.setItem(KEY, JSON.stringify(state));}catch(e){}
+  try{localStorage.setItem(KEY, JSON.stringify(snap));}catch(e){}
   if(currentGroupId){
-    try{localStorage.setItem('jfz_group_local_'+currentGroupId,JSON.stringify(state));}catch(e){}
+    try{localStorage.setItem('jfz_group_local_'+currentGroupId,JSON.stringify(snap));}catch(e){}
     queueSbSave();
   }
 }
@@ -1811,7 +1821,7 @@ function loadLocalGroup(groupId){
     const raw=localStorage.getItem('jfz_group_local_'+groupId);
     if(raw){
       const s=JSON.parse(raw);
-      if(s&&s.items){normalizeScores(s);return s;}
+      if(s&&s.items){repairPersonalCache(s);normalizeScores(s);return s;}
     }
   }catch(e){}
   return null;
@@ -2369,6 +2379,13 @@ function switchView(v){
   if(v==='settings')renderSettings();
 }
 function render(){
+  // 个人模式守卫：任何渲染前确保 students 已截断为自己（防止缓存完整版在初始化期间短暂泄露全组）
+  try{
+    if(isPersonalMode()&&state&&state.students&&state.students.length!==1){
+      if(!state._allStudents)state._allStudents=state.students||[];
+      state.students=(state.students||[]).filter(st=>st.name===currentUser.name);
+    }
+  }catch(e){}
   // 只渲染当前可见视图：全量渲染在手机端会造成卡顿/闪退（每次轮询重建 6 个视图的 DOM）
   try{
     const v=currentView||'daily';
@@ -4223,7 +4240,8 @@ setSyncStatus(cloudCfg.lastSync?('上次同步：'+new Date(cloudCfg.lastSync).t
   preloadMonth(now.getFullYear(),now.getMonth());
   preloadMonth(now.getFullYear(),now.getMonth()+1);
 })();
-render();
+// 同步阶段 currentUser 尚未就绪（登录信息在下方异步 IIFE 中重建），此时渲染会用缓存完整名单造成个人模式短暂泄露全组，故延后
+if(currentUser)render();
 // 手机端：左右滑动切换日期/周/月（竖滑正常滚动）
 (function bindSwipe(){
   if(typeof window==='undefined'||!('ontouchstart'in window))return;
