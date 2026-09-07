@@ -538,22 +538,22 @@ td.total-col.zero{color:#cfc4b4}
 @media(max-width:768px){
   .sidebar{
     position:fixed;top:0;left:0;right:0;bottom:auto;width:100%;height:auto;
-    flex-direction:row;align-items:center;padding:0 6px;
+    flex-direction:row;align-items:center;padding:7px 8px;
     box-shadow:0 2px 14px rgba(30,24,20,.2);
     z-index:120;
   }
-  .brand{padding:6px 8px;border-bottom:none;display:flex;align-items:center;gap:7px;flex:none}
-  .brand .mark{width:26px;height:26px;font-size:14px;margin-bottom:0;border-radius:7px}
+  .brand{padding:4px 6px;border-bottom:none;display:flex;align-items:center;gap:7px;flex:none}
+  .brand .mark{width:28px;height:28px;font-size:15px;margin-bottom:0;border-radius:8px}
   .brand .title{font-size:15px;letter-spacing:1px}
   .brand .sub{display:none}
   .group-switch{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:4px;padding:0 4px;border-bottom:none}
   .group-switch-label{display:none}
-  .group-switch select{max-width:150px;font-size:12px;padding:4px 6px}
+  .group-switch select{max-width:130px;font-size:13px;padding:6px 8px}
   /* 手机端独立 UI：底部固定 Tab 栏（App 风格） */
   .nav{
     position:fixed;bottom:0;left:0;right:0;top:auto;flex:none;
     width:100%;display:flex;justify-content:space-around;align-items:stretch;
-    gap:2px;padding:5px 4px calc(5px + env(safe-area-inset-bottom));
+    gap:2px;padding:6px 4px calc(6px + env(safe-area-inset-bottom));
     overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;
     background:rgba(255,255,255,.98);
     border-top:1px solid var(--line);
@@ -564,9 +564,15 @@ td.total-col.zero{color:#cfc4b4}
     flex:1 1 0;flex-direction:column;gap:2px;
     padding:6px 2px;font-size:10.5px;white-space:nowrap;
     text-align:center;border-radius:10px;min-width:50px;
+    transition:background .15s;
   }
   .nav-item .ico{font-size:17px;width:auto}
-  .nav-item.active{box-shadow:none}
+  .nav-item.active{
+    background:rgba(192,57,43,.1);
+    color:var(--accent);
+    font-weight:600;
+    box-shadow:inset 0 -2px 0 var(--accent);
+  }
   .sidebar-foot{display:none}
   .sidebar-logout{
     display:block;margin:0 2px 0 4px;padding:6px 8px;border-radius:7px;
@@ -574,7 +580,7 @@ td.total-col.zero{color:#cfc4b4}
     flex:none;white-space:nowrap;
   }
   .admin-btn{top:6px;right:8px;padding:5px 8px;font-size:11px;gap:4px}
-  .main{margin-left:0;padding:64px 12px 80px}
+  .main{margin-left:0;padding:68px 12px 82px}
   .view-title{font-size:22px}
   .view-sub{font-size:12px}
   .summary-card{min-width:120px;padding:12px 14px}
@@ -601,7 +607,7 @@ td.total-col.zero{color:#cfc4b4}
   .nav-item .ico{font-size:16px}
   .sidebar-logout{padding:5px 7px;font-size:10.5px}
   .admin-btn{padding:4px 7px;font-size:10.5px}
-  .main{padding:58px 10px 78px}
+  .main{padding:62px 10px 80px}
   .view-title{font-size:20px}
   .summary-card{min-width:calc(50% - 7px);flex:1}
   .summary-row{gap:10px}
@@ -619,7 +625,9 @@ td.total-col.zero{color:#cfc4b4}
   .score-table th,.score-table td{padding:8px 5px}
   .sticky-col{box-shadow:2px 0 5px rgba(30,24,20,.07)}
   .btn{min-height:40px;display:inline-flex;align-items:center;justify-content:center}
-  .preset-btn{min-height:40px;display:flex;align-items:center;justify-content:center}
+  .preset-btn{min-height:46px;display:flex;align-items:center;justify-content:center;padding:8px 6px}
+  .preset-btn .pv{font-size:15px;font-weight:600}
+  .preset-btn .pl{font-size:12px}
   .toolbar{flex-wrap:wrap}
   .summary-row{overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px}
   .modal-body{padding-bottom:calc(12px + env(safe-area-inset-bottom))}
@@ -650,18 +658,19 @@ td.total-col.zero{color:#cfc4b4}
   /* 手机端压缩：让表格尽量一页放下，去掉多余滚动 */
   .view-head{margin-bottom:8px}
   .view-head h2{font-size:15px}
-  .summary-card{padding:8px 8px;min-width:0}
-  .summary-card .k{font-size:10.5px;margin-bottom:2px}
-  .summary-card .v{font-size:16px}
+  .summary-card{padding:10px 10px;min-width:0}
+  .summary-card .k{font-size:11px;margin-bottom:3px}
+  .summary-card .v{font-size:18px}
   .table-wrap{max-height:none}
-  .score-table th{padding:5px 3px;font-size:11px;letter-spacing:0}
-  .score-table td{padding:4px 2px;font-size:12px}
+  .score-table th{padding:6px 4px;font-size:11.5px;letter-spacing:0}
+  .score-table td{padding:5px 3px;font-size:12.5px}
   .score-table th.sticky-col,.score-table td.sticky-col{
-    min-width:64px;max-width:74px;padding-left:6px;padding-right:6px;
-    font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    min-width:78px;max-width:88px;padding-left:8px;padding-right:8px;
+    font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    font-weight:600;
   }
-  .cell{min-width:40px}
-  .cell .val{font-size:13px}
+  .cell{min-width:44px}
+  .cell .val{font-size:14px;font-weight:500}
   .name-check span{font-size:12.5px}
   .name-check input{width:16px;height:16px}
 }
