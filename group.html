@@ -1916,7 +1916,7 @@ function loadLocalGroup(groupId){
     const raw=localStorage.getItem('jfz_group_local_v2_'+groupId);
     if(raw){
       const s=JSON.parse(raw);
-      if(s&&s.items){repairPersonalCache(s);normalizeScores(s);return s;}
+      if(s&&s.items){repairPersonalCache(s);normalizeGroupData(s,groupId);return s;}
     }
   }catch(e){}
   return null;
@@ -1927,51 +1927,62 @@ function initGroupState(groupId){
   s.students=(GROUP_MEMBERS[groupId]||[]).map(n=>({id:uid(),name:n}));
   return s;
 }
-/* 规范化小组数据（迁移+修复，批量导出时云端原始数据必须经过此处理） */
+/* 规范化小组数据（迁移+修复，批量导出时云端原始数据必须经过此处理）
+   返回 true 表示发生了问号污染修复（调用方应写回云端） */
 function normalizeGroupData(s,groupId){
-  if(!s||!s.items)return s;
+  if(!s||!s.items)return false;
+  let fixed=false;
   if(!s.groupName)s.groupName=GROUP_NAMES[groupId]||('第'+groupId+'组');
   if(s.itemsVer!==3){migrateItems(s);s.itemsVer=3;}
   fixGoodWeights(s);
   fixFormulaMinN(s);
   normalizeScores(s);
-  // 自动修复被编码污染的姓名（???）：通过 id 映射恢复，防止 localStorage 旧数据覆盖云端
+  // 自动修复被编码污染的姓名（???/？？？）：seed id 可直接还原；手动添加的成员（uid id）按组内位置对齐 GROUP_MEMBERS 还原
+  const hasQM=s=>s!=null&&/[?？]/.test(String(s));
   const itemNameMap={};
   DEFAULT_ITEMS.forEach(it=>itemNameMap[it.id]=it.name);
-  (s.students||[]).forEach(st=>{
-    if((st.name||'').includes('?')){
+  const members=GROUP_MEMBERS[groupId]||[];
+  (s.students||[]).forEach((st,idx)=>{
+    if(hasQM(st.name)){
+      let fix=null;
       const m=st.id&&st.id.match(/^seed(\d+)_(\d+)$/);
-      if(m&&GROUP_MEMBERS[m[1]]&&GROUP_MEMBERS[m[1]][parseInt(m[2])-1])st.name=GROUP_MEMBERS[m[1]][parseInt(m[2])-1];
+      if(m&&GROUP_MEMBERS[m[1]]&&GROUP_MEMBERS[m[1]][parseInt(m[2])-1]){
+        fix=GROUP_MEMBERS[m[1]][parseInt(m[2])-1];
+      }else if(members[idx]){
+        fix=members[idx];
+      }
+      if(fix){st.name=fix;fixed=true;}
     }
   });
   (s.items||[]).forEach(it=>{
-    if((it.name||'').includes('?')&&itemNameMap[it.id])it.name=itemNameMap[it.id];
+    if(hasQM(it.name)&&itemNameMap[it.id]){it.name=itemNameMap[it.id];fixed=true;}
     const defItem=DEFAULT_ITEMS.find(d=>d.id===it.id);
     if(defItem){
       if(defItem.presets&&it.presets){
         it.presets.forEach((p,i)=>{
-          if((p.label||'').includes('?')&&defItem.presets[i])p.label=defItem.presets[i].label;
+          if(hasQM(p.label)&&defItem.presets[i]){p.label=defItem.presets[i].label;fixed=true;}
         });
       }
       if(defItem.weights&&it.weights){
         it.weights.forEach((w,i)=>{
-          if((w.label||'').includes('?')&&defItem.weights[i])w.label=defItem.weights[i].label;
+          if(hasQM(w.label)&&defItem.weights[i]){w.label=defItem.weights[i].label;fixed=true;}
         });
       }
     }
   });
-  return s;
+  return fixed;
 }
 async function loadGroupIntoState(groupId,allowEmpty){
   // allowEmpty: 页面初始化时传true（默认），允许云端失败时用空数据兜底；
   // Realtime/轮询/手动刷新时传false，云端失败时保持当前state绝不覆盖
   if(allowEmpty===undefined)allowEmpty=true;
   let s=null;
+  let fixedPollution=false;
   try{
     const row=await loadGroupData(groupId);
     if(row&&row.data&&row.data.items){
       s=row.data;
-      normalizeGroupData(s,groupId);
+      fixedPollution=normalizeGroupData(s,groupId);
       // 防御：云端名单异常为空时，用默认名单兜底（不读本地缓存）
       if(!s.students||!s.students.length)s=initGroupState(groupId);
       lastRemoteUpdatedAt=row.updated_at||0;
@@ -1986,6 +1997,7 @@ async function loadGroupIntoState(groupId,allowEmpty){
   state=s;
   currentGroupId=groupId;
   saveLocal();
+  if(fixedPollution)queueSbSave(); // 修复了问号污染则写回云端，避免云端长期存脏数据
   subscribeRealtime(groupId);
   const sub=document.getElementById('sidebarGroup');
   if(sub){sub.textContent=(GROUP_NAMES[groupId]||s.groupName)+(isPersonalMode()?' · 我的分数':'');sub.style.display='block';}
