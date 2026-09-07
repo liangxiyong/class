@@ -904,7 +904,7 @@ td.total-col.zero{color:#cfc4b4}
     </div>
     <div class="settings-grid">
       <div>
-        <div class="panel" style="margin-bottom:20px">
+        <div class="panel" id="panelGroupInfo" style="margin-bottom:20px">
           <div class="panel-title">小组信息</div>
           <div class="field">
             <label>小组名称（可留空）</label>
@@ -923,7 +923,7 @@ td.total-col.zero{color:#cfc4b4}
             <button class="btn btn-ghost" onclick="openChangePwdModal()">🔑 修改密码</button>
           </div>
         </div>
-        <div class="panel">
+        <div class="panel" id="panelItemsCfg">
           <div class="panel-title">评分项目与预设</div>
           <div id="itemsList"></div>
           <button class="add-item-btn" onclick="addItem()">＋ 添加新项目</button>
@@ -1508,7 +1508,25 @@ async function adminResetPwd(){
 }
 function isLeader(){return !!(currentUser&&currentUser.role==='leader');}
 function isAdmin2(){return !!(currentUser&&currentUser.role==='admin2');}
-function canManageMembers(){return isAdmin()||isLeader()||isAdmin2();}
+// 个人模式：leader 角色但不在组长名单中（如第三组普通成员），只能看/改自己的分数
+function isPersonalMode(){return !!(currentUser&&currentUser.role==='leader'&&!LEADER_GROUP[currentUser.name]);}
+// 保存前恢复完整学生名单，防止个人模式把整组覆盖成只剩自己
+function personalSnapshot(s){
+  if(isPersonalMode()&&s&&s._allStudents){
+    const out=Object.assign({},s,{students:s._allStudents});
+    delete out._allStudents;
+    return out;
+  }
+  return s;
+}
+// 加载后：备份完整名单，students 截断为当前用户自己
+function applyPersonalMode(s){
+  if(!isPersonalMode()||!s)return s;
+  s._allStudents=s.students||[];
+  s.students=(s.students||[]).filter(st=>st.name===currentUser.name);
+  return s;
+}
+function canManageMembers(){if(isPersonalMode())return false;return isAdmin()||isLeader()||isAdmin2();}
 function canAccessSettings(){return !!currentUser;}
 function canAccessCloud(){return isAdmin()||isAdmin2();}
 function updateNavForRole(){
@@ -1524,6 +1542,11 @@ function updateNavForRole(){
   if(secMembers)secMembers.style.display=canManageMembers()?'':'none';
   const addRow=document.getElementById('memberAddRow');
   if(addRow)addRow.style.display=canManageMembers()?'':'none';
+  // 个人模式：设置里只保留「账号与密码」（改密），隐藏小组信息与评分项目配置
+  const pi=document.getElementById('panelGroupInfo');
+  if(pi)pi.style.display=isPersonalMode()?'none':'';
+  const ic=document.getElementById('panelItemsCfg');
+  if(ic)ic.style.display=isPersonalMode()?'none':'';
 }
 function mkEvent(v,label){return {v,label,by:currentUser?currentUser.name:'本地',ts:Date.now(),id:uid()};}
 function renderSidebarUser(){
@@ -1635,7 +1658,7 @@ async function flushSbSave(){
 // 页面关闭/刷新前立即同步，避免 300ms 防抖未触发导致云端丢失
 function sendSbKeepalive(){
   if(!currentGroupId||!state||!sbAccessToken)return;
-  const body={group_id:currentGroupId,group_name:GROUP_NAMES[currentGroupId]||('第'+currentGroupId+'组'),data:state,updated_at:new Date().toISOString()};
+  const body={group_id:currentGroupId,group_name:GROUP_NAMES[currentGroupId]||('第'+currentGroupId+'组'),data:personalSnapshot(state),updated_at:new Date().toISOString()};
   try{
     fetch(SUPABASE_URL+'/rest/v1/group_data?on_conflict=group_id',{
       method:'POST',keepalive:true,
@@ -1705,7 +1728,7 @@ async function loadGroupData(groupId){
   return rows&&rows.length?rows[0]:null;
 }
 async function saveGroupData(groupId,data){
-  const body={group_id:groupId,group_name:GROUP_NAMES[groupId]||('第'+groupId+'组'),data:data,updated_at:new Date().toISOString()};
+  const body={group_id:groupId,group_name:GROUP_NAMES[groupId]||('第'+groupId+'组'),data:personalSnapshot(data),updated_at:new Date().toISOString()};
   // 用 UPSERT（on_conflict=group_id + merge-duplicates）：行不存在时自动插入，
   // 避免 PATCH 在无行时静默无效（返回成功但什么都没写）
   await sbFetch('group_data?on_conflict=group_id',{method:'POST',body:JSON.stringify(body),headers:{'Prefer':'resolution=merge-duplicates,return=minimal'}});
@@ -1845,11 +1868,12 @@ async function loadGroupIntoState(groupId){
     }
   }catch(e){}
   if(!s)s=loadLocalGroup(groupId)||initGroupState(groupId);
+  s=applyPersonalMode(s);
   state=s;
   currentGroupId=groupId;
   saveLocal();
   const sub=document.getElementById('sidebarGroup');
-  if(sub){sub.textContent=GROUP_NAMES[groupId]||s.groupName;sub.style.display='block';}
+  if(sub){sub.textContent=(GROUP_NAMES[groupId]||s.groupName)+(isPersonalMode()?' · 我的分数':'');sub.style.display='block';}
   return s;
 }
 function renderAdminGroupBar(){
@@ -1956,7 +1980,7 @@ async function cloudPull(){
     const rt=remote.lastModified||0;
     if(lt>rt&&!confirm('本地有更新的数据（比云端新），确定用云端覆盖本地吗？')){cloudSyncing=false;setSyncStatus('已取消','var(--ink-soft)');return;}
     normalizeScores(remote);
-    state=remote;saveLocal();
+    state=applyPersonalMode(remote);saveLocal();
     render();
     cloudCfg.lastSync=Date.now();saveCloudCfg();
     const remoteCount=Object.keys(remote.scores||{}).length;
@@ -2077,9 +2101,10 @@ function saveLocal(){
     const bak=localStorage.getItem(KEY);
     if(bak)localStorage.setItem(KEY+'_bak',bak);
   }catch(e){}
-  localStorage.setItem(KEY,JSON.stringify(state));
+  const snap=personalSnapshot(state);
+  localStorage.setItem(KEY,JSON.stringify(snap));
   if(currentGroupId){
-    try{localStorage.setItem('jfz_group_local_'+currentGroupId,JSON.stringify(state));}catch(e){}
+    try{localStorage.setItem('jfz_group_local_'+currentGroupId,JSON.stringify(snap));}catch(e){}
   }
 }
 async function cloudPullMerge(silent){
@@ -2089,6 +2114,12 @@ async function cloudPullMerge(silent){
     const remote=row&&row.data?row.data:null;
     if(!remote||!remote.items)return;
     if(remote.version!==state.version)return;
+    if(isPersonalMode()){
+      // 个人模式：只合并自己的分数，远端名单过滤为自己，避免整组成员泄露进本地
+      const mine=(remote.students||[]).filter(s=>s.name===currentUser.name);
+      remote=Object.assign({},remote,{students:mine});
+      if(!state._allStudents)state._allStudents=state.students||[];
+    }
     state=mergeState(state,remote);
     saveLocal();
     if(currentView==='daily'||currentView==='weekly'||currentView==='monthly'||currentView==='semester'||currentView==='myrecords')render();
