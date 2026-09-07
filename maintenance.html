@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>维护报告 - 班级积分管理系统</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f5f0e8;color:#2c2416;min-height:100vh}
+.header{background:linear-gradient(135deg,#1a3a5c,#2c5f8a);color:#fff;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.header h1{font-size:18px;font-weight:700}
+.header .date-picker{display:flex;align-items:center;gap:8px}
+.header .date-picker label{font-size:13px;opacity:.85}
+.header .date-picker input{padding:6px 10px;border-radius:6px;border:none;font-size:14px}
+.header .back-btn{background:rgba(255,255,255,.15);border:none;color:#fff;padding:7px 14px;border-radius:7px;font-size:13px;cursor:pointer}
+.header .back-btn:hover{background:rgba(255,255,255,.25)}
+.container{max-width:1100px;margin:0 auto;padding:16px}
+.card{background:#fff;border-radius:12px;padding:18px;margin-bottom:14px;box-shadow:0 1px 6px rgba(0,0,0,.06)}
+.card h2{font-size:15px;font-weight:700;margin-bottom:12px;color:#1a3a5c;display:flex;align-items:center;gap:8px}
+.card h2 .badge{font-size:11px;font-weight:500;background:#e8f0fe;color:#1a73e8;padding:2px 8px;border-radius:10px}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.stat-item{background:#f8f5f0;border-radius:9px;padding:12px;text-align:center}
+.stat-item .v{font-size:24px;font-weight:700;color:#1a3a5c}
+.stat-item .k{font-size:11px;color:#8a7e6b;margin-top:3px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#f0ebe3;padding:8px 10px;text-align:left;font-weight:600;color:#5a4e3a;border-bottom:2px solid #ddd5c5}
+td{padding:7px 10px;border-bottom:1px solid #f0ebe3}
+tr:hover td{background:#faf8f4}
+.tag{display:inline-block;padding:2px 8px;border-radius:8px;font-size:11px;font-weight:600}
+.tag-ok{background:#e6f4ea;color:#137333}
+.tag-warn{background:#fef7e0;color:#b06000}
+.tag-err{background:#fce8e6;color:#c5221f}
+.tag-info{background:#e8f0fe;color:#1a73e8}
+.empty{text-align:center;padding:24px;color:#aaa;font-size:13px}
+.loading{text-align:center;padding:40px;color:#888}
+.score-pos{color:#137333;font-weight:600}
+.score-neg{color:#c5221f;font-weight:600}
+@media(max-width:600px){
+  .header{padding:12px 14px}
+  .header h1{font-size:16px}
+  .container{padding:10px}
+  .card{padding:14px}
+  table{font-size:12px}
+  th,td{padding:6px 7px}
+  .stat-grid{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>📋 系统维护报告</h1>
+  <div class="date-picker">
+    <label>日期：</label>
+    <input type="date" id="reportDate">
+    <button class="back-btn" onclick="location.href='group.html'">← 返回</button>
+  </div>
+</div>
+<div class="container" id="content">
+  <div class="loading">正在加载维护数据...</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL='https://zaeijgfuykhkabteqljw.supabase.co';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InphZWlqZ2Z1eWtoa2FidGVxbGp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1ODA5MzgsImV4cCI6MjEwNDE1NjkzOH0.CQ-jqsslzaWpeeXg0OJnQsaW-iMNoCKbJGW_-p1F3D8';
+const SB=window.supabase?window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;
+const SESSION_KEY='jfz_session_v1';
+const GROUP_NAMES={'1':'第一组','2':'第二组','3':'第三组','4':'第四组','5':'第五组','6':'第六组','7':'第七组','8':'第八组','9':'第九组','10':'第十组'};
+
+let currentUser=null;
+function loadSession(){try{const r=localStorage.getItem(SESSION_KEY);return r?JSON.parse(r):null;}catch(e){return null;}}
+
+function fmtDate(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+
+async function init(){
+  currentUser=loadSession();
+  if(!currentUser||(currentUser.role!=='admin'&&currentUser.role!=='admin2'&&currentUser.role!=='teacher')){
+    location.href='index.html';return;
+  }
+  if(!SB){document.getElementById('content').innerHTML='<div class="empty">无法连接数据库</div>';return;}
+  const {data:sd}=await SB.auth.getSession();
+  if(!sd||!sd.session){location.href='index.html';return;}
+  // 默认日期：昨天
+  const yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);
+  document.getElementById('reportDate').value=fmtDate(yesterday);
+  document.getElementById('reportDate').addEventListener('change',loadReport);
+  loadReport();
+}
+
+async function fetchTable(table,dateCol,dateVal){
+  try{
+    const token=(await SB.auth.getSession()).data.session.access_token;
+    const resp=await fetch(SUPABASE_URL+'/rest/v1/'+table+'?'+dateCol+'=eq.'+dateVal+'&select=*&order=created_at',{
+      headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+token}
+    });
+    if(!resp.ok)return [];
+    return await resp.json();
+  }catch(e){return [];}
+}
+
+async function loadReport(){
+  const date=document.getElementById('reportDate').value;
+  if(!date)return;
+  const content=document.getElementById('content');
+  content.innerHTML='<div class="loading">正在加载 '+date+' 的维护数据...</div>';
+
+  const [backups,snapshots,integrity,logs,keepalive]=await Promise.all([
+    fetchTable('backups','backup_date',date),
+    fetchTable('daily_snapshots','snapshot_date',date),
+    fetchTable('integrity_reports','report_date',date),
+    fetchTable('operation_logs','log_date',date),
+    fetchTable('keepalive_logs','checked_at::date',date)
+  ]);
+
+  let html='';
+
+  // 概览卡片
+  const groupBackups=backups.filter(b=>b.table_name==='group_data').length;
+  const classBackups=backups.filter(b=>b.table_name==='class_data').length;
+  const totalScore=snapshots.reduce((s,r)=>s+Number(r.total_score||0),0);
+  const totalOps=logs.length;
+  const issues=integrity.length;
+
+  html+='<div class="card"><h2>📊 维护概览 <span class="badge">'+date+'</span></h2>';
+  html+='<div class="stat-grid">';
+  html+='<div class="stat-item"><div class="v">'+groupBackups+'</div><div class="k">分组备份</div></div>';
+  html+='<div class="stat-item"><div class="v">'+classBackups+'</div><div class="k">班级备份</div></div>';
+  html+='<div class="stat-item"><div class="v">'+snapshots.length+'</div><div class="k">分组快照</div></div>';
+  html+='<div class="stat-item"><div class="v">'+totalOps+'</div><div class="k">操作日志</div></div>';
+  html+='<div class="stat-item"><div class="v" style="color:'+(issues>0?'#c5221f':'#137333')+'">'+issues+'</div><div class="k">完整性问题</div></div>';
+  html+='<div class="stat-item"><div class="v">'+keepalive.length+'</div><div class="k">保活记录</div></div>';
+  html+='</div></div>';
+
+  // 每日快照
+  html+='<div class="card"><h2>📈 每日分组快照</h2>';
+  if(snapshots.length===0){html+='<div class="empty">当日无快照数据</div>';}
+  else{
+    snapshots.sort((a,b)=>Number(a.group_id)-Number(b.group_id));
+    html+='<table><thead><tr><th>组号</th><th>组名</th><th>人数</th><th>总分</th><th>平均分</th></tr></thead><tbody>';
+    snapshots.forEach(r=>{
+      const sc=Number(r.total_score||0);
+      html+='<tr><td>'+r.group_id+'</td><td>'+(r.group_name||GROUP_NAMES[r.group_id]||'')+'</td><td>'+(r.student_count||0)+'</td>';
+      html+='<td class="'+(sc>=0?'score-pos':'score-neg')+'">'+sc+'</td>';
+      html+='<td>'+(r.avg_score||0)+'</td></tr>';
+    });
+    html+='</tbody></table>';
+  }
+  html+='</div>';
+
+  // 完整性报告
+  html+='<div class="card"><h2>🔍 完整性检查报告</h2>';
+  if(integrity.length===0){html+='<div class="empty"><span class="tag tag-ok">✓ 未发现问题</span></div>';}
+  else{
+    html+='<table><thead><tr><th>时间</th><th>组号</th><th>问题类型</th><th>详情</th></tr></thead><tbody>';
+    integrity.forEach(r=>{
+      const t=new Date(r.report_time||r.created_at);
+      const tag=r.issue_type==='question_mark_pollution'?'tag-err':r.issue_type==='orphan_score'?'tag-warn':'tag-info';
+      html+='<tr><td>'+t.toLocaleTimeString('zh-CN')+'</td><td>'+(r.group_id||'-')+'</td>';
+      html+='<td><span class="tag '+tag+'">'+r.issue_type+'</span></td><td>'+(r.issue_detail||'')+'</td></tr>';
+    });
+    html+='</tbody></table>';
+  }
+  html+='</div>';
+
+  // 操作日志
+  html+='<div class="card"><h2>📝 当日操作日志（'+totalOps+'条）</h2>';
+  if(logs.length===0){html+='<div class="empty">当日无操作记录</div>';}
+  else{
+    html+='<table><thead><tr><th>组号</th><th>学生</th><th>项目</th><th>分值</th><th>操作人</th><th>时间</th></tr></thead><tbody>';
+    logs.slice(0,100).forEach(r=>{
+      const v=Number(r.score_value||0);
+      const ts=r.ts?new Date(r.ts):null;
+      html+='<tr><td>'+r.group_id+'</td><td>'+(r.student_name||r.student_id||'')+'</td>';
+      html+='<td>'+(r.item_id||'')+'</td>';
+      html+='<td class="'+(v>=0?'score-pos':'score-neg')+'">'+(v>0?'+':'')+v+'</td>';
+      html+='<td>'+(r.by_user||'')+'</td>';
+      html+='<td>'+(ts?ts.toLocaleTimeString('zh-CN'):'')+'</td></tr>';
+    });
+    if(logs.length>100)html+='<tr><td colspan="6" style="text-align:center;color:#999">仅显示前100条，共'+logs.length+'条</td></tr>';
+    html+='</tbody></table>';
+  }
+  html+='</div>';
+
+  // 备份详情
+  html+='<div class="card"><h2>💾 备份记录</h2>';
+  if(backups.length===0){html+='<div class="empty">当日无备份</div>';}
+  else{
+    html+='<table><thead><tr><th>时间</th><th>表名</th><th>记录ID</th><th>数据大小</th></tr></thead><tbody>';
+    backups.forEach(b=>{
+      const t=new Date(b.created_at);
+      const size=JSON.stringify(b.data||{}).length;
+      html+='<tr><td>'+t.toLocaleTimeString('zh-CN')+'</td><td>'+b.table_name+'</td><td>'+(b.record_id||'')+'</td>';
+      html+='<td>'+(size/1024).toFixed(1)+' KB</td></tr>';
+    });
+    html+='</tbody></table>';
+  }
+  html+='</div>';
+
+  // 保活记录
+  html+='<div class="card"><h2>❤️ 保活记录</h2>';
+  if(keepalive.length===0){html+='<div class="empty">当日无保活记录</div>';}
+  else{
+    html+='<table><thead><tr><th>时间</th><th>分组数</th><th>班级数</th><th>用户数</th></tr></thead><tbody>';
+    keepalive.forEach(k=>{
+      const t=new Date(k.checked_at);
+      html+='<tr><td>'+t.toLocaleString('zh-CN')+'</td><td>'+(k.group_count||0)+'</td><td>'+(k.class_count||0)+'</td><td>'+(k.user_count||0)+'</td></tr>';
+    });
+    html+='</tbody></table>';
+  }
+  html+='</div>';
+
+  content.innerHTML=html;
+}
+
+init();
+</script>
+</body>
+</html>

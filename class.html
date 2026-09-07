@@ -1339,6 +1339,63 @@ function renderSidebarUser(){
     }
   })();
 })();
+
+/* ================= 系统维护：提醒 + 强制踢人 ================= */
+var NIGHT_START=22*60+40;
+var NIGHT_END=6*60+30;
+var NIGHT_WARN=22*60+30;
+var NIGHT_KICK=22*60+39;
+var NOON_START=11*60+50;
+var NOON_END=12*60+5;
+var NOON_WARN=11*60+45;
+var maintBanner=null;
+var maintKicked=false;
+function nowMins(){var d=new Date();return d.getHours()*60+d.getMinutes();}
+function isMaintenanceTime(){var m=nowMins();return (m>=NIGHT_START||m<NIGHT_END)||(m>=NOON_START&&m<NOON_END);}
+function isWarnTime(){var m=nowMins();return (m>=NIGHT_WARN&&m<NIGHT_START)||(m>=NOON_WARN&&m<NOON_START);}
+function isKickTime(){var m=nowMins();return (m>=NIGHT_KICK&&m<NIGHT_START+3)||(m>=NOON_START&&m<NOON_END);}
+function showMaintBanner(msg,color){
+  if(!maintBanner){
+    maintBanner=document.createElement('div');
+    maintBanner.style.cssText='position:fixed;top:0;left:0;right:0;z-index:9999;padding:10px 16px;text-align:center;font-size:14px;font-weight:600;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.2);';
+    document.body.appendChild(maintBanner);
+  }
+  maintBanner.style.background=color||'#e67e22';
+  maintBanner.textContent=msg;
+  maintBanner.style.display='block';
+}
+function hideMaintBanner(){if(maintBanner)maintBanner.style.display='none';}
+function forceKick(reason){
+  if(maintKicked)return;
+  maintKicked=true;
+  if(typeof uploadClassState==='function'){try{uploadClassState();}catch(e){}}
+  try{localStorage.removeItem('jfz_session_v1');}catch(e){}
+  if(SB)SB.auth.signOut().catch(function(){});
+  showMaintBanner(reason||'系统维护中，已自动退出登录','#c0392b');
+  setTimeout(function(){location.href='index.html';},1500);
+}
+function checkMaintenance(){
+  if(isMaintenanceTime()){forceKick('系统维护中，已自动退出登录');return;}
+  if(isKickTime()){
+    showMaintBanner('⚠️ 系统维护中，正在保存数据并退出...','#e67e22');
+    setTimeout(function(){forceKick('系统维护中，已自动退出登录');},600);
+    return;
+  }
+  if(isWarnTime()){
+    var m=nowMins();
+    var target=(m>=NIGHT_WARN)?NIGHT_START:NOON_START;
+    var mins=target-m;
+    var label=(m>=NIGHT_WARN)?'22:40':'11:50';
+    showMaintBanner('🔔 系统将于 '+mins+' 分钟后（'+label+'）进入维护，请及时保存数据','#f39c12');
+    return;
+  }
+  hideMaintBanner();
+}
+checkMaintenance();
+setInterval(checkMaintenance,30000);
+if(typeof document!=='undefined'){
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)checkMaintenance();});
+}
 </script>
 </body>
 </html>
