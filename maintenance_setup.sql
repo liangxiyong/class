@@ -89,25 +89,23 @@ create or replace function run_integrity_check()
 returns void as $$
 declare
   g record;
-  student jsonb;
+  student record;
   score_date text;
   student_id text;
 begin
-  -- 不删除今天的报告，追加新的检查记录（用 report_time 区分）
-
   for g in select group_id, group_name, data from group_data loop
     -- 检查学生名字是否有问号污染
     if g.data ? 'students' then
-      for student in select jsonb_array_elements(g.data->'students') loop
-        if student->>'name' like '%?%' or student->>'name' like '%？%' then
+      for student in select value from jsonb_array_elements(g.data->'students') loop
+        if student.value->>'name' like '%?%' or student.value->>'name' like '%？%' then
           insert into integrity_reports(group_id, issue_type, issue_detail)
           values (g.group_id, 'question_mark_pollution',
-            '学生 id=' || (student->>'id') || ' 名字被污染: ' || (student->>'name'));
+            '学生 id=' || (student.value->>'id') || ' 名字被污染: ' || (student.value->>'name'));
         end if;
-        if student->>'name' is null or student->>'name' = '' then
+        if student.value->>'name' is null or student.value->>'name' = '' then
           insert into integrity_reports(group_id, issue_type, issue_detail)
           values (g.group_id, 'empty_name',
-            '学生 id=' || (student->>'id') || ' 名字为空');
+            '学生 id=' || (student.value->>'id') || ' 名字为空');
         end if;
       end loop;
     end if;
@@ -145,11 +143,11 @@ returns void as $$
 declare
   g record;
   cls record;
-  student jsonb;
+  student record;
   score_date text;
   student_id text;
   item_id text;
-  rec jsonb;
+  rec record;
   total numeric;
   cnt int;
   sname text;
@@ -180,8 +178,8 @@ begin
       for score_date in select jsonb_object_keys(g.data->'scores') loop
         for student_id in select jsonb_object_keys(g.data->'scores'->score_date) loop
           for item_id in select jsonb_object_keys(g.data->'scores'->score_date->student_id) loop
-            for rec in select jsonb_array_elements(g.data->'scores'->score_date->student_id->item_id) loop
-              total := total + coalesce((rec->>'v')::numeric, 0);
+            for rec in select value from jsonb_array_elements(g.data->'scores'->score_date->student_id->item_id) loop
+              total := total + coalesce((rec.value->>'v')::numeric, 0);
               cnt := cnt + 1;
 
               -- 归档当天的操作日志
@@ -194,7 +192,7 @@ begin
                 insert into operation_logs(log_date, group_id, student_id, student_name,
                   item_id, score_value, label, by_user, ts)
                 values (current_date, g.group_id, student_id, sname,
-                  item_id, (rec->>'v')::numeric, rec->>'label', rec->>'by', (rec->>'ts')::bigint);
+                  item_id, (rec.value->>'v')::numeric, rec.value->>'label', rec.value->>'by', (rec.value->>'ts')::bigint);
               end if;
             end loop;
           end loop;
@@ -228,7 +226,7 @@ end;
 $$ language plpgsql;
 
 -- ============================================================
--- 4. 保活函数（每小时一次，防止 Supabase 空闲暂停）
+-- 4. 保活函数（每天凌晨2点一次，防止 Supabase 空闲暂停）
 -- ============================================================
 create or replace function keepalive()
 returns void as $$
@@ -250,11 +248,15 @@ $$ language plpgsql;
 -- 北京时间 = UTC + 8
 -- ============================================================
 
--- 先删除旧任务
-select cron.unschedule('daily-maintenance');
-select cron.unschedule('integrity-check');
-select cron.unschedule('integrity-check-4am');
-select cron.unschedule('keepalive');
+-- 先删除旧任务（安全方式：只删存在的）
+do $$
+declare
+  j record;
+begin
+  for j in select jobid, jobname from cron.job where jobname in ('daily-maintenance','integrity-check','integrity-check-4am','keepalive') loop
+    perform cron.unschedule(j.jobid);
+  end loop;
+end $$;
 
 -- 任务1：完整维护 - 每天 UTC 14:45（北京 22:45）
 select cron.schedule('daily-maintenance', '45 14 * * *', 'select run_daily_maintenance();');
