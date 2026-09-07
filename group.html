@@ -1819,7 +1819,13 @@ function subscribeRealtime(gid){
         if(localDirty||sbSavePending)return; // 本地有未保存修改时不覆盖
         const newAt=payload.new&&payload.new.updated_at;
         if(newAt&&newAt!==lastRemoteUpdatedAt){
-          loadGroupIntoState(gid).then(function(){render();setSyncStatus('☁️ 实时同步 '+new Date().toLocaleTimeString('zh-CN'),'var(--ink-soft)');}).catch(function(){});
+          // 关键防护：先验证云端数据有效（有items），有效才覆盖当前state；
+          // 无效则忽略，绝不能让Realtime触发时把页面清空成默认空数据
+          loadGroupData(gid).then(function(row){
+            if(row&&row.data&&row.data.items&&row.data.items.length){
+              loadGroupIntoState(gid).then(function(){render();setSyncStatus('☁️ 实时同步 '+new Date().toLocaleTimeString('zh-CN'),'var(--ink-soft)');}).catch(function(){});
+            }
+          }).catch(function(){});
         }
       })
       .subscribe(function(){});
