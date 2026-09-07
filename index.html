@@ -162,11 +162,13 @@ async function doLogin(){
   const err=document.getElementById('loginErr');
   if(!name){err.textContent='请输入用户名';return;}
   if(!pwd){err.textContent='请输入密码';return;}
-  // 系统维护时间：每天 22:40 ~ 次日 06:30 禁止登录
+  // 系统维护时间：晚上 22:40~次日06:30，中午 11:50~12:05
   const now=new Date();
   const mins=now.getHours()*60+now.getMinutes();
-  if(mins>=22*60+40||mins<6*60+30){
-    err.textContent='系统维护中（每日 22:40 - 次日 06:30），请稍后再试';
+  const nightMaint=(mins>=22*60+40||mins<6*60+30);
+  const noonMaint=(mins>=11*60+50&&mins<12*60+5);
+  if(nightMaint||noonMaint){
+    err.textContent='系统维护中（晚 22:40-06:30 / 午 11:50-12:05），请稍后再试';
     return;
   }
   if(!SB){err.textContent='无法连接认证服务，请检查网络后重试';return;}
