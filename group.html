@@ -1642,7 +1642,7 @@ function save(){
   }catch(e){}
   try{localStorage.setItem(KEY, JSON.stringify(snap));}catch(e){}
   if(currentGroupId){
-    try{localStorage.setItem('jfz_group_local_'+currentGroupId,JSON.stringify(snap));}catch(e){}
+    try{localStorage.setItem('jfz_group_local_v2_'+currentGroupId,JSON.stringify(snap));}catch(e){}
     queueSbSave();
   }
 }
@@ -1826,7 +1826,7 @@ async function doChangePwdMe(){
 }
 function loadLocalGroup(groupId){
   try{
-    const raw=localStorage.getItem('jfz_group_local_'+groupId);
+    const raw=localStorage.getItem('jfz_group_local_v2_'+groupId);
     if(raw){
       const s=JSON.parse(raw);
       if(s&&s.items){repairPersonalCache(s);normalizeScores(s);return s;}
@@ -2128,7 +2128,7 @@ function saveLocal(){
   const snap=personalSnapshot(state);
   localStorage.setItem(KEY,JSON.stringify(snap));
   if(currentGroupId){
-    try{localStorage.setItem('jfz_group_local_'+currentGroupId,JSON.stringify(snap));}catch(e){}
+    try{localStorage.setItem('jfz_group_local_v2_'+currentGroupId,JSON.stringify(snap));}catch(e){}
   }
 }
 async function cloudPullMerge(silent){
