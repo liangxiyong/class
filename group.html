@@ -1647,23 +1647,57 @@ function save(){
   }
 }
 let sbSaveTimer=null;
+let sbRetryTimer=null;
 let sbSavePending=false;
+let localDirty=false;   // 本地是否有尚未成功同步到云端的修改
+let sbRetryCount=0;
 function queueSbSave(){
+  localDirty=true;
   sbSavePending=true;
   if(sbSaveTimer)clearTimeout(sbSaveTimer);
+  if(sbRetryTimer){clearTimeout(sbRetryTimer);sbRetryTimer=null;}
   sbSaveTimer=setTimeout(()=>{
     sbSaveTimer=null;
-    saveGroupData(currentGroupId,state).then(()=>{
-      setSyncStatus('✅ 已同步 '+new Date().toLocaleTimeString('zh-CN'),'var(--green)');
-    }).catch(err=>{
-      setSyncStatus('❌ 云端保存失败：'+(err&&err.message?err.message:'未知错误'),'var(--red)');
-      toast('云端保存失败，已保存在本机，稍后重试');
-    });
+    doSbSave();
   },300);
+}
+function doSbSave(){
+  if(!currentGroupId){sbSavePending=false;return;}
+  saveGroupData(currentGroupId,state).then(()=>{
+    localDirty=false;
+    sbSavePending=false;
+    sbRetryCount=0;
+    setSyncStatus('✅ 已同步 '+new Date().toLocaleTimeString('zh-CN'),'var(--green)');
+  }).catch(err=>{
+    sbSavePending=false;
+    const msg=(err&&err.message)?err.message:'网络错误';
+    // 自动重试 3 次：1s、2s、4s
+    if(sbRetryCount<3){
+      sbRetryCount++;
+      const delay=1000*Math.pow(2,sbRetryCount-1);
+      setSyncStatus('同步失败，'+(delay/1000)+' 秒后自动重试（'+sbRetryCount+'/3）','#c98a3a');
+      sbRetryTimer=setTimeout(doSbSave,delay);
+    }else{
+      setSyncStatus('❌ 暂未同步（已保存在本机），联网后自动重试','var(--red)');
+    }
+  });
+}
+// 兜底重传：本地有未同步修改、且当前没有保存动作在进行时，立即重新上传
+function retrySyncIfDirty(){
+  if(localDirty&&!sbSavePending&&!sbSaveTimer&&!sbRetryTimer&&currentGroupId&&state){
+    sbRetryCount=0;
+    doSbSave();
+  }
 }
 async function flushSbSave(){
   if(sbSaveTimer){clearTimeout(sbSaveTimer);sbSaveTimer=null;}
-  if(currentGroupId)await saveGroupData(currentGroupId,state).catch(()=>{});
+  if(sbRetryTimer){clearTimeout(sbRetryTimer);sbRetryTimer=null;}
+  if(currentGroupId){
+    try{
+      await saveGroupData(currentGroupId,state);
+      localDirty=false;sbSavePending=false;sbRetryCount=0;
+    }catch(e){sbSavePending=false;}
+  }
 }
 // 页面关闭/刷新前立即同步，避免 300ms 防抖未触发导致云端丢失
 function sendSbKeepalive(){
@@ -1762,7 +1796,10 @@ let lastRemoteUpdatedAt=0;
 async function pollRemote(){
   // 页面不可见（切后台/锁屏）时跳过，降低手机端内存与电量压力，避免浏览器自动回收页面
   if(typeof document!=='undefined'&&document.hidden)return;
-  if(!currentGroupId||sbSavePending)return;
+  if(!currentGroupId)return;
+  // 本地有未同步修改时优先重传，避免弱网下分数只留在本机
+  if(localDirty){retrySyncIfDirty();return;}
+  if(sbSavePending)return;
   try{
     const row=await loadGroupData(currentGroupId);
     if(row&&row.updated_at&&row.updated_at!==lastRemoteUpdatedAt){
@@ -1772,17 +1809,20 @@ async function pollRemote(){
       if(hasLocal){lastRemoteUpdatedAt=prev;return;}
       await loadGroupIntoState(currentGroupId);
       render();
-      const vt=document.getElementById('syncStatus');
-      if(vt)vt.textContent='☁️ 已自动同步 '+new Date().toLocaleTimeString('zh-CN');
+      setSyncStatus('☁️ 已自动同步 '+new Date().toLocaleTimeString('zh-CN'),'var(--ink-soft)');
     }
   }catch(e){}
 }
 setInterval(pollRemote,20000);
 if(typeof document!=='undefined'){
   document.addEventListener('visibilitychange',function(){
-    // 回到前台立即检查一次云端更新
-    if(!document.hidden)pollRemote();
+    // 回到前台：先重传本地未同步数据，再检查云端更新
+    if(!document.hidden){retrySyncIfDirty();pollRemote();}
   });
+}
+if(typeof window!=='undefined'){
+  // 网络从断开恢复时立即重传
+  window.addEventListener('online',function(){retrySyncIfDirty();});
 }
 async function loadLeaders(){
   try{
