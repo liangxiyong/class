@@ -1647,6 +1647,8 @@ function doSbSave(){
     sbSavePending=false;
     sbRetryCount=0;
     setSyncStatus('✅ 已同步 '+new Date().toLocaleTimeString('zh-CN'),'var(--green)');
+    // 跨标签页广播：同一浏览器其他标签页收到后立即刷新
+    try{localStorage.setItem('jfz_sync_broadcast',JSON.stringify({gid:currentGroupId,ts:Date.now()}));}catch(e){}
   }).catch(err=>{
     sbSavePending=false;
     const msg=(err&&err.message)?err.message:'网络错误';
@@ -1792,7 +1794,37 @@ async function pollRemote(){
     }
   }catch(e){}
 }
-setInterval(pollRemote,20000);
+setInterval(pollRemote,8000);
+// 跨标签页即时同步：同一浏览器一个标签页上传成功后，其他标签页立即刷新
+window.addEventListener('storage',function(ev){
+  if(ev.key==='jfz_sync_broadcast'&&ev.newValue){
+    try{
+      const msg=JSON.parse(ev.newValue);
+      if(msg.gid&&String(msg.gid)===String(currentGroupId)&&!localDirty&&!sbSavePending){
+        pollRemote();
+      }
+    }catch(e){}
+  }
+});
+// Supabase Realtime 订阅：跨设备实时同步（需在 Supabase 控制台开启 group_data 表的 Replication）
+let sbRealtimeChannel=null;
+function subscribeRealtime(gid){
+  if(!SB||!SB.channel||!gid)return;
+  try{
+    if(sbRealtimeChannel){try{SB.removeChannel(sbRealtimeChannel);}catch(e){}sbRealtimeChannel=null;}
+    sbRealtimeChannel=SB.channel('grp-'+gid)
+      .on('postgres_changes',{event:'UPDATE',schema:'public',table:'group_data',filter:'group_id=eq.'+gid},function(payload){
+        if(!currentGroupId||String(currentGroupId)!==String(gid))return;
+        if(typeof document!=='undefined'&&document.hidden)return;
+        if(localDirty||sbSavePending)return; // 本地有未保存修改时不覆盖
+        const newAt=payload.new&&payload.new.updated_at;
+        if(newAt&&newAt!==lastRemoteUpdatedAt){
+          loadGroupIntoState(gid).then(function(){render();setSyncStatus('☁️ 实时同步 '+new Date().toLocaleTimeString('zh-CN'),'var(--ink-soft)');}).catch(function(){});
+        }
+      })
+      .subscribe(function(){});
+  }catch(e){}
+}
 if(typeof document!=='undefined'){
   document.addEventListener('visibilitychange',function(){
     if(document.hidden){
@@ -1927,6 +1959,7 @@ async function loadGroupIntoState(groupId){
   state=s;
   currentGroupId=groupId;
   saveLocal();
+  subscribeRealtime(groupId);
   const sub=document.getElementById('sidebarGroup');
   if(sub){sub.textContent=(GROUP_NAMES[groupId]||s.groupName)+(isPersonalMode()?' · 我的分数':'');sub.style.display='block';}
   return s;
