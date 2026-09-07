@@ -1659,7 +1659,7 @@ function queueSbSave(){
   sbSaveTimer=setTimeout(()=>{
     sbSaveTimer=null;
     doSbSave();
-  },300);
+  },150);
 }
 function doSbSave(){
   if(!currentGroupId){sbSavePending=false;return;}
@@ -1816,10 +1816,21 @@ async function pollRemote(){
 setInterval(pollRemote,20000);
 if(typeof document!=='undefined'){
   document.addEventListener('visibilitychange',function(){
-    // 回到前台：先重传本地未同步数据，再检查云端更新
-    if(!document.hidden){retrySyncIfDirty();pollRemote();}
+    if(document.hidden){
+      // 切后台/锁屏/切标签页瞬间立即上传：手机切标签页不触发 pagehide，且后台定时器会被浏览器暂停，
+      // 若不在此时抢发，刚打的分数可能只留在本机
+      if(localDirty||sbSavePending){
+        try{flushSbSave();}catch(e){}
+        try{sendSbKeepalive();}catch(e){}
+      }
+    }else{
+      // 回到前台：先重传本地未同步数据，再检查云端更新
+      retrySyncIfDirty();pollRemote();
+    }
   });
 }
+// 从 bfcache 恢复（手机前进/后退）时也兜底重传
+window.addEventListener('pageshow',function(ev){if(ev&&ev.persisted)retrySyncIfDirty();});
 if(typeof window!=='undefined'){
   // 网络从断开恢复时立即重传
   window.addEventListener('online',function(){retrySyncIfDirty();});
