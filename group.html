@@ -1508,8 +1508,8 @@ async function adminResetPwd(){
 }
 function isLeader(){return !!(currentUser&&currentUser.role==='leader');}
 function isAdmin2(){return !!(currentUser&&currentUser.role==='admin2');}
-// 个人模式：leader 角色但不在组长名单中（如第三组普通成员），只能看/改自己的分数
-function isPersonalMode(){return !!(currentUser&&currentUser.role==='leader'&&!LEADER_GROUP[currentUser.name]);}
+// 个人模式：已停用（第三组学生与组长同权，均查看/修改全组；保留函数以便将来启用）
+function isPersonalMode(){return false;}
 // 保存前恢复完整学生名单，防止个人模式把整组覆盖成只剩自己
 function personalSnapshot(s){
   if(isPersonalMode()&&s&&s._allStudents){
