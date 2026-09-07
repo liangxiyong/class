@@ -516,7 +516,7 @@ function queueClassSave(){
     }).catch(()=>{
       toast('云端保存失败，已保存在本机');
     });
-  },300);
+  },150);
 }
 function saveLocal(){
   try{
@@ -563,7 +563,7 @@ async function doChangePwdMe(){
     err.textContent='修改失败：无法连接云端';
   }
 }
-function isAdmin(){return !!(currentUser&&currentUser.role==='admin');}
+function isAdmin(){return !!(currentUser&&(currentUser.role==='admin'||currentUser.role==='teacher'));}
 function openAdminModal(){
   if(!isAdmin())return;
   renderAdminModal();
@@ -625,9 +625,9 @@ const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 const SB=window.supabase?window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;
 let sbAccessToken='';
 async function ensureSbToken(){
-  if(sbAccessToken)return sbAccessToken;
   if(!SB){location.href='index.html';return '';}
   try{
+    // 每次都取会话：SDK 会自行刷新过期 token，避免缓存旧 token 导致云端请求 401
     const {data}=await SB.auth.getSession();
     if(data&&data.session){sbAccessToken=data.session.access_token;return sbAccessToken;}
   }catch(e){}
@@ -654,6 +654,46 @@ async function sbFetch(path,options){
 async function saveClassData(data){
   const body={id:'class',data:data,updated_at:new Date().toISOString()};
   await sbFetch('class_data?on_conflict=id',{method:'POST',body:JSON.stringify(body),headers:{'Prefer':'resolution=merge-duplicates,return=minimal'}});
+}
+// 轮询同步：每8秒检查云端是否有更新
+let lastClassRemoteModified=0;
+async function pollClassRemote(){
+  if(typeof document!=='undefined'&&document.hidden)return;
+  if(classSaveTimer)return; // 本地有未保存修改时不覆盖
+  try{
+    const resp=await sbFetch('class_data?id=eq.class&select=data,updated_at');
+    const rows=await resp.json();
+    if(!rows||!rows.length||!rows[0].data)return;
+    const remote=rows[0].data;
+    const rm=remote.lastModified||0;
+    if(rm&&rm!==lastClassRemoteModified){
+      const prev=lastClassRemoteModified;
+      lastClassRemoteModified=rm;
+      const lt=state.lastModified||0;
+      if(rm>lt){
+        state=mergeState(state,remote);
+        saveLocal();
+        render();
+        renderWeekLabel();
+        setSyncStatus('☁️ 已自动同步 '+new Date().toLocaleTimeString('zh-CN'),'var(--ink-soft)');
+      }else{
+        lastClassRemoteModified=prev;
+      }
+    }
+  }catch(e){}
+}
+setInterval(pollClassRemote,8000);
+// 页面关闭/切后台时抢发
+function flushClassSave(){
+  if(classSaveTimer){clearTimeout(classSaveTimer);classSaveTimer=null;}
+  uploadClassState().catch(()=>{});
+}
+window.addEventListener('pagehide',flushClassSave);
+if(typeof document!=='undefined'){
+  document.addEventListener('visibilitychange',function(){
+    if(document.hidden){if(classSaveTimer)flushClassSave();}
+    else{pollClassRemote();}
+  });
 }
 async function uploadClassState(){
   // 上传前合并云端 admin2Enabled：避免用本地旧缓存覆盖 group 页刚改的开关状态
@@ -1279,6 +1319,7 @@ function renderSidebarUser(){
       if(remote.admin2Enabled!==undefined)state.admin2Enabled=remote.admin2Enabled;
       if(checkAdmin2Kick())return;
       if(remote.version!==state.version)return;
+      lastClassRemoteModified=remote.lastModified||0;
       const localHasData=Object.keys(state.eyeRecords||{}).length>0||Object.keys(state.disRecords||{}).length>0;
       const lt=state.lastModified||0;
       const rt=remote.lastModified||0;
