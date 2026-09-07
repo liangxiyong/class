@@ -879,7 +879,7 @@ td.total-col.zero{color:#cfc4b4}
       <div class="view-title">我的记录</div>
     </div>
     <div class="myrec-toolbar">
-      <button class="btn btn-ghost btn-sm" onclick="renderMyRecords()">🔄 刷新</button>
+      <button class="btn btn-ghost btn-sm" onclick="forceRefresh()">🔄 刷新</button>
       <span class="myrec-count" id="myrecCount"></span>
     </div>
     <div class="myrec-list" id="myrecList"></div>
@@ -1784,17 +1784,31 @@ async function pollRemote(){
   try{
     const row=await loadGroupData(currentGroupId);
     if(row&&row.updated_at&&row.updated_at!==lastRemoteUpdatedAt){
-      const prev=lastRemoteUpdatedAt;
       lastRemoteUpdatedAt=row.updated_at;
-      const hasLocal=!!(state.lastModified&&(Date.now()-state.lastModified)<20000);
-      if(hasLocal){lastRemoteUpdatedAt=prev;return;}
-      await loadGroupIntoState(currentGroupId);
+      // localDirty/sbSavePending 已在上方检查过，这里直接拉取云端最新数据
+      // 传false：云端加载失败时保持当前页面，绝不用空数据覆盖
+      await loadGroupIntoState(currentGroupId,false);
       render();
       setSyncStatus('☁️ 已自动同步 '+new Date().toLocaleTimeString('zh-CN'),'var(--ink-soft)');
     }
   }catch(e){}
 }
 setInterval(pollRemote,8000);
+// 手动全局刷新：强制从云端重新拉取当前组数据（不允许空覆盖）
+async function forceRefresh(){
+  if(!currentGroupId)return;
+  if(localDirty||sbSavePending){toast('正在同步，请稍候再刷新');return;}
+  setSyncStatus('⏳ 正在从云端刷新...','var(--ink-soft)');
+  try{
+    await loadGroupIntoState(currentGroupId,false);
+    render();
+    setSyncStatus('✅ 已刷新 '+new Date().toLocaleTimeString('zh-CN'),'var(--green)');
+    toast('已从云端刷新');
+  }catch(e){
+    setSyncStatus('❌ 刷新失败','var(--red)');
+    toast('刷新失败：'+errMsg(e));
+  }
+}
 // 跨标签页即时同步：同一浏览器一个标签页上传成功后，其他标签页立即刷新
 window.addEventListener('storage',function(ev){
   if(ev.key==='jfz_sync_broadcast'&&ev.newValue){
@@ -1823,7 +1837,8 @@ function subscribeRealtime(gid){
           // 无效则忽略，绝不能让Realtime触发时把页面清空成默认空数据
           loadGroupData(gid).then(function(row){
             if(row&&row.data&&row.data.items&&row.data.items.length){
-              loadGroupIntoState(gid).then(function(){render();setSyncStatus('☁️ 实时同步 '+new Date().toLocaleTimeString('zh-CN'),'var(--ink-soft)');}).catch(function(){});
+              // 传false：云端加载失败时保持当前页面，绝不用空数据覆盖
+              loadGroupIntoState(gid,false).then(function(){render();setSyncStatus('☁️ 实时同步 '+new Date().toLocaleTimeString('zh-CN'),'var(--ink-soft)');}).catch(function(){});
             }
           }).catch(function(){});
         }
@@ -1947,7 +1962,10 @@ function normalizeGroupData(s,groupId){
   });
   return s;
 }
-async function loadGroupIntoState(groupId){
+async function loadGroupIntoState(groupId,allowEmpty){
+  // allowEmpty: 页面初始化时传true（默认），允许云端失败时用空数据兜底；
+  // Realtime/轮询/手动刷新时传false，云端失败时保持当前state绝不覆盖
+  if(allowEmpty===undefined)allowEmpty=true;
   let s=null;
   try{
     const row=await loadGroupData(groupId);
@@ -1959,8 +1977,11 @@ async function loadGroupIntoState(groupId){
       lastRemoteUpdatedAt=row.updated_at||0;
     }
   }catch(e){}
-  // 云端加载失败：用默认空数据，不读本地缓存
-  if(!s)s=initGroupState(groupId);
+  // 云端加载失败
+  if(!s){
+    if(!allowEmpty)return state; // 不允许空覆盖：保持当前页面数据不变
+    s=initGroupState(groupId);
+  }
   s=applyPersonalMode(s);
   state=s;
   currentGroupId=groupId;
@@ -1983,7 +2004,8 @@ async function switchAdminGroup(gid){
   if(!isAdmin())return;
   await flushSbSave();
   try{
-    await loadGroupIntoState(gid);
+    // 传false：切换组时云端加载失败则保持当前组，不显示空数据
+    await loadGroupIntoState(gid,false);
     render();
     renderSidebarUser();
     updateNavForRole();
