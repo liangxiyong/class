@@ -1418,9 +1418,6 @@ async function exportAllGroupsExcel(){
         const row=await loadGroupData(gid);
         if(row&&row.data&&row.data.items)data=row.data;
       }catch(e){}
-      if(!data){
-        try{data=loadLocalGroup(gid);}catch(e){}
-      }
       if(!data)data=initGroupState(gid);
       if(!data)continue;
       normalizeGroupData(data,gid);
@@ -1461,7 +1458,6 @@ async function adminBatchBaseOff(){
         const row=await loadGroupData(gid);
         if(row&&row.data&&row.data.items)data=row.data;
       }catch(e){}
-      if(!data)data=loadLocalGroup(gid);
       if(!data)data=initGroupState(gid); // 从未初始化的小组：用默认成员+项目兜底，确保每组都能写入
       if(!data.baseOff)data.baseOff={};
       dks.forEach(dk=>{data.baseOff[dk]=true;});
@@ -1577,25 +1573,8 @@ function requireLogin(){
   location.href='index.html';
 }
 function loadState(){
-  try{
-    const raw=localStorage.getItem(KEY);
-    if(raw){
-      const s=JSON.parse(raw);
-      if(s&&s.items){
-        repairPersonalCache(s);
-        if(!s.font)s.font='sans';
-        if(!s.groupName)s.groupName='';
-        if(s.groupName==='第3组')s.groupName='';
-        if(s.itemsVer!==3){migrateItems(s);s.itemsVer=3;}
-        fixGoodWeights(s);
-        fixFormulaMinN(s);
-        normalizeScores(s);
-        return s;
-      }
-    }
-  }catch(e){}
-  const s=JSON.parse(JSON.stringify(DEFAULT_STATE));
-  return s;
+  // 按需求：刷新只从云端加载，本地缓存仅做保存备份，不读取
+  return JSON.parse(JSON.stringify(DEFAULT_STATE));
 }
 function migrateItems(s){
   const oldMap={};
@@ -1937,16 +1916,13 @@ async function loadGroupIntoState(groupId){
     if(row&&row.data&&row.data.items){
       s=row.data;
       normalizeGroupData(s,groupId);
-      // 防御：云端名单异常为空时，用本地缓存或默认名单兜底，避免整组显示"没有成员"
-      if(!s.students||!s.students.length){
-        const local=loadLocalGroup(groupId);
-        if(local&&local.students&&local.students.length)s.students=local.students;
-        else s=initGroupState(groupId);
-      }
+      // 防御：云端名单异常为空时，用默认名单兜底（不读本地缓存）
+      if(!s.students||!s.students.length)s=initGroupState(groupId);
       lastRemoteUpdatedAt=row.updated_at||0;
     }
   }catch(e){}
-  if(!s)s=loadLocalGroup(groupId)||initGroupState(groupId);
+  // 云端加载失败：用默认空数据，不读本地缓存
+  if(!s)s=initGroupState(groupId);
   s=applyPersonalMode(s);
   state=s;
   currentGroupId=groupId;
