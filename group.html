@@ -1668,7 +1668,10 @@ async function flushSbSave(){
 // 页面关闭/刷新前立即同步，避免 300ms 防抖未触发导致云端丢失
 function sendSbKeepalive(){
   if(!currentGroupId||!state||!sbAccessToken)return;
-  const body={group_id:currentGroupId,group_name:GROUP_NAMES[currentGroupId]||('第'+currentGroupId+'组'),data:personalSnapshot(state),updated_at:new Date().toISOString()};
+  const out=Object.assign({},state);
+  delete out._allStudents;
+  if(!out.students||!out.students.length)return;
+  const body={group_id:currentGroupId,group_name:GROUP_NAMES[currentGroupId]||('第'+currentGroupId+'组'),data:out,updated_at:new Date().toISOString()};
   try{
     fetch(SUPABASE_URL+'/rest/v1/group_data?on_conflict=group_id',{
       method:'POST',keepalive:true,
@@ -1738,7 +1741,12 @@ async function loadGroupData(groupId){
   return rows&&rows.length?rows[0]:null;
 }
 async function saveGroupData(groupId,data){
-  const body={group_id:groupId,group_name:GROUP_NAMES[groupId]||('第'+groupId+'组'),data:personalSnapshot(data),updated_at:new Date().toISOString()};
+  const out=Object.assign({},data);
+  // 防御：绝不让历史残留的 _allStudents 字段上传到云端
+  delete out._allStudents;
+  // 防御：名单为空时拒绝覆盖云端（防止坏缓存把整组名单冲掉）
+  if(!out.students||!out.students.length)throw new Error('名单为空，已阻止覆盖云端');
+  const body={group_id:groupId,group_name:GROUP_NAMES[groupId]||('第'+groupId+'组'),data:out,updated_at:new Date().toISOString()};
   // 用 UPSERT（on_conflict=group_id + merge-duplicates）：行不存在时自动插入，
   // 避免 PATCH 在无行时静默无效（返回成功但什么都没写）
   await sbFetch('group_data?on_conflict=group_id',{method:'POST',body:JSON.stringify(body),headers:{'Prefer':'resolution=merge-duplicates,return=minimal'}});
@@ -1874,6 +1882,12 @@ async function loadGroupIntoState(groupId){
     if(row&&row.data&&row.data.items){
       s=row.data;
       normalizeGroupData(s,groupId);
+      // 防御：云端名单异常为空时，用本地缓存或默认名单兜底，避免整组显示"没有成员"
+      if(!s.students||!s.students.length){
+        const local=loadLocalGroup(groupId);
+        if(local&&local.students&&local.students.length)s.students=local.students;
+        else s=initGroupState(groupId);
+      }
       lastRemoteUpdatedAt=row.updated_at||0;
     }
   }catch(e){}
