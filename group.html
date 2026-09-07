@@ -4481,12 +4481,23 @@ function showMaintBanner(msg,color){
   maintBanner.style.background=color||'#e67e22';
   maintBanner.textContent=msg;
   maintBanner.style.display='block';
+  // 手机端顶部栏高约48px，把内容往下推避免被横幅遮住
+  if(window.innerWidth<=768){
+    var main=document.querySelector('.main');
+    if(main)main.style.paddingTop='96px';
+  }
 }
-function hideMaintBanner(){if(maintBanner)maintBanner.style.display='none';}
+function hideMaintBanner(){
+  if(maintBanner)maintBanner.style.display='none';
+  var main=document.querySelector('.main');
+  if(main)main.style.paddingTop='';
+}
 
 function forceKick(reason){
   if(maintKicked)return;
   maintKicked=true;
+  // 踢人前先保存数据
+  if(typeof save==='function'){try{save();}catch(e){}}
   try{localStorage.removeItem('jfz_session_v1');}catch(e){}
   if(SB)SB.auth.signOut().catch(function(){});
   showMaintBanner(reason||'系统维护中，已自动退出登录','#c0392b');
@@ -4494,21 +4505,15 @@ function forceKick(reason){
 }
 
 function checkMaintenance(){
-  // 维护时间内：直接踢
+  // 维护时间内：先保存再踢
   if(isMaintenanceTime()){
     forceKick('系统维护中，已自动退出登录');
     return;
   }
-  // 晚上22:42后强制踢（兜底）
-  if(isForceKickTime()){
-    forceKick('系统维护即将开始，已自动退出登录');
-    return;
-  }
-  // 踢人阶段
+  // 踢人阶段（晚上22:39-22:42，先保存再踢）
   if(isKickTime()){
     showMaintBanner('⚠️ 系统维护中，正在保存数据并退出...','#e67e22');
-    if(typeof save==='function'){try{save();}catch(e){}}
-    setTimeout(function(){forceKick('系统维护中，已自动退出登录');},800);
+    setTimeout(function(){forceKick('系统维护中，已自动退出登录');},600);
     return;
   }
   // 提醒阶段

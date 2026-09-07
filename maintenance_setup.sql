@@ -265,8 +265,8 @@ select cron.schedule('integrity-check', '30 15,17 * * *', 'select run_integrity_
 -- 任务3：完整性检查 - 北京 04:00（UTC20:00）
 select cron.schedule('integrity-check-4am', '0 20 * * *', 'select run_integrity_check();');
 
--- 任务4：保活 - 每天 UTC 00:00（北京 08:00）一次
-select cron.schedule('keepalive', '0 0 * * *', 'select keepalive();');
+-- 任务4：保活 - 每天 UTC 18:00（北京凌晨 02:00）一次
+select cron.schedule('keepalive', '0 18 * * *', 'select keepalive();');
 
 -- ============================================================
 -- 6. 验证
