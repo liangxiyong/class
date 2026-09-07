@@ -1233,7 +1233,7 @@ async function ensureSbToken(){
   return '';
 }
 /* 组长姓名 → 登录邮箱（拼音），与 SQL 种子一致 */
-const LEADER_EMAIL={'张益铭':'zhangyiming','董子瑜':'dongziyu','梁锡永':'liangxiyong','杨佳诺':'yangjianuo','马语秋':'mayuqiu','刘亦峻':'liuyijun','冯馨熠':'fengxinyi','黄詩宸':'huangshichen','谭梦瑶':'tanmengyao','张邵宸':'zhangshaochen'};
+const LEADER_EMAIL={'张益铭':'zhangyiming','董子瑜':'dongziyu','梁锡永':'liangxiyong','杨佳诺':'yangjianuo','马语秋':'mayuqiu','刘亦峻':'liuyijun','冯馨熠':'fengxinyi','黄詩宸':'huangshichen','谭梦瑶':'tanmengyao','张邵宸':'zhangshaochen','李宜锦':'liyijin','刘铠墨':'liukaimo','王沐宇轩':'wangmuyuxuan','张昊群':'zhanghaoqun'};
 function emailOf(name){
   if(name==='admin'||name==='admin2'||name==='teacher')return name+'@jfz.local';
   return (LEADER_EMAIL[name]||name)+'@jfz.local';
