@@ -97,6 +97,9 @@ input{font-family:inherit;color:inherit}
   .login-box{box-shadow:0 8px 30px rgba(30,24,20,.18)}
   .login-tip{font-size:11.5px}
 }
+.login-remember{margin:4px 0 10px;font-size:13px;color:#6b5e4a;display:flex;align-items:center;gap:6px}
+.login-remember input{width:16px;height:16px;cursor:pointer}
+.login-remember label{cursor:pointer;display:flex;align-items:center;gap:6px}
 </style>
 </head>
 <body>
@@ -114,6 +117,9 @@ input{font-family:inherit;color:inherit}
       <div class="login-field" id="loginPwdField">
         <label>密码</label>
         <input type="password" id="loginPwd" placeholder="输入密码" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <div class="login-remember">
+        <label><input type="checkbox" id="rememberMe"> 记住我，下次自动登录</label>
       </div>
       <button class="login-btn" onclick="doLogin()">登 录</button>
       <div class="login-err" id="loginErr"></div>
@@ -180,6 +186,13 @@ async function doLogin(){
   }catch(e){}
   if(role==='user'){err.textContent='该账号无权限，请联系管理员';await SB.auth.signOut();return;}
   localStorage.setItem(SESSION_KEY,JSON.stringify({name:displayName,role,groupId:gid||undefined}));
+  // 记住我：保存凭证（LZString压缩，不存明文）
+  const rm=document.getElementById('rememberMe');
+  if(rm&&rm.checked){
+    try{localStorage.setItem('jfz_remember_me',LZString.compressToBase64(JSON.stringify({name:name0,pwd:pwd})));}catch(e){}
+  }else{
+    try{localStorage.removeItem('jfz_remember_me');}catch(e){}
+  }
   if(role==='admin2'){
     const chk=await checkAdmin2Enabled(data.session.access_token);
     // 禁用仅影响班级管理：admin2 仍可登录、仍可进小组积分，只是班级管理入口置灰
@@ -225,10 +238,28 @@ window.addEventListener('pageshow',function(){
   document.getElementById('chooseBox').style.display='none';
   const cb=document.getElementById('chooseClassBtn');
   if(cb)cb.disabled=false;
+  document.getElementById('loginErr').textContent='';
+  // 检查记住我：有凭证则自动填充并登录
+  try{
+    const raw=localStorage.getItem('jfz_remember_me');
+    if(raw){
+      const cred=JSON.parse(LZString.decompressFromBase64(raw));
+      if(cred&&cred.name&&cred.pwd){
+        document.getElementById('loginName').value=cred.name;
+        document.getElementById('loginPwd').value=cred.pwd;
+        document.getElementById('loginPwdField').style.display='block';
+        document.getElementById('rememberMe').checked=true;
+        document.getElementById('loginErr').textContent='正在自动登录...';
+        setTimeout(function(){doLogin();},300);
+        return;
+      }
+    }
+  }catch(e){}
+  // 没有记住的凭证：清空表单
   document.getElementById('loginPwd').value='';
   document.getElementById('loginPwdField').style.display='block';
   document.getElementById('loginName').value='';
-  document.getElementById('loginErr').textContent='';
+  document.getElementById('rememberMe').checked=false;
 });
 </script>
 </body>
