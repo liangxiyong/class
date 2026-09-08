@@ -239,7 +239,7 @@ window.addEventListener('pageshow',function(){
   const cb=document.getElementById('chooseClassBtn');
   if(cb)cb.disabled=false;
   document.getElementById('loginErr').textContent='';
-  // 检查记住我：有凭证则自动填充并登录
+  // 记住我：自动填充账号密码，用户自己点登录
   try{
     const raw=localStorage.getItem('jfz_remember_me');
     if(raw){
@@ -249,8 +249,6 @@ window.addEventListener('pageshow',function(){
         document.getElementById('loginPwd').value=cred.pwd;
         document.getElementById('loginPwdField').style.display='block';
         document.getElementById('rememberMe').checked=true;
-        document.getElementById('loginErr').textContent='正在自动登录...';
-        setTimeout(function(){doLogin();},300);
         return;
       }
     }
