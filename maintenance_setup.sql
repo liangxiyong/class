@@ -258,14 +258,14 @@ begin
   end loop;
 end $$;
 
--- 任务1：完整维护 - 每天 UTC 16:00（北京 0:00），维护时段0:00-0:30
-select cron.schedule('daily-maintenance', '0 16 * * *', 'select run_daily_maintenance();');
+-- 任务1：完整维护 - 每天 UTC 16:10（北京 0:10），维护时段0:00-0:30内执行
+select cron.schedule('daily-maintenance', '10 16 * * *', 'select run_daily_maintenance();');
 
--- 任务2：完整性检查 - 维护期间执行两次：北京 0:10（UTC16:10）、0:20（UTC16:20）
-select cron.schedule('integrity-check', '10,20 16 * * *', 'select run_integrity_check();');
+-- 任务2：完整性检查 - 维护期间执行两次：北京 0:15（UTC16:15）、0:20（UTC16:20）
+select cron.schedule('integrity-check', '15,20 16 * * *', 'select run_integrity_check();');
 
--- 任务3：保活 - 维护期间执行：北京 0:05（UTC16:05）
-select cron.schedule('keepalive', '5 16 * * *', 'select keepalive();');
+-- 任务3：保活 - 维护期间执行：北京 0:12（UTC16:12）
+select cron.schedule('keepalive', '12 16 * * *', 'select keepalive();');
 
 -- ============================================================
 -- 6. 验证
