@@ -1571,8 +1571,12 @@ function renderSidebarUser(){
 function showLogout(){
   if(!currentUser){location.href='index.html';return;}
   if(confirm('退出登录「'+currentUser.name+'」吗？')){
-    // 先冲刷待上传的云端数据，避免退出瞬间丢失最后修改
-    const done=function(){clearSession();if(SB)SB.auth.signOut().catch(()=>{});location.href='index.html';};
+    // 先冲刷待上传的云端数据，再登出，最后跳转（确保session清干净）
+    const done=async function(){
+      clearSession();
+      if(SB){try{await SB.auth.signOut();}catch(e){}}
+      location.href='index.html';
+    };
     flushSbSave().then(done,done);
   }
 }

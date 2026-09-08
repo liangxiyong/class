@@ -530,9 +530,9 @@ function loadSession(){
   try{const r=localStorage.getItem(SESSION_KEY);return r?JSON.parse(r):null;}catch(e){return null;}
 }
 function logout(){
-  const done=function(){
+  const done=async function(){
     localStorage.removeItem(SESSION_KEY);
-    if(SB)SB.auth.signOut().catch(()=>{});
+    if(SB){try{await SB.auth.signOut();}catch(e){}}
     location.href='index.html';
   };
   if(classSaveTimer){clearTimeout(classSaveTimer);classSaveTimer=null;}
