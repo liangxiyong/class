@@ -1339,6 +1339,54 @@ function renderSidebarUser(){
     }
   })();
 })();
+
+/* ================= 系统维护：23:50提示、0:00自动保存退出 ================= */
+var MAINT_WARN=23*60+50;
+var MAINT_END=30;
+var maintBanner=null;
+var maintKicked=false;
+function nowMins(){var d=new Date();return d.getHours()*60+d.getMinutes();}
+function isMaintTime(){var d=new Date();return d.getHours()===0&&d.getMinutes()<MAINT_END;}
+function isWarnTime(){return nowMins()>=MAINT_WARN;}
+function showMaintBanner(msg,color){
+  if(!maintBanner){
+    maintBanner=document.createElement('div');
+    maintBanner.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99999;padding:10px 16px;text-align:center;font-size:14px;font-weight:600;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.2);';
+    document.body.appendChild(maintBanner);
+  }
+  maintBanner.style.background=color||'#e67e22';
+  maintBanner.textContent=msg;
+  maintBanner.style.display='block';
+}
+function hideMaintBanner(){if(maintBanner)maintBanner.style.display='none';}
+function maintKickOut(){
+  if(maintKicked)return;
+  maintKicked=true;
+  showMaintBanner('🔧 系统维护开始，正在保存数据并退出...','#c0392b');
+  const doExit=async function(){
+    try{if(typeof uploadClassState==='function')await uploadClassState();}catch(e){}
+    localStorage.removeItem(SESSION_KEY);
+    if(SB){try{await SB.auth.signOut();}catch(e){}}
+    showMaintBanner('系统维护中（0:00-0:30），已自动退出','#c0392b');
+    setTimeout(function(){location.href='index.html';},1500);
+  };
+  doExit();
+}
+function checkMaintenance(){
+  if(isMaintTime()){maintKickOut();return;}
+  if(isWarnTime()){
+    var m=nowMins();
+    var mins=(24*60)-m;
+    showMaintBanner('🔔 系统将于 '+mins+' 分钟后（0:00）进入维护，请及时保存数据','#f39c12');
+    return;
+  }
+  hideMaintBanner();
+}
+checkMaintenance();
+setInterval(checkMaintenance,15000);
+if(typeof document!=='undefined'){
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)checkMaintenance();});
+}
 </script>
 </body>
 </html>

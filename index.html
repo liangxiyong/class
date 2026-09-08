@@ -109,6 +109,14 @@ input{font-family:inherit;color:inherit}
     <div class="login-mark">积</div>
     <div class="login-title">班级积分管理系统</div>
 
+    <!-- 维护中提示 -->
+    <div id="maintBlock" style="display:none;text-align:center;padding:20px 0">
+      <div style="font-size:40px;margin-bottom:10px">🔧</div>
+      <div style="font-size:16px;font-weight:600;color:#c0392b;margin-bottom:8px">系统维护中</div>
+      <div style="font-size:13px;color:#6b5e4a;line-height:1.6">每天 0:00 - 0:30 为系统维护时间<br>维护期间暂停登录和所有操作<br>请在 0:30 后重新登录</div>
+      <div id="maintCountdown" style="font-size:14px;color:#e67e22;margin-top:12px;font-weight:600"></div>
+    </div>
+
     <div id="loginFields">
       <div class="login-field">
         <label>用户名</label>
@@ -161,7 +169,49 @@ function onLoginNameInput(){
   document.getElementById('loginPwdField').style.display='block';
   document.getElementById('loginErr').textContent='';
 }
+/* ================= 系统维护：0:00-0:30 禁止登录 ================= */
+var MAINT_START=0; // 0:00
+var MAINT_END=30;  // 0:30
+function isMaintTime(){
+  var d=new Date();
+  return d.getHours()===0 && d.getMinutes()<MAINT_END;
+}
+function maintCountdownText(){
+  var d=new Date();
+  if(d.getHours()!==0) return '';
+  var remain=MAINT_END-d.getMinutes();
+  if(remain<=0) return '';
+  return '约 '+remain+' 分钟后恢复';
+}
+function checkMaintBlock(){
+  var block=document.getElementById('maintBlock');
+  var fields=document.getElementById('loginFields');
+  if(isMaintTime()){
+    block.style.display='block';
+    fields.style.display='none';
+    document.getElementById('maintCountdown').textContent=maintCountdownText();
+    return true;
+  }
+  block.style.display='none';
+  fields.style.display='block';
+  return false;
+}
+setInterval(function(){
+  if(isMaintTime()){
+    document.getElementById('maintBlock').style.display='block';
+    document.getElementById('loginFields').style.display='none';
+    document.getElementById('maintCountdown').textContent=maintCountdownText();
+  }else{
+    document.getElementById('maintBlock').style.display='none';
+    document.getElementById('loginFields').style.display='block';
+  }
+},30000);
+
 async function doLogin(){
+  if(isMaintTime()){
+    document.getElementById('loginErr').textContent='系统维护中（0:00-0:30），请稍后再试';
+    return;
+  }
   const name0=document.getElementById('loginName').value.trim();
   const name=name0.toLowerCase()==='teacher'?'teacher':name0;
   const pwd=document.getElementById('loginPwd').value;
@@ -234,6 +284,8 @@ function backToLogin(){
   document.getElementById('loginErr').textContent='';
 }
 window.addEventListener('pageshow',function(){
+  // 维护时间：显示维护界面，隐藏登录表单
+  if(checkMaintBlock()) return;
   document.getElementById('loginFields').style.display='block';
   document.getElementById('chooseBox').style.display='none';
   const cb=document.getElementById('chooseClassBtn');
