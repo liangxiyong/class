@@ -2024,6 +2024,8 @@ async function loadGroupIntoState(groupId,allowEmpty){
   s=applyPersonalMode(s);
   state=s;
   currentGroupId=groupId;
+  // 切换/加载小组后清空撤销栈：防止把上一组的旧快照恢复到本组（跨组数据污染+误上传）
+  undoStack=[];redoStack=[];
   saveLocal();
   if(needUpload||fixedPollution)queueSbSave(); // 本地恢复或问号修复后写回云端
   subscribeRealtime(groupId);
