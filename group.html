@@ -1991,6 +1991,7 @@ async function loadGroupIntoState(groupId,allowEmpty){
   if(allowEmpty===undefined)allowEmpty=true;
   let s=null;
   let fixedPollution=false;
+  let needUpload=false; // 用本地备份恢复（且本地更新）时回传云端
   try{
     const row=await loadGroupData(groupId);
     if(row&&row.data&&row.data.items){
@@ -1999,18 +2000,32 @@ async function loadGroupIntoState(groupId,allowEmpty){
       // 防御：云端名单异常为空时，用默认名单兜底（不读本地缓存）
       if(!s.students||!s.students.length)s=initGroupState(groupId);
       lastRemoteUpdatedAt=row.updated_at||0;
+      // 本地备份比云端新（上次上传失败/未成功上传）→ 用本地恢复并回传云端，防止刷新后数据"消失"
+      try{
+        const local=loadLocalGroup(groupId);
+        if(local&&local.items&&local.lastModified&&(!s.lastModified||local.lastModified>s.lastModified)){
+          if(normalizeGroupData(local,groupId))fixedPollution=true;
+          s=local;
+          needUpload=true;
+        }
+      }catch(e){}
     }
   }catch(e){}
   // 云端加载失败
   if(!s){
     if(!allowEmpty)return state; // 不允许空覆盖：保持当前页面数据不变
-    s=initGroupState(groupId);
+    // 云端完全取不到时：本地有备份就恢复本地（防丢数据），否则空状态
+    try{
+      const local=loadLocalGroup(groupId);
+      if(local&&local.items){s=local;needUpload=true;if(normalizeGroupData(local,groupId))fixedPollution=true;}
+    }catch(e){}
+    if(!s)s=initGroupState(groupId);
   }
   s=applyPersonalMode(s);
   state=s;
   currentGroupId=groupId;
   saveLocal();
-  if(fixedPollution)queueSbSave(); // 修复了问号污染则写回云端，避免云端长期存脏数据
+  if(needUpload||fixedPollution)queueSbSave(); // 本地恢复或问号修复后写回云端
   subscribeRealtime(groupId);
   const sub=document.getElementById('sidebarGroup');
   if(sub){sub.textContent=(GROUP_NAMES[groupId]||s.groupName)+(isPersonalMode()?' · 我的分数':'');sub.style.display='block';}
