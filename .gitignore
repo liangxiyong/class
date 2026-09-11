@@ -12,3 +12,4 @@ _verify_*.log
 # 开发/测试脚本不上传 GitHub
 _*.js
 _*.sql
+_mobile_check/

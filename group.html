@@ -536,6 +536,8 @@ td.total-col.zero{color:#cfc4b4}
   .main{padding:24px 20px 70px}
 }
 @media(max-width:768px){
+  /* 手机端禁止页面级横向溢出，避免浏览器自动缩放导致"进设置分辨率突变" */
+  html,body{overflow-x:hidden}
   .sidebar{
     position:fixed;top:0;left:0;right:0;bottom:auto;width:100%;height:auto;
     flex-direction:row;align-items:center;padding:7px 8px;
@@ -550,23 +552,24 @@ td.total-col.zero{color:#cfc4b4}
   .group-switch-label{display:none}
   .group-switch select{max-width:130px;font-size:13px;padding:6px 8px}
   /* 手机端独立 UI：底部固定 Tab 栏（App 风格） */
+  /* 6 项必须全部可见（含"设置"），禁止横向溢出把"设置"挤出屏外 */
   .nav{
     position:fixed;bottom:0;left:0;right:0;top:auto;flex:none;
     width:100%;display:flex;justify-content:space-around;align-items:stretch;
-    gap:2px;padding:6px 4px calc(6px + env(safe-area-inset-bottom));
-    overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;
+    gap:1px;padding:5px 2px calc(5px + env(safe-area-inset-bottom));
+    overflow-x:hidden;overflow-y:hidden;-webkit-overflow-scrolling:touch;
     background:rgba(255,255,255,.98);
     border-top:1px solid var(--line);
     box-shadow:0 -3px 14px rgba(30,24,20,.1);
     z-index:120;
   }
   .nav-item{
-    flex:1 1 0;flex-direction:column;gap:2px;
-    padding:6px 2px;font-size:10.5px;white-space:nowrap;
-    text-align:center;border-radius:10px;min-width:50px;
+    flex:1 1 0;flex-direction:column;gap:1px;
+    padding:5px 1px;font-size:10px;white-space:nowrap;
+    text-align:center;border-radius:8px;min-width:0;
     transition:background .15s;
   }
-  .nav-item .ico{font-size:17px;width:auto}
+  .nav-item .ico{font-size:15px;width:auto}
   .nav-item.active{
     background:rgba(192,57,43,.1);
     color:var(--accent);
