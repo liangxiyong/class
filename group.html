@@ -199,7 +199,7 @@ td.total-col.zero{color:#cfc4b4}
 .modal{
   background:var(--card);border-radius:18px;width:500px;max-width:calc(100vw - 40px);
   box-shadow:0 24px 70px rgba(0,0,0,.28);overflow:hidden;animation:pop .2s ease;
-  max-height:calc(100vh - 60px);display:flex;flex-direction:column;
+  max-height:calc(100vh - 60px);min-height:420px;display:flex;flex-direction:column;
 }
 @keyframes pop{from{opacity:0;transform:scale(.96) translateY(8px)}to{opacity:1;transform:none}}
 .modal-head{
@@ -648,6 +648,19 @@ td.total-col.zero{color:#cfc4b4}
   .summary-row{overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px}
   .modal-body{padding-bottom:calc(12px + env(safe-area-inset-bottom))}
   .modal-foot{padding-bottom:calc(12px + env(safe-area-inset-bottom))}
+  /* 手机端评分弹窗适配：formula/custom 行换行防溢出，weight 两列，统一间距 */
+  .formula-row{flex-wrap:wrap;gap:8px}
+  .formula-row input{flex:1 1 100%}
+  .formula-preview{flex:1;min-width:0;min-height:40px;display:flex;align-items:center;justify-content:center}
+  .formula-row .btn{flex:none}
+  .custom-row{flex-wrap:wrap;gap:8px}
+  .custom-row input{flex:1 1 100%}
+  .note-row{flex-wrap:wrap;gap:8px}
+  .note-row input{flex:1 1 100%}
+  .weight-group{padding:10px}
+  .weight-group .wg-label{width:100%;margin:0 0 6px;font-size:11.5px}
+  .wopt{flex:1 1 calc(50% - 4px);justify-content:center;font-size:12.5px;padding:7px 6px}
+  .section-label{margin:10px 0 6px;font-size:11px}
   .chart-card{padding:12px}
   .myrec-item{padding:10px 12px}
   /* 手机端不可用/不需要的功能：打印、批量模式 */
