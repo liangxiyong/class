@@ -111,12 +111,13 @@ async function loadReport(){
   const content=document.getElementById('content');
   content.innerHTML='<div class="loading">正在加载 '+date+' 的维护数据...</div>';
 
-  const [backups,snapshots,integrity,logs,keepalive]=await Promise.all([
+  const [backups,snapshots,integrity,logs,keepalive,health]=await Promise.all([
     fetchTable('backups','backup_date',date),
     fetchTable('daily_snapshots','snapshot_date',date),
     fetchTable('integrity_reports','report_date',date),
     fetchTable('operation_logs','log_date',date),
-    fetchTable('keepalive_logs','',date)
+    fetchTable('keepalive_logs','',date),
+    fetchTable('system_health','check_date',date)
   ]);
 
   let html='';
@@ -136,6 +137,11 @@ async function loadReport(){
   html+='<div class="stat-item"><div class="v">'+totalOps+'</div><div class="k">操作日志</div></div>';
   html+='<div class="stat-item"><div class="v" style="color:'+(issues>0?'#c5221f':'#137333')+'">'+issues+'</div><div class="k">完整性问题</div></div>';
   html+='<div class="stat-item"><div class="v">'+keepalive.length+'</div><div class="k">保活记录</div></div>';
+  if(health.length>0){
+    const h=health[health.length-1];
+    html+='<div class="stat-item"><div class="v">'+(h.db_size_mb||0)+'</div><div class="k">数据库MB</div></div>';
+    html+='<div class="stat-item"><div class="v" style="color:'+(h.backups_today>=h.backups_expected?'#137333':'#c5221f')+'">'+(h.backups_today||0)+'/'+(h.backups_expected||0)+'</div><div class="k">备份完整</div></div>';
+  }
   html+='</div></div>';
 
   // 每日快照
@@ -212,6 +218,30 @@ async function loadReport(){
       const t=new Date(k.checked_at);
       html+='<tr><td>'+t.toLocaleString('zh-CN')+'</td><td>'+(k.group_count||0)+'</td><td>'+(k.class_count||0)+'</td><td>'+(k.user_count||0)+'</td></tr>';
     });
+    html+='</tbody></table>';
+  }
+  html+='</div>';
+
+  // 系统健康检查
+  html+='<div class="card"><h2>🩺 系统健康检查</h2>';
+  if(health.length===0){html+='<div class="empty">当日无健康检查记录</div>';}
+  else{
+    const h=health[health.length-1];
+    const d=h.detail||{};
+    html+='<table><thead><tr><th>检查项</th><th>值</th><th>状态</th></tr></thead><tbody>';
+    html+='<tr><td>数据库大小</td><td>'+(h.db_size_mb||0)+' MB / 500 MB</td><td><span class="tag '+(h.db_size_mb<400?'tag-ok':'tag-warn')+'">'+(h.db_size_mb<400?'正常':'接近上限')+'</span></td></tr>';
+    html+='<tr><td>分组数据</td><td>'+(h.group_data_count||0)+' 组</td><td><span class="tag tag-ok">正常</span></td></tr>';
+    html+='<tr><td>班级数据</td><td>'+(h.class_data_count||0)+' 条</td><td><span class="tag tag-ok">正常</span></td></tr>';
+    html+='<tr><td>用户数</td><td>'+(h.users_count||0)+' 人</td><td><span class="tag tag-ok">正常</span></td></tr>';
+    html+='<tr><td>今日备份</td><td>'+(h.backups_today||0)+' / '+(h.backups_expected||0)+'</td><td><span class="tag '+(h.backups_today>=h.backups_expected?'tag-ok':'tag-err')+'">'+(h.backups_today>=h.backups_expected?'完整':'缺失')+'</span></td></tr>';
+    html+='<tr><td>权限状态</td><td>anon/authenticated SELECT</td><td><span class="tag '+(h.permissions_ok?'tag-ok':'tag-err')+'">'+(h.permissions_ok?'正常':'异常')+'</span></td></tr>';
+    html+='<tr><td>索引状态</td><td>-</td><td><span class="tag '+(h.indexes_ok?'tag-ok':'tag-warn')+'">'+(h.indexes_ok?'正常':'检查')+'</span></td></tr>';
+    if(d.tables){
+      html+='<tr><td colspan="3" style="background:#f8f5f0;font-weight:600">各维护表记录数</td></tr>';
+      for(const k in d.tables){
+        html+='<tr><td>'+k+'</td><td>'+d.tables[k]+' 条</td><td>-</td></tr>';
+      }
+    }
     html+='</tbody></table>';
   }
   html+='</div>';
