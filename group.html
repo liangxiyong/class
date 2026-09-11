@@ -548,6 +548,10 @@ td.total-col.zero{color:#cfc4b4}
   .brand .mark{width:28px;height:28px;font-size:15px;margin-bottom:0;border-radius:8px}
   .brand .title{font-size:15px;letter-spacing:1px}
   .brand .sub{display:none}
+  /* 手机端顶部栏横排：组名+用户名一行，退出登录在右 */
+  .brand-info{display:flex;align-items:center;gap:6px;flex:1;min-width:0}
+  .brand-info .sub{display:block;font-size:12px;color:rgba(247,241,230,.72);white-space:nowrap}
+  .brand-info .sidebar-user{font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px;margin:0}
   .group-switch{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:4px;padding:0 4px;border-bottom:none}
   .group-switch-label{display:none}
   .group-switch select{max-width:130px;font-size:13px;padding:6px 8px}
@@ -1562,7 +1566,7 @@ function updateNavForRole(){
   const pi=document.getElementById('panelGroupInfo');
   if(pi)pi.style.display=isPersonalMode()?'none':'';
   const ic=document.getElementById('panelItemsCfg');
-  if(ic)ic.style.display=isPersonalMode()?'none':'';
+  if(ic)ic.style.display=(isPersonalMode()||isLeader())?'none':'';
 }
 function mkEvent(v,label){return {v,label,by:currentUser?currentUser.name:'本地',ts:Date.now(),id:uid()};}
 function renderSidebarUser(){
