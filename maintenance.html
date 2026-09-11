@@ -90,7 +90,14 @@ async function init(){
 async function fetchTable(table,dateCol,dateVal){
   try{
     const token=(await SB.auth.getSession()).data.session.access_token;
-    const resp=await fetch(SUPABASE_URL+'/rest/v1/'+table+'?'+dateCol+'=eq.'+dateVal+'&select=*&order=created_at',{
+    let url=SUPABASE_URL+'/rest/v1/'+table+'?select=*';
+    if(table==='keepalive_logs'){
+      // keepalive_logs用checked_at范围查询
+      url+='&checked_at=gte.'+dateVal+'T00:00:00&checked_at=lt.'+dateVal+'T23:59:59&order=checked_at';
+    }else{
+      url+='&'+dateCol+'=eq.'+dateVal+'&order=created_at';
+    }
+    const resp=await fetch(url,{
       headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+token}
     });
     if(!resp.ok)return [];
@@ -109,7 +116,7 @@ async function loadReport(){
     fetchTable('daily_snapshots','snapshot_date',date),
     fetchTable('integrity_reports','report_date',date),
     fetchTable('operation_logs','log_date',date),
-    fetchTable('keepalive_logs','checked_at::date',date)
+    fetchTable('keepalive_logs','',date)
   ]);
 
   let html='';
