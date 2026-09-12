@@ -155,9 +155,8 @@ begin
     end if;
 
     -- 检查2：分数记录里的学生ID是否在名单中（孤儿分数）
-    -- 检查3：空分数数组
-    -- 检查4：异常分值（>10000 或 <-10000）
-    -- 检查5：未来时间戳
+    -- 检查3：异常分值（>10000 或 <-10000）
+    -- 检查4：未来时间戳
     if g.data ? 'scores' then
       for score_date in select jsonb_object_keys(g.data->'scores') loop
         for student_id in select jsonb_object_keys(g.data->'scores'->score_date) loop
@@ -172,13 +171,6 @@ begin
           end if;
 
           for item_id in select jsonb_object_keys(g.data->'scores'->score_date->student_id) loop
-            -- 空分数数组
-            if jsonb_array_length(g.data->'scores'->score_date->student_id->item_id) = 0 then
-              insert into integrity_reports(group_id, issue_type, issue_detail)
-              values (g.group_id, 'empty_score_array',
-                '日期 ' || score_date || ' 学生 ' || student_id || ' 项目 ' || item_id || ' 分数数组为空');
-            end if;
-
             for rec in select value from jsonb_array_elements(g.data->'scores'->score_date->student_id->item_id) loop
               -- 异常分值
               if (rec.value->>'v')::numeric > 10000 or (rec.value->>'v')::numeric < -10000 then
