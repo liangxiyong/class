@@ -81,6 +81,12 @@ create table if not exists keepalive_logs (
 );
 alter table keepalive_logs disable row level security;
 
+-- 修复时区：所有日期列用北京时间（UTC+8）
+alter table backups alter column backup_date set default (now() at time zone 'Asia/Shanghai')::date;
+alter table daily_snapshots alter column snapshot_date set default (now() at time zone 'Asia/Shanghai')::date;
+alter table integrity_reports alter column report_date set default (now() at time zone 'Asia/Shanghai')::date;
+alter table system_health alter column check_date set default (now() at time zone 'Asia/Shanghai')::date;
+
 -- 系统健康检查表：每天记录空间、权限、备份完整性等
 create table if not exists system_health (
   id bigserial primary key,
@@ -117,6 +123,7 @@ declare
   cls record;
   cls_student record;
   usr record;
+  bj_date date := (now() at time zone 'Asia/Shanghai')::date;
 begin
   -- ========== 分组数据检查 ==========
   for g in select group_id, group_name, data from group_data loop
@@ -267,6 +274,7 @@ declare
   detail jsonb := '{}';
   perm record;
   idx_count int;
+  bj_date date := (now() at time zone 'Asia/Shanghai')::date;
 begin
   -- 数据库大小
   select pg_database_size(current_database()) / 1024.0 / 1024.0 into db_size_mb;
@@ -275,7 +283,7 @@ begin
   select count(*) into gc from group_data;
   select count(*) into cc from class_data;
   select count(*) into uc from users;
-  select count(*) into backups_today from backups where backup_date = current_date;
+  select count(*) into backups_today from backups where backup_date = bj_date;
 
   -- 权限检查：anon 和 authenticated 对核心表是否有 SELECT 权限
   -- （通过查询 information_schema 验证）
@@ -305,7 +313,7 @@ begin
 
   insert into system_health(check_date, db_size_mb, group_data_count, class_data_count,
     users_count, backups_today, backups_expected, permissions_ok, indexes_ok, detail)
-  values (current_date, round(db_size_mb, 2), gc, cc, uc, backups_today, gc + cc, perms_ok, idx_ok, detail);
+  values (bj_date, round(db_size_mb, 2), gc, cc, uc, backups_today, gc + cc, perms_ok, idx_ok, detail);
 end;
 $$ language plpgsql;
 
@@ -325,9 +333,10 @@ declare
   total numeric;
   cnt int;
   sname text;
+  bj_date date := (now() at time zone 'Asia/Shanghai')::date;
 begin
   -- 清空今天的完整性报告（完整维护时重新生成）
-  delete from integrity_reports where report_date = current_date;
+  delete from integrity_reports where report_date = bj_date;
 
   -- ---------- 1. 备份 group_data ----------
   for g in select group_id, group_name, data, updated_at from group_data loop
@@ -357,7 +366,7 @@ begin
               cnt := cnt + 1;
 
               -- 归档当天的操作日志
-              if score_date = to_char(current_date, 'YYYY-MM-DD') then
+              if score_date = to_char(bj_date, 'YYYY-MM-DD') then
                 sname := null;
                 select s->>'name' into sname
                 from jsonb_array_elements(g.data->'students') s
@@ -365,7 +374,7 @@ begin
 
                 insert into operation_logs(log_date, group_id, student_id, student_name,
                   item_id, score_value, label, by_user, ts)
-                values (current_date, g.group_id, student_id, sname,
+                values (bj_date, g.group_id, student_id, sname,
                   item_id, (rec.value->>'v')::numeric, rec.value->>'label', rec.value->>'by', (rec.value->>'ts')::bigint);
               end if;
             end loop;
@@ -376,7 +385,7 @@ begin
 
     -- 插入每日快照
     insert into daily_snapshots(snapshot_date, group_id, group_name, student_count, total_score, avg_score)
-    values (current_date, g.group_id, g.group_name,
+    values (bj_date, g.group_id, g.group_name,
       coalesce(jsonb_array_length(g.data->'students'), 0),
       total,
       case when cnt > 0 then round(total / cnt, 2) else 0 end)
@@ -395,11 +404,11 @@ begin
 
   -- ---------- 5. 清理旧数据 ----------
   delete from backups where created_at < now() - interval '30 days';
-  delete from operation_logs where log_date < current_date - interval '30 days';
-  delete from integrity_reports where report_date < current_date - interval '30 days';
-  delete from daily_snapshots where snapshot_date < current_date - interval '90 days';
+  delete from operation_logs where log_date < bj_date - interval '30 days';
+  delete from integrity_reports where report_date < bj_date - interval '30 days';
+  delete from daily_snapshots where snapshot_date < bj_date - interval '90 days';
   delete from keepalive_logs where checked_at < now() - interval '7 days';
-  delete from system_health where check_date < current_date - interval '90 days';
+  delete from system_health where check_date < bj_date - interval '90 days';
 end;
 $$ language plpgsql;
 
