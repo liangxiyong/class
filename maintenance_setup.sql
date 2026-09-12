@@ -124,6 +124,9 @@ declare
   cls_student record;
   usr record;
   bj_date date := (now() at time zone 'Asia/Shanghai')::date;
+  yest_backup record;
+  yest_count int;
+  cur_count int;
 begin
   -- ========== 分组数据检查 ==========
   for g in select group_id, group_name, data from group_data loop
@@ -212,6 +215,46 @@ begin
     else
       insert into integrity_reports(group_id, issue_type, issue_detail)
       values (g.group_id, 'missing_items', '该组数据缺少 items 配置');
+    end if;
+  end loop;
+
+  -- ========== 检查8：分数记录丢失（对比昨天备份） ==========
+  for yest_backup in
+    select record_id, data from backups
+    where backup_date = bj_date - interval '1 day'
+      and table_name = 'group_data'
+  loop
+    -- 统计昨天备份里的分数记录数
+    yest_count := 0;
+    if yest_backup.data->'data' ? 'scores' then
+      for score_date in select jsonb_object_keys(yest_backup.data->'data'->'scores') loop
+        for student_id in select jsonb_object_keys(yest_backup.data->'data'->'scores'->score_date) loop
+          for item_id in select jsonb_object_keys(yest_backup.data->'data'->'scores'->score_date->student_id) loop
+            yest_count := yest_count + coalesce(jsonb_array_length(yest_backup.data->'data'->'scores'->score_date->student_id->item_id), 0);
+          end loop;
+        end loop;
+      end loop;
+    end if;
+
+    -- 统计当前数据里的分数记录数
+    cur_count := 0;
+    begin
+      select coalesce(sum(cnt), 0) into cur_count from (
+        select jsonb_array_length(gd.data->'scores'->sd->si) as cnt
+        from group_data gd,
+             jsonb_object_keys(gd.data->'scores') sd,
+             jsonb_object_keys(gd.data->'scores'->sd) si
+        where gd.group_id = yest_backup.record_id
+          and gd.data ? 'scores'
+      ) t;
+    exception when others then cur_count := 0;
+    end;
+
+    -- 如果今天比昨天少，标记为丢失
+    if cur_count < yest_count then
+      insert into integrity_reports(group_id, issue_type, issue_detail)
+      values (yest_backup.record_id, 'score_records_lost',
+        '分数记录丢失：昨天 ' || yest_count || ' 条，今天 ' || cur_count || ' 条，减少 ' || (yest_count - cur_count) || ' 条');
     end if;
   end loop;
 
