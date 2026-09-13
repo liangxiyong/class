@@ -2091,8 +2091,14 @@ async function switchAdminGroup(gid){
   if(!isAdmin())return;
   await flushSbSave();
   try{
+    const oldGid=currentGroupId;
     // 传false：切换组时云端加载失败则保持当前组，不显示空数据
-    await loadGroupIntoState(gid,false);
+    const loaded=await loadGroupIntoState(gid,false);
+    // 关键：只有真正加载成功（currentGroupId变了）才更新UI，否则保持原组防止"组名和数据不匹配"
+    if(String(currentGroupId)!==String(gid)){
+      toast('切换失败：云端数据加载异常，已保持当前组');
+      return;
+    }
     render();
     renderSidebarUser();
     updateNavForRole();
@@ -3641,7 +3647,8 @@ function renderSettings(){
   document.getElementById('groupNameInput').value=state.groupName;
   document.getElementById('fontSelect').value=state.font||'sans';
   const sub=document.getElementById('sidebarGroup');
-  if(state.groupName){sub.textContent=state.groupName;sub.style.display='block';}else{sub.style.display='none';}
+  // 用GROUP_NAMES强制显示正确组名，防止state.groupName被污染
+  if(sub){sub.textContent=(GROUP_NAMES[currentGroupId]||state.groupName||'')+(isPersonalMode()?' · 我的分数':'');sub.style.display='block';}
   const cp=document.getElementById('cloudPanel');
   if(cp)cp.style.display=canAccessCloud()?'':'none';
   const dp=document.getElementById('dangerPanel');
