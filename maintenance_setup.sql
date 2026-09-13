@@ -237,17 +237,21 @@ begin
             end loop;
           end loop;
 
-          -- 统计当前数据里该日期的分数记录数
+          -- 统计当前数据里该日期的分数记录数（安全方式：先取数据再遍历）
           cur_count := 0;
+          declare
+            cur_gd record;
+            cur_student record;
+            cur_item record;
           begin
-            select coalesce(sum(cnt), 0) into cur_count from (
-              select jsonb_array_length(gd.data->'scores'->score_date->si) as cnt
-              from group_data gd,
-                   jsonb_object_keys(gd.data->'scores'->score_date) si
-              where gd.group_id = yest_backup.record_id
-                and gd.data ? 'scores'
-                and gd.data->'scores' ? score_date
-            ) t;
+            select data into cur_gd from group_data where group_id = yest_backup.record_id;
+            if cur_gd.data ? 'scores' and cur_gd.data->'scores' ? score_date then
+              for cur_student in select key, value from jsonb_each(cur_gd.data->'scores'->score_date) loop
+                for cur_item in select key, value from jsonb_each(cur_student.value) loop
+                  cur_count := cur_count + coalesce(jsonb_array_length(cur_item.value), 0);
+                end loop;
+              end loop;
+            end if;
           exception when others then cur_count := 0;
           end;
 
