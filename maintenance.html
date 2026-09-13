@@ -75,11 +75,10 @@ function fmtDate(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2
 async function init(){
   currentUser=loadSession();
   if(!currentUser||(currentUser.role!=='admin'&&currentUser.role!=='admin2'&&currentUser.role!=='teacher')){
-    location.href='index.html';return;
+    location.href='index.html?redirect=maintenance.html';return;
   }
   if(!SB){document.getElementById('content').innerHTML='<div class="empty">无法连接数据库</div>';return;}
-  const {data:sd}=await SB.auth.getSession();
-  if(!sd||!sd.session){location.href='index.html';return;}
+  // 维护表只需读数据，用anon key即可，不强制检查Supabase auth session
   // 默认日期：昨天
   const yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);
   document.getElementById('reportDate').value=fmtDate(yesterday);
