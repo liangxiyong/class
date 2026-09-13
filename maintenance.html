@@ -73,12 +73,8 @@ function loadSession(){try{const r=localStorage.getItem(SESSION_KEY);return r?JS
 function fmtDate(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 
 async function init(){
-  currentUser=loadSession();
-  if(!currentUser||(currentUser.role!=='admin'&&currentUser.role!=='admin2'&&currentUser.role!=='teacher')){
-    location.href='index.html?redirect=maintenance.html';return;
-  }
+  // 维护页不需要登录，直接加载数据（RLS已禁用，数据公开）
   if(!SB){document.getElementById('content').innerHTML='<div class="empty">无法连接数据库</div>';return;}
-  // 维护表只需读数据，用anon key即可，不强制检查Supabase auth session
   // 默认日期：昨天
   const yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);
   document.getElementById('reportDate').value=fmtDate(yesterday);
@@ -88,7 +84,6 @@ async function init(){
 
 async function fetchTable(table,dateCol,dateVal){
   try{
-    const token=(await SB.auth.getSession()).data.session.access_token;
     let url=SUPABASE_URL+'/rest/v1/'+table+'?select=*';
     if(table==='keepalive_logs'){
       // keepalive_logs用checked_at范围查询
@@ -99,8 +94,9 @@ async function fetchTable(table,dateCol,dateVal){
     }else{
       url+='&'+dateCol+'=eq.'+dateVal+'&order=created_at';
     }
+    // 维护表RLS已禁用，anon key即可访问，不需要auth token
     const resp=await fetch(url,{
-      headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+token}
+      headers:{'apikey':SUPABASE_ANON_KEY}
     });
     if(!resp.ok)return [];
     return await resp.json();
