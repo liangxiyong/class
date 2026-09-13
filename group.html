@@ -1134,28 +1134,31 @@ td.total-col.zero{color:#cfc4b4}
     <div class="modal-head">
       <div>
         <div class="modal-title">⚖️ 数据加权</div>
-        <div class="modal-sub">对选定时间段的分数按百分比加成，可随时还原</div>
+        <div class="modal-sub">对全组总分按百分比加成（仅限1%~6%）</div>
       </div>
       <button class="icon-btn" onclick="closeWeightModal()">✕</button>
     </div>
     <div class="modal-body">
       <div class="weight-group">
-        <span style="font-size:13px;color:var(--ink-soft)">加权百分比</span>
-        <input type="number" id="weightPercent" value="4" min="0" max="100" style="width:80px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;font-size:14px;font-family:var(--font-mono);outline:none;text-align:center">
-        <span class="pct-suffix">%</span>
+        <span style="font-size:13px;color:var(--ink-soft)">加权百分比（仅限1%-6%）</span>
+        <select id="weightPercent" style="width:100px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;font-size:14px;font-family:var(--font-mono);outline:none;text-align:center">
+          <option value="1">1%</option>
+          <option value="2">2%</option>
+          <option value="3">3%</option>
+          <option value="4" selected>4%</option>
+          <option value="5">5%</option>
+          <option value="6">6%</option>
+        </select>
       </div>
       <div style="font-size:12px;color:var(--ink-soft);line-height:1.7">
         对全组<b>所有日期的个人总分</b>（含基础分10、默认分、加减分记录）统一加权。<br>
-        加权 = 总分 × (1+百分比/100)；还原 = 总分 ÷ (1+百分比/100)。<br>
+        加权 = 总分 × (1+百分比/100)，仅限1%-6%。<br>
         当前加权系数：<b id="weightFactorNow">×1</b>
       </div>
     </div>
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeWeightModal()">取消</button>
-      <div style="display:flex;gap:10px">
-        <button class="btn btn-ghost" onclick="applyWeight('restore')">↩️ 还原加权</button>
-        <button class="btn btn-primary" onclick="applyWeight('add')">✅ 确认加权</button>
-      </div>
+      <button class="btn btn-primary" onclick="applyWeight()">✅ 确认加权</button>
     </div>
   </div>
 </div>
@@ -3857,16 +3860,16 @@ function openWeightModal(){
 function closeWeightModal(){
   document.getElementById('weightModal').style.display='none';
 }
-function applyWeight(mode){
+function applyWeight(){
   const p=parseFloat(document.getElementById('weightPercent').value);
-  if(!p||p<=0){toast('请输入有效的加权百分比');return;}
+  if(!p||p<1||p>6){toast('加权百分比仅限1%-6%');return;}
   const f=weightF();
-  const nf=mode==='add'?Math.round(f*(1+p/100)*1000)/1000:Math.round(f/(1+p/100)*1000)/1000;
-  if(nf<=0){toast('无法还原到 0 以下');return;}
+  const nf=Math.round(f*(1+p/100)*1000)/1000;
+  if(nf<=0){toast('无法设置为0以下');return;}
   state.weightFactor=nf;
   save();render();
   closeWeightModal();
-  toast((mode==='add'?'已加权，全部总分 ×':'已还原，全部总分 ×')+Math.round(nf*1000)/1000);
+  toast('已加权，全部总分 ×'+Math.round(nf*1000)/1000);
 }
 function exportData(){
   download('积分数据备份_'+fmt(new Date())+'.json',JSON.stringify(state,null,2),'application/json');
