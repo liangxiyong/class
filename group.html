@@ -2966,7 +2966,7 @@ function rankBadge(n){
 function buildWeekTable(monday,dates){
   if(!state.students.length)return emptyTip();
   // 手机端转置：行=日期、列=人名，底部=每日小组总分（7天竖排，手机宽度不用横滑）
-  if(window.innerWidth<=768){
+  if(window.innerWidth<=900){
     let h=`<table class="score-table"><thead><tr><th class="sticky-col">日期</th>`;
     state.students.forEach(st=>{h+=`<th>${esc(st.name)}</th>`;});
     h+=`<th style="background:#f0ebe3;font-weight:700">日总分</th></tr></thead><tbody>`;
@@ -2980,6 +2980,7 @@ function buildWeekTable(monday,dates){
         const cls=v>0?'pos':(v<0?'neg':'zero');
         h+=`<td class="${cls}" style="font-family:var(--font-mono);font-weight:600">${v===0?'·':v}</td>`;
       });
+      daySum=Math.round(daySum*100)/100;
       const cls=daySum>0?'pos':(daySum<0?'neg':'zero');
       h+=`<td class="${cls}" style="font-family:var(--font-mono);font-weight:700">${daySum}</td></tr>`;
     });
