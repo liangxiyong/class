@@ -212,6 +212,29 @@ setInterval(function(){
   }
 },30000);
 
+// 记录登录日志（异步，不阻塞登录流程）
+function recordLogin(username, success, failReason){
+  try{
+    const ua = navigator.userAgent || '';
+    // 获取IP后写入数据库
+    fetch('https://api.ipify.org?format=json',{signal:AbortSignal.timeout(3000)})
+      .then(r=>r.json()).then(d=>{
+        const ip = d.ip || '';
+        fetch(SUPABASE_URL+'/rest/v1/login_logs',{
+          method:'POST',
+          headers:{'apikey':SUPABASE_ANON_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+          body:JSON.stringify({username,ip_address:ip,user_agent:ua,success,fail_reason:failReason||null})
+        }).catch(()=>{});
+      }).catch(()=>{
+        // 获取IP失败也记录（IP为空）
+        fetch(SUPABASE_URL+'/rest/v1/login_logs',{
+          method:'POST',
+          headers:{'apikey':SUPABASE_ANON_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+          body:JSON.stringify({username,ip_address:'',user_agent:ua,success,fail_reason:failReason||null})
+        }).catch(()=>{});
+      });
+  }catch(e){}
+}
 async function doLogin(){
   if(isMaintTime()){
     document.getElementById('loginErr').textContent='系统维护中（0:00-0:30），请稍后再试';
@@ -228,8 +251,11 @@ async function doLogin(){
   const {data,error}=await SB.auth.signInWithPassword({email,password:pwd});
   if(error||!data.user){
     err.textContent='用户名或密码错误，请重试或联系管理员重置';
+    recordLogin(name,false,error?error.message:'登录失败');
     return;
   }
+  // 登录成功，记录日志（异步，不阻塞跳转）
+  recordLogin(name,true);
   // 权威角色从 users 表读取（JWT user_metadata 用户可自行篡改，不可信）
   // 用登录后的实际 email 查询，避免登录别名（如"张誉俪"→张益铭）时 username 查不到
   let role='user',gid=null,displayName=name;
