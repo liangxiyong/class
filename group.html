@@ -1293,6 +1293,7 @@ let state = loadState();
 if(dedupeStudents(state))saveLocal();
 let currentView = 'daily';
 let currentDate = new Date();
+let switchingGroup=false; // 切换组中标志：防止保存旧组触发Realtime回调跳回旧组
 const MIN_DATE=new Date(2026,7,31); // 2026-08-31 起可访问，此前数据已归档
 function clampMinDate(d){return d<MIN_DATE?new Date(MIN_DATE):d;}
 function isArchived(dk){return parseDate(dk)<MIN_DATE;}
@@ -1831,6 +1832,7 @@ let lastRemoteUpdatedAt=0;
 async function pollRemote(){
   // 页面不可见（切后台/锁屏）时跳过，降低手机端内存与电量压力，避免浏览器自动回收页面
   if(typeof document!=='undefined'&&document.hidden)return;
+  if(switchingGroup)return; // 切换组中：跳过轮询，防止拉取旧组数据覆盖新组
   if(!currentGroupId)return;
   // 本地有未同步修改时优先重传，避免弱网下分数只留在本机
   if(localDirty){retrySyncIfDirty();return;}
@@ -1882,6 +1884,7 @@ function subscribeRealtime(gid){
     if(sbRealtimeChannel){try{SB.removeChannel(sbRealtimeChannel);}catch(e){}sbRealtimeChannel=null;}
     sbRealtimeChannel=SB.channel('grp-'+gid)
       .on('postgres_changes',{event:'UPDATE',schema:'public',table:'group_data',filter:'group_id=eq.'+gid},function(payload){
+        if(switchingGroup)return; // 切换组中：忽略旧组的更新通知，防止跳回旧组
         if(!currentGroupId||String(currentGroupId)!==String(gid))return;
         if(typeof document!=='undefined'&&document.hidden)return;
         if(localDirty||sbSavePending)return; // 本地有未保存修改时不覆盖
@@ -2085,8 +2088,10 @@ function renderAdminGroupBar(){
 }
 async function switchAdminGroup(gid){
   if(!isAdmin())return;
-  await flushSbSave();
+  if(switchingGroup)return; // 正在切换中，防止重复触发
+  switchingGroup=true;
   try{
+    await flushSbSave();
     const oldGid=currentGroupId;
     // 传false：切换组时云端加载失败则保持当前组，不显示空数据
     const loaded=await loadGroupIntoState(gid,false);
@@ -2105,6 +2110,9 @@ async function switchAdminGroup(gid){
     toast('已切换到 '+GROUP_NAMES[gid]);
   }catch(e){
     toast('切换失败：'+errMsg(e));
+  }finally{
+    // 延迟重置标志，确保Realtime回调都已处理完
+    setTimeout(()=>{switchingGroup=false;},2000);
   }
 }
 
