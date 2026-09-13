@@ -1684,6 +1684,7 @@ function queueSbSave(){
 }
 function doSbSave(){
   if(!currentGroupId){sbSavePending=false;return;}
+  setSyncStatus('⏳ 正在同步到云端...','#7a6d61');
   saveGroupData(currentGroupId,state).then(()=>{
     localDirty=false;
     sbSavePending=false;
@@ -1719,7 +1720,13 @@ async function flushSbSave(){
     try{
       await saveGroupData(currentGroupId,state);
       localDirty=false;sbSavePending=false;sbRetryCount=0;
-    }catch(e){sbSavePending=false;}
+      setSyncStatus('✅ 已同步 '+new Date().toLocaleTimeString('zh-CN'),'var(--green)');
+    }catch(e){
+      sbSavePending=false;
+      // 保存失败：保持localDirty=true，显示未同步状态，联网后自动重试
+      localDirty=true;
+      setSyncStatus('❌ 暂未同步（已保存在本机），联网后自动重试','var(--red)');
+    }
   }
 }
 // 页面关闭/刷新前立即同步，避免 300ms 防抖未触发导致云端丢失
@@ -1810,7 +1817,16 @@ async function saveGroupData(groupId,data){
   const body={group_id:groupId,group_name:GROUP_NAMES[groupId]||('第'+groupId+'组'),data:out,updated_at:new Date().toISOString()};
   // 用 UPSERT（on_conflict=group_id + merge-duplicates）：行不存在时自动插入，
   // 避免 PATCH 在无行时静默无效（返回成功但什么都没写）
-  await sbFetch('group_data?on_conflict=group_id',{method:'POST',body:JSON.stringify(body),headers:{'Prefer':'resolution=merge-duplicates,return=minimal'}});
+  const resp=await sbFetch('group_data?on_conflict=group_id',{method:'POST',body:JSON.stringify(body),headers:{'Prefer':'resolution=merge-duplicates,return=representation'}});
+  // 验证：读取返回的数据，确认lastModified一致，防止假成功
+  try{
+    const saved=await resp.json();
+    if(saved&&saved.length&&saved[0].data&&saved[0].data.lastModified!==out.lastModified){
+      throw new Error('保存验证失败：云端lastModified与本地不一致');
+    }
+  }catch(e){
+    if(e.message&&e.message.indexOf('保存验证失败')>=0)throw e;
+  }
   sbSavePending=false;
   lastRemoteUpdatedAt=body.updated_at;
 }
@@ -2081,6 +2097,9 @@ async function switchAdminGroup(gid){
     renderSidebarUser();
     updateNavForRole();
     renderAdminGroupBar();
+    // 显式更新侧边栏组名，防止被renderSettings覆盖
+    const sub=document.getElementById('sidebarGroup');
+    if(sub){sub.textContent=GROUP_NAMES[gid]||('第'+gid+'组');sub.style.display='block';}
     toast('已切换到 '+GROUP_NAMES[gid]);
   }catch(e){
     toast('切换失败：'+errMsg(e));
