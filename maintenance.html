@@ -94,6 +94,9 @@ async function fetchTable(table,dateCol,dateVal){
     if(table==='keepalive_logs'){
       // keepalive_logs用checked_at范围查询
       url+='&checked_at=gte.'+dateVal+'T00:00:00&checked_at=lt.'+dateVal+'T23:59:59&order=checked_at';
+    }else if(table==='login_logs'){
+      // login_logs用created_at范围查询
+      url+='&created_at=gte.'+dateVal+'T00:00:00&created_at=lt.'+dateVal+'T23:59:59&order=created_at.desc';
     }else{
       url+='&'+dateCol+'=eq.'+dateVal+'&order=created_at';
     }
@@ -111,13 +114,14 @@ async function loadReport(){
   const content=document.getElementById('content');
   content.innerHTML='<div class="loading">正在加载 '+date+' 的维护数据...</div>';
 
-  const [backups,snapshots,integrity,logs,keepalive,health]=await Promise.all([
+  const [backups,snapshots,integrity,logs,keepalive,health,logins]=await Promise.all([
     fetchTable('backups','backup_date',date),
     fetchTable('daily_snapshots','snapshot_date',date),
     fetchTable('integrity_reports','report_date',date),
     fetchTable('operation_logs','log_date',date),
     fetchTable('keepalive_logs','',date),
-    fetchTable('system_health','check_date',date)
+    fetchTable('system_health','check_date',date),
+    fetchTable('login_logs','',date)
   ]);
 
   let html='';
@@ -137,6 +141,7 @@ async function loadReport(){
   html+='<div class="stat-item"><div class="v">'+totalOps+'</div><div class="k">操作日志</div></div>';
   html+='<div class="stat-item"><div class="v" style="color:'+(issues>0?'#c5221f':'#137333')+'">'+issues+'</div><div class="k">完整性问题</div></div>';
   html+='<div class="stat-item"><div class="v">'+keepalive.length+'</div><div class="k">保活记录</div></div>';
+  html+='<div class="stat-item"><div class="v">'+logins.length+'</div><div class="k">登录次数</div></div>';
   if(health.length>0){
     const h=health[health.length-1];
     html+='<div class="stat-item"><div class="v">'+(h.db_size_mb||0)+'</div><div class="k">数据库MB</div></div>';
@@ -217,6 +222,21 @@ async function loadReport(){
     keepalive.forEach(k=>{
       const t=new Date(k.checked_at);
       html+='<tr><td>'+t.toLocaleString('zh-CN')+'</td><td>'+(k.group_count||0)+'</td><td>'+(k.class_count||0)+'</td><td>'+(k.user_count||0)+'</td></tr>';
+    });
+    html+='</tbody></table>';
+  }
+  html+='</div>';
+
+  // 登录日志
+  html+='<div class="card"><h2>🔐 登录日志</h2>';
+  if(logins.length===0){html+='<div class="empty">当日无登录记录</div>';}
+  else{
+    html+='<table><thead><tr><th>时间</th><th>用户名</th><th>IP地址</th><th>状态</th><th>设备</th></tr></thead><tbody>';
+    logins.forEach(l=>{
+      const t=new Date(l.created_at);
+      const status = l.success ? '<span class="tag tag-ok">成功</span>' : '<span class="tag tag-err">失败</span>';
+      const ua = (l.user_agent||'').substring(0,50);
+      html+='<tr><td>'+t.toLocaleString('zh-CN')+'</td><td>'+(l.username||'')+'</td><td>'+(l.ip_address||'-')+'</td><td>'+status+'</td><td title="'+(l.user_agent||'')+'">'+ua+'</td></tr>';
     });
     html+='</tbody></table>';
   }
