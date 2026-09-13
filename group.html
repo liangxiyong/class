@@ -1141,21 +1141,10 @@ td.total-col.zero{color:#cfc4b4}
     <div class="modal-body">
       <div class="weight-group">
         <span style="font-size:13px;color:var(--ink-soft)">加权百分比（0%-12%）</span>
-        <select id="weightPercent" style="width:100px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;font-size:14px;font-family:var(--font-mono);outline:none;text-align:center">
-          <option value="0">0%</option>
-          <option value="1">1%</option>
-          <option value="2">2%</option>
-          <option value="3">3%</option>
-          <option value="4" selected>4%</option>
-          <option value="5">5%</option>
-          <option value="6">6%</option>
-          <option value="7">7%</option>
-          <option value="8">8%</option>
-          <option value="9">9%</option>
-          <option value="10">10%</option>
-          <option value="11">11%</option>
-          <option value="12">12%</option>
-        </select>
+        <div style="display:flex;align-items:center;gap:12px;width:100%">
+          <input type="range" id="weightPercent" min="0" max="12" step="1" value="4" style="flex:1;height:6px;accent-color:var(--primary)" oninput="document.getElementById('weightPercentVal').textContent=this.value+'%'">
+          <span id="weightPercentVal" style="font-size:16px;font-weight:700;color:var(--primary);min-width:45px;text-align:right">4%</span>
+        </div>
       </div>
       <div style="font-size:12px;color:var(--ink-soft);line-height:1.7">
         对全组<b>所有日期的个人总分</b>（含基础分10、默认分、加减分记录）统一加权。<br>
@@ -3863,6 +3852,12 @@ function openWeightModal(){
   document.getElementById('weightModal').style.display='flex';
   const now=document.getElementById('weightFactorNow');
   if(now)now.textContent='×'+Math.round(weightF()*1000)/1000;
+  // 滑块初始值 = 当前系数对应的百分比
+  const curPct=Math.round((weightF()-1)*100);
+  const slider=document.getElementById('weightPercent');
+  const val=document.getElementById('weightPercentVal');
+  if(slider){slider.value=Math.max(0,Math.min(12,curPct));}
+  if(val){val.textContent=Math.max(0,Math.min(12,curPct))+'%';}
 }
 function closeWeightModal(){
   document.getElementById('weightModal').style.display='none';
@@ -3870,13 +3865,13 @@ function closeWeightModal(){
 function applyWeight(){
   const p=parseFloat(document.getElementById('weightPercent').value);
   if(p<0||p>12){toast('加权百分比仅限0%-12%');return;}
-  const f=weightF();
-  const nf=Math.round(f*(1+p/100)*1000)/1000;
+  // 直接设置成目标系数，不在当前系数上累加
+  const nf=Math.round((1+p/100)*1000)/1000;
   if(nf<=0){toast('无法设置为0以下');return;}
   state.weightFactor=nf;
   save();render();
   closeWeightModal();
-  toast('已加权，全部总分 ×'+Math.round(nf*1000)/1000);
+  toast('已设置加权，全部总分 ×'+Math.round(nf*1000)/1000);
 }
 function exportData(){
   download('积分数据备份_'+fmt(new Date())+'.json',JSON.stringify(state,null,2),'application/json');
