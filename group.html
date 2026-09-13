@@ -818,12 +818,8 @@ td.total-col.zero{color:#cfc4b4}
       <div class="chart-legend" id="weekPieLegend"></div>
     </div>
     <div class="panel" style="padding:16px">
-      <div class="panel-title" style="font-size:15px">本周每日总分</div>
-      <div class="table-wrap" style="max-height:none;border:none;box-shadow:none" id="weekTable"></div>
-    </div>
-    <div class="panel" style="padding:16px;margin-top:18px">
-      <div class="panel-title" style="font-size:15px">本周项目明细</div>
-      <div class="table-wrap" style="max-height:none;border:none;box-shadow:none" id="weekItemTable"></div>
+      <div class="panel-title" style="font-size:15px">本周积分排名（含基础分）</div>
+      <div class="table-wrap" style="max-height:none;border:none;box-shadow:none" id="weekRankTable"></div>
     </div>
   </section>
 
@@ -2954,14 +2950,39 @@ function renderWeekly(){
     <div class="summary-card"><div class="k">本周小组总分</div><div class="v accent">${group}</div></div>
     <div class="summary-card"><div class="k">本周人均</div><div class="v">${avg}</div></div>
     ${best?`<div class="summary-card"><div class="k">本周最高</div><div class="v pos">${esc(best.st.name)} · ${best.t}</div></div>`:''}`;
-  document.getElementById('weekTable').innerHTML=buildWeekTable(monday,dates);
-  document.getElementById('weekItemTable').innerHTML=buildItemTable('week',monday);
+  document.getElementById('weekRankTable').innerHTML=buildWeekRankTable(monday);
   drawTrendChart('week',monday);
   drawPieChart('week',monday);
 }
 function rankBadge(n){
   const cls=n===1?'rank-1':(n===2?'rank-2':(n===3?'rank-3':'rank-n'));
   return `<span class="rank-badge ${cls}">${n}</span>`;
+}
+function buildWeekRankTable(monday){
+  if(!state.students.length)return emptyTip();
+  // 计算每个学生本周总分（含基础分，weekTotal已包含）
+  const rows=state.students.map(st=>({st,t:weekTotal(st.id,monday)})).sort((a,b)=>b.t-a.t);
+  const maxT=rows.length?rows[0].t:0;
+  const group=weekGroupTotal(monday);
+  const avg=avgOf(group);
+  let h=`<table class="score-table"><thead><tr><th style="min-width:50px;text-align:center">名次</th><th class="sticky-col">姓名</th><th style="text-align:right">本周总分</th><th style="text-align:right">与第一名差距</th><th style="text-align:right">与人均差距</th></tr></thead><tbody>`;
+  rows.forEach(({st,t},idx)=>{
+    const diffMax=Math.round((t-maxT)*100)/100;
+    const diffAvg=Math.round((t-avg)*100)/100;
+    const cls=t>0?'pos':(t<0?'neg':'zero');
+    const diffMaxCls=diffMax>0?'pos':(diffMax<0?'neg':'zero');
+    const diffAvgCls=diffAvg>0?'pos':(diffAvg<0?'neg':'zero');
+    h+=`<tr><td style="text-align:center">${rankBadge(idx+1)}</td><td class="sticky-col">${nameLink(st.id)}</td>`;
+    h+=`<td class="${cls}" style="text-align:right;font-family:var(--font-mono);font-weight:700">${t}</td>`;
+    h+=`<td class="${diffMaxCls}" style="text-align:right;font-family:var(--font-mono)">${idx===0?'—':(diffMax>0?'+':'')+diffMax}</td>`;
+    h+=`<td class="${diffAvgCls}" style="text-align:right;font-family:var(--font-mono)">${diffAvg>0?'+':''}${diffAvg}</td></tr>`;
+  });
+  // 小组汇总行
+  h+=`<tr><td></td><td class="sticky-col" style="font-weight:700;background:#f6f0e4">小组总分</td>`;
+  h+=`<td style="text-align:right;font-family:var(--font-mono);font-weight:700;background:#f6f0e4">${group}</td>`;
+  h+=`<td colspan="2" style="text-align:right;font-weight:600;background:#f6f0e4">人均 ${avg}</td></tr>`;
+  h+=`</tbody></table>`;
+  return h;
 }
 function buildWeekTable(monday,dates){
   if(!state.students.length)return emptyTip();
