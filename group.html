@@ -2965,6 +2965,37 @@ function rankBadge(n){
 }
 function buildWeekTable(monday,dates){
   if(!state.students.length)return emptyTip();
+  // 手机端转置：行=日期、列=人名，底部=每日小组总分（7天竖排，手机宽度不用横滑）
+  if(window.innerWidth<=768){
+    let h=`<table class="score-table"><thead><tr><th class="sticky-col">日期</th>`;
+    state.students.forEach(st=>{h+=`<th>${esc(st.name)}</th>`;});
+    h+=`<th style="background:#f0ebe3;font-weight:700">日总分</th></tr></thead><tbody>`;
+    dates.forEach(d=>{
+      const dk=fmt(d);
+      h+=`<tr><td class="sticky-col">${weekdayCN(d)} ${d.getMonth()+1}/${d.getDate()}</td>`;
+      let daySum=0;
+      state.students.forEach(st=>{
+        const v=dayScore(st.id,dk);
+        daySum+=v;
+        const cls=v>0?'pos':(v<0?'neg':'zero');
+        h+=`<td class="${cls}" style="font-family:var(--font-mono);font-weight:600">${v===0?'·':v}</td>`;
+      });
+      const cls=daySum>0?'pos':(daySum<0?'neg':'zero');
+      h+=`<td class="${cls}" style="font-family:var(--font-mono);font-weight:700">${daySum}</td></tr>`;
+    });
+    // 周总分行
+    h+=`<tr><td class="sticky-col" style="font-weight:700;background:#f6f0e4">周总分</td>`;
+    state.students.forEach(st=>{
+      const v=weekTotal(st.id,monday);
+      const cls=v>0?'pos':(v<0?'neg':'zero');
+      h+=`<td class="${cls}" style="font-family:var(--font-mono);font-weight:700">${v}</td>`;
+    });
+    const group=weekGroupTotal(monday);
+    h+=`<td style="font-family:var(--font-mono);font-weight:700;background:#f6f0e4">${group}</td></tr>`;
+    h+=`</tbody></table>`;
+    return h;
+  }
+  // PC端：原横向表格（行=学生、列=日期）
   const rows=state.students.map(st=>({st,t:weekTotal(st.id,monday)})).sort((a,b)=>b.t-a.t);
   let h=`<table class="score-table"><thead><tr><th style="position:sticky;left:0;z-index:4;background:#f6f0e4;min-width:46px;text-align:center;padding-left:6px;padding-right:6px">名次</th><th class="sticky-col" style="left:46px">姓名</th>`;
   dates.forEach(d=>{h+=`<th>${weekdayCN(d)}<br><span style="font-weight:400;font-size:11px">${d.getMonth()+1}/${d.getDate()}</span></th>`;});
@@ -4445,26 +4476,8 @@ setSyncStatus(cloudCfg.lastSync?('上次同步：'+new Date(cloudCfg.lastSync).t
 })();
 // 同步阶段 currentUser 尚未就绪（登录信息在下方异步 IIFE 中重建），此时渲染会用缓存完整名单造成个人模式短暂泄露全组，故延后
 if(currentUser)render();
-// 手机端：左右滑动切换日期/周/月（竖滑正常滚动）
-(function bindSwipe(){
-  if(typeof window==='undefined'||!('ontouchstart'in window))return;
-  const bind=function(el,onLeft,onRight){
-    if(!el)return;
-    let sx=0,sy=0,moved=false;
-    el.addEventListener('touchstart',function(e){const t=e.touches[0];sx=t.clientX;sy=t.clientY;moved=false;},{passive:true});
-    el.addEventListener('touchmove',function(e){const t=e.touches[0];if(Math.abs(t.clientX-sx)>8||Math.abs(t.clientY-sy)>8)moved=true;},{passive:true});
-    el.addEventListener('touchend',function(e){
-      if(!moved)return;
-      const t=e.changedTouches[0];
-      const dx=t.clientX-sx,dy=t.clientY-sy;
-      if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.5){
-        if(dx<0)onLeft();else onRight();
-      }
-    },{passive:true});
-  };
-  bind(document.getElementById('view-weekly'),function(){shiftWeek(1);},function(){shiftWeek(-1);});
-  bind(document.getElementById('view-monthly'),function(){shiftMonth(1);},function(){shiftMonth(-1);});
-})();
+// 手机端滑动切换已移除（用户要求）
+// (function bindSwipe(){...})();
 // 拦截手机系统左滑/返回键退出（留在当前页；正常退出走「退出登录」按钮）
 (function guardHistory(){
   try{
