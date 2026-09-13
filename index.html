@@ -287,7 +287,12 @@ async function doLogin(){
     if(cb)cb.disabled=localStorage.getItem('jfz_admin2_class_enabled')==='0';
     return;
   }
-  if(role==='admin'||role==='teacher'){
+  if(role==='teacher'){
+    // teacher：屏蔽班级管理，直接进入小组积分
+    location.href=redirect||'group.html';
+    return;
+  }
+  if(role==='admin'){
     if(redirect){location.href=redirect;return;}
     document.getElementById('chooseName').textContent=name;
     document.getElementById('loginFields').style.display='none';
