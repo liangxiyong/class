@@ -4228,17 +4228,34 @@ async function doExportExcel(){
   const hasSubGroups=state.students.some(st=>st.group);
   const groups=hasSubGroups?groupList():[state.groupName||GROUP_NAMES[currentGroupId]||'小组积分'];
   const stsOf=(g)=>hasSubGroups?studentsOfGroup(g):state.students;
+  // 计算周数：以2026-08-31为第一周
+  const weekOfDate=(d)=>{
+    const start=new Date(2026,7,31); // 2026-08-31
+    const diff=Math.floor((d-start)/(1000*60*60*24));
+    return Math.floor(diff/7)+1;
+  };
   if(currentView==='daily'||currentView==='weekly'){
     const monday=(currentView==='daily')?startOfWeek(currentDate):currentWeek;
     const dates=weekDates(monday);
+    const weekNum=weekOfDate(monday);
+    const groupName=GROUP_NAMES[currentGroupId]||state.groupName||'小组';
     groups.forEach(g=>{
       const sts=stsOf(g);
       const rows=[];
-      dates.forEach(d=>{rows.push(...buildDayBlock(fmt(d),sts));rows.push([]);});
+      dates.forEach(d=>{
+        const dk=fmt(d);
+        // 跳过没有基础分的天（baseOff为true）
+        if(state.baseOff&&state.baseOff[dk])return;
+        if(!isSchoolDay(d,dk))return;
+        rows.push(...buildDayBlock(dk,sts));rows.push([]);
+      });
       rows.push(...buildWeekSummaryRows(monday,sts));
       const ws=workbook.addWorksheet(safeSheetName(g));
       rowsToXlsxSheet(ws,rows,g);
     });
+    await downloadXlsx(workbook,groupName+'_第'+weekNum+'周.xlsx');
+    toast('Excel 已导出（带样式）');
+    return;
   }else if(currentView==='monthly'){
     const {y,m}=currentMonth;
     groups.forEach(g=>{
