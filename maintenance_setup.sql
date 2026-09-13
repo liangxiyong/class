@@ -218,43 +218,47 @@ begin
     end if;
   end loop;
 
-  -- ========== 检查8：分数记录丢失（对比昨天备份） ==========
+  -- ========== 检查8：分数记录丢失（只检查历史日期，不对比两天总数，避免周末误报） ==========
   for yest_backup in
     select record_id, data from backups
     where backup_date = bj_date - interval '1 day'
       and table_name = 'group_data'
   loop
-    -- 统计昨天备份里的分数记录数
-    yest_count := 0;
+    -- 遍历昨天备份里的所有分数日期
     if yest_backup.data->'data' ? 'scores' then
       for score_date in select jsonb_object_keys(yest_backup.data->'data'->'scores') loop
-        for student_id in select jsonb_object_keys(yest_backup.data->'data'->'scores'->score_date) loop
-          for item_id in select jsonb_object_keys(yest_backup.data->'data'->'scores'->score_date->student_id) loop
-            yest_count := yest_count + coalesce(jsonb_array_length(yest_backup.data->'data'->'scores'->score_date->student_id->item_id), 0);
+        -- 只检查前天及更早的历史日期（昨天的数据可能还在变化，今天的还没产生）
+        if score_date::date < bj_date - interval '1 day' then
+          -- 统计昨天备份里该日期的分数记录数
+          yest_count := 0;
+          for student_id in select jsonb_object_keys(yest_backup.data->'data'->'scores'->score_date) loop
+            for item_id in select jsonb_object_keys(yest_backup.data->'data'->'scores'->score_date->student_id) loop
+              yest_count := yest_count + coalesce(jsonb_array_length(yest_backup.data->'data'->'scores'->score_date->student_id->item_id), 0);
+            end loop;
           end loop;
-        end loop;
+
+          -- 统计当前数据里该日期的分数记录数
+          cur_count := 0;
+          begin
+            select coalesce(sum(cnt), 0) into cur_count from (
+              select jsonb_array_length(gd.data->'scores'->score_date->si) as cnt
+              from group_data gd,
+                   jsonb_object_keys(gd.data->'scores'->score_date) si
+              where gd.group_id = yest_backup.record_id
+                and gd.data ? 'scores'
+                and gd.data->'scores' ? score_date
+            ) t;
+          exception when others then cur_count := 0;
+          end;
+
+          -- 如果历史日期的分数记录比昨天备份少，说明被删除了
+          if cur_count < yest_count then
+            insert into integrity_reports(group_id, issue_type, issue_detail)
+            values (yest_backup.record_id, 'score_records_lost',
+              '历史日期 ' || score_date || ' 分数记录丢失：备份 ' || yest_count || ' 条，当前 ' || cur_count || ' 条，减少 ' || (yest_count - cur_count) || ' 条');
+          end if;
+        end if;
       end loop;
-    end if;
-
-    -- 统计当前数据里的分数记录数
-    cur_count := 0;
-    begin
-      select coalesce(sum(cnt), 0) into cur_count from (
-        select jsonb_array_length(gd.data->'scores'->sd->si) as cnt
-        from group_data gd,
-             jsonb_object_keys(gd.data->'scores') sd,
-             jsonb_object_keys(gd.data->'scores'->sd) si
-        where gd.group_id = yest_backup.record_id
-          and gd.data ? 'scores'
-      ) t;
-    exception when others then cur_count := 0;
-    end;
-
-    -- 如果今天比昨天少，标记为丢失
-    if cur_count < yest_count then
-      insert into integrity_reports(group_id, issue_type, issue_detail)
-      values (yest_backup.record_id, 'score_records_lost',
-        '分数记录丢失：昨天 ' || yest_count || ' 条，今天 ' || cur_count || ' 条，减少 ' || (yest_count - cur_count) || ' 条');
     end if;
   end loop;
 
@@ -369,11 +373,14 @@ declare
   cnt int;
   sname text;
   bj_date date := (now() at time zone 'Asia/Shanghai')::date;
+  yest_date date := bj_date - interval '1 day'; -- 前一天（维护在0:10运行，要归档的是前一天的数据）
 begin
   -- 清空今天的完整性报告（完整维护时重新生成）
   delete from integrity_reports where report_date = bj_date;
 
   -- ---------- 1. 备份 group_data ----------
+  -- 先删除当天的旧备份，防止重复
+  delete from backups where backup_date = bj_date;
   for g in select group_id, group_name, data, updated_at from group_data loop
     insert into backups(table_name, record_id, data)
     values ('group_data', g.group_id,
@@ -387,21 +394,24 @@ begin
       jsonb_build_object('data', cls.data, 'updated_at', cls.updated_at));
   end loop;
 
-  -- ---------- 2. 每日快照 + 操作日志归档 ----------
+  -- ---------- 2. 每日快照 + 操作日志归档（统计前一天的数据） ----------
+  -- 先删除前一天的旧操作日志，防止重复归档
+  delete from operation_logs where log_date = yest_date;
   for g in select group_id, group_name, data from group_data loop
     total := 0;
     cnt := 0;
 
     if g.data ? 'scores' then
       for score_date in select jsonb_object_keys(g.data->'scores') loop
-        for student_id in select jsonb_object_keys(g.data->'scores'->score_date) loop
-          for item_id in select jsonb_object_keys(g.data->'scores'->score_date->student_id) loop
-            for rec in select value from jsonb_array_elements(g.data->'scores'->score_date->student_id->item_id) loop
-              total := total + coalesce((rec.value->>'v')::numeric, 0);
-              cnt := cnt + 1;
+        -- 只统计前一天的分数（修复：之前统计的是所有历史分数）
+        if score_date = to_char(yest_date, 'YYYY-MM-DD') then
+          for student_id in select jsonb_object_keys(g.data->'scores'->score_date) loop
+            for item_id in select jsonb_object_keys(g.data->'scores'->score_date->student_id) loop
+              for rec in select value from jsonb_array_elements(g.data->'scores'->score_date->student_id->item_id) loop
+                total := total + coalesce((rec.value->>'v')::numeric, 0);
+                cnt := cnt + 1;
 
-              -- 归档当天的操作日志
-              if score_date = to_char(bj_date, 'YYYY-MM-DD') then
+                -- 归档前一天的操作日志（修复：之前归档的是当天，0:10时当天还没数据）
                 sname := null;
                 select s->>'name' into sname
                 from jsonb_array_elements(g.data->'students') s
@@ -409,18 +419,18 @@ begin
 
                 insert into operation_logs(log_date, group_id, student_id, student_name,
                   item_id, score_value, label, by_user, ts)
-                values (bj_date, g.group_id, student_id, sname,
+                values (yest_date, g.group_id, student_id, sname,
                   item_id, (rec.value->>'v')::numeric, rec.value->>'label', rec.value->>'by', (rec.value->>'ts')::bigint);
-              end if;
+              end loop;
             end loop;
           end loop;
-        end loop;
+        end if;
       end loop;
     end if;
 
-    -- 插入每日快照
+    -- 插入每日快照（快照日期是前一天）
     insert into daily_snapshots(snapshot_date, group_id, group_name, student_count, total_score, avg_score)
-    values (bj_date, g.group_id, g.group_name,
+    values (yest_date, g.group_id, g.group_name,
       coalesce(jsonb_array_length(g.data->'students'), 0),
       total,
       case when cnt > 0 then round(total / cnt, 2) else 0 end)
@@ -483,8 +493,8 @@ end $$;
 -- 任务1：完整维护 - 每天 UTC 16:10（北京 0:10）
 select cron.schedule('daily-maintenance', '10 16 * * *', 'select run_daily_maintenance();');
 
--- 任务2：完整性检查 - 北京 0:15（UTC16:15）、0:20（UTC16:20）
-select cron.schedule('integrity-check', '15,20 16 * * *', 'select run_integrity_check();');
+-- 任务2：完整性检查 - 北京 0:15（UTC16:15）只跑一次（修复：之前跑两次，冗余）
+select cron.schedule('integrity-check', '15 16 * * *', 'select run_integrity_check();');
 
 -- 任务3：保活 - 北京 0:12（UTC16:12）
 select cron.schedule('keepalive', '12 16 * * *', 'select keepalive();');
