@@ -2962,26 +2962,29 @@ function buildWeekRankTable(monday){
   if(!state.students.length)return emptyTip();
   // 计算每个学生本周总分（含基础分，weekTotal已包含）
   const rows=state.students.map(st=>({st,t:weekTotal(st.id,monday)})).sort((a,b)=>b.t-a.t);
-  const maxT=rows.length?rows[0].t:0;
+  const maxT=rows.length?Math.max(...rows.map(r=>Math.abs(r.t)),1):1;
   const group=weekGroupTotal(monday);
   const avg=avgOf(group);
-  let h=`<table class="score-table"><thead><tr><th style="min-width:50px;text-align:center">名次</th><th class="sticky-col">姓名</th><th style="text-align:right">本周总分</th><th style="text-align:right">与第一名差距</th><th style="text-align:right">与人均差距</th></tr></thead><tbody>`;
+  let h=`<div style="display:flex;flex-direction:column;gap:6px">`;
   rows.forEach(({st,t},idx)=>{
-    const diffMax=Math.round((t-maxT)*100)/100;
-    const diffAvg=Math.round((t-avg)*100)/100;
+    const pct=Math.max(5,Math.round(Math.abs(t)/maxT*100));
     const cls=t>0?'pos':(t<0?'neg':'zero');
-    const diffMaxCls=diffMax>0?'pos':(diffMax<0?'neg':'zero');
-    const diffAvgCls=diffAvg>0?'pos':(diffAvg<0?'neg':'zero');
-    h+=`<tr><td style="text-align:center">${rankBadge(idx+1)}</td><td class="sticky-col">${nameLink(st.id)}</td>`;
-    h+=`<td class="${cls}" style="text-align:right;font-family:var(--font-mono);font-weight:700">${t}</td>`;
-    h+=`<td class="${diffMaxCls}" style="text-align:right;font-family:var(--font-mono)">${idx===0?'—':(diffMax>0?'+':'')+diffMax}</td>`;
-    h+=`<td class="${diffAvgCls}" style="text-align:right;font-family:var(--font-mono)">${diffAvg>0?'+':''}${diffAvg}</td></tr>`;
+    const barColor=t>=0?'linear-gradient(90deg,#4caf50,#8bc34a)':'linear-gradient(90deg,#f44336,#ff9800)';
+    h+=`<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:var(--card);border-radius:8px;border:1px solid var(--line)">`;
+    h+=`<div style="width:28px;text-align:center;flex-shrink:0">${rankBadge(idx+1)}</div>`;
+    h+=`<div style="flex:1;min-width:0;font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(st.name)}</div>`;
+    h+=`<div style="width:70px;text-align:right;font-family:var(--font-mono);font-weight:700;font-size:14px" class="${cls}">${t}</div>`;
+    h+=`</div>`;
+    // 进度条
+    h+=`<div style="height:4px;background:#eee;border-radius:2px;margin:-2px 0 2px 36px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${barColor};border-radius:2px"></div></div>`;
   });
-  // 小组汇总行
-  h+=`<tr><td></td><td class="sticky-col" style="font-weight:700;background:#f6f0e4">小组总分</td>`;
-  h+=`<td style="text-align:right;font-family:var(--font-mono);font-weight:700;background:#f6f0e4">${group}</td>`;
-  h+=`<td colspan="2" style="text-align:right;font-weight:600;background:#f6f0e4">人均 ${avg}</td></tr>`;
-  h+=`</tbody></table>`;
+  // 小组汇总
+  h+=`<div style="display:flex;align-items:center;gap:8px;padding:8px;background:#f6f0e4;border-radius:8px;margin-top:4px;font-weight:700">`;
+  h+=`<div style="width:28px;text-align:center;flex-shrink:0">👥</div>`;
+  h+=`<div style="flex:1;font-size:13px">小组总分 / 人均</div>`;
+  h+=`<div style="width:70px;text-align:right;font-family:var(--font-mono);font-size:13px">${group} / ${avg}</div>`;
+  h+=`</div>`;
+  h+=`</div>`;
   return h;
 }
 function buildWeekTable(monday,dates){
