@@ -26,21 +26,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   <div class="status" id="status"></div>
   <a href="index.html" class="back-link">← 返回登录</a>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL='https://zaeijgfuykhkabteqljw.supabase.co';
 const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InphZWlqZ2Z1eWtoa2FidGVxbGp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1ODA5MzgsImV4cCI6MjEwNDE1NjkzOH0.CQ-jqsslzaWpeeXg0OJnQsaW-iMNoCKbJGW_-p1F3D8';
-const SESSION_KEY='jfz_session_v1';
+const SB=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 
 async function exportAll(){
   const status=document.getElementById('status');
   status.textContent='正在导出...';
   status.style.color='#7a6d61';
   try{
-    let token='';
-    try{
-      const s=JSON.parse(localStorage.getItem(SESSION_KEY)||'{}');
-      if(s&&s.access_token)token=s.access_token;
-    }catch(e){}
+    // 从Supabase auth获取登录token
+    const {data:sd}=await SB.auth.getSession();
+    if(!sd||!sd.session){
+      status.textContent='❌ 请先登录后再导出';
+      status.style.color='#c62828';
+      return;
+    }
+    const token=sd.session.access_token;
     const resp=await fetch(SUPABASE_URL+'/rest/v1/group_data?select=*&order=group_id',{
       headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+token}
     });
