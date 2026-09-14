@@ -67,6 +67,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .tab-item.active{color:var(--accent)}
 .tab-item .ico{font-size:20px;margin-bottom:2px}
 .tab-item .txt{font-size:10px;font-weight:500}
+/* 眼操主题：绿青色系 */
+body.theme-eye{--accent:#16a085;--green:#27ae60;--red:#e67e22}
+body.theme-eye .card{border-left:3px solid var(--accent)}
+body.theme-eye .score-btn.plus{background:rgba(22,160,133,.15);color:#16a085}
+body.theme-eye .score-btn.minus{background:rgba(230,126,34,.15);color:#e67e22}
+body.theme-dis .card{border-left:3px solid var(--accent)}
 .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:flex-end;justify-content:center}
 .modal-overlay.show{display:flex}
 .modal{background:var(--card);width:100%;max-width:500px;border-radius:16px 16px 0 0;padding:20px;max-height:80vh;overflow-y:auto;animation:slideUp .25s ease}
@@ -234,6 +240,7 @@ function sbHeaders(){return {'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer 
 function loadSession(){try{const r=localStorage.getItem(SESSION_KEY);return r?JSON.parse(r):null;}catch(e){return null;}}
 
 async function init(){
+  document.body.classList.add('theme-dis');
   currentUser=loadSession();
   if(!currentUser){location.href='index.html';return;}
   if(currentUser.role!=='admin'&&currentUser.role!=='admin2'&&currentUser.role!=='teacher'){
@@ -489,6 +496,8 @@ async function forceRefresh(){
 // ================= 视图切换 =================
 function switchView(v){
   currentView=v;
+  document.body.classList.remove('theme-dis','theme-eye','theme-members','theme-export');
+  document.body.classList.add('theme-'+v);
   document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
   document.getElementById('view-'+v).classList.add('active');
   document.querySelectorAll('.tab-item').forEach(el=>el.classList.remove('active'));
