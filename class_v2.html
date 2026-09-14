@@ -385,7 +385,7 @@ let isUpdating=false; // 防止自己修改导致的循环刷新
 
 async function loadData(){
   try{
-    // 从云端加载最新数据
+    // 1. 从class_data_v2加载人员名单和配置
     const cResp=await fetch(SUPABASE_URL+'/rest/v1/class_data_v2?id=eq.class&select=data',{
       headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken}
     });
@@ -396,32 +396,32 @@ async function loadData(){
       if(!state.disRecords)state.disRecords={};
       if(!state.eyeRecords)state.eyeRecords={};
       
-      // 保存到本地缓存
-      try{localStorage.setItem(CACHE_KEY,JSON.stringify(state));}catch(e){}
-      
       // 如果没有人员名单，从group_data同步一次
       if(!state.students||state.students.length===0){
         await syncStudentsFromGroups();
       }
       
-      // 后台从小组数据同步最新的课堂表现数据（避免恢复已删除的数据）
-      syncDisFromGroups();
+      // 2. 从group_data加载当天的纪律和眼操数据（权威数据源）
+      await loadDayData(curDateStr());
+      
+      // 保存到本地缓存
+      try{localStorage.setItem(CACHE_KEY,JSON.stringify(state));}catch(e){}
     }
   }catch(e){
     toast('数据加载失败: '+e.message);
   }
 }
 
-// 从小组数据同步最新的课堂表现数据到V2
-async function syncDisFromGroups(){
+// 从group_data加载指定日期的纪律和眼操数据
+async function loadDayData(d){
   try{
-    const d=curDateStr();
     const resp=await fetch(SUPABASE_URL+'/rest/v1/group_data?select=group_id,data&order=group_id',{
       headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken}
     });
     const groups=await resp.json();
     
     if(!state.disRecords[d])state.disRecords[d]={};
+    if(!state.eyeRecords[d])state.eyeRecords[d]={};
     
     for(const g of groups){
       const gid=parseInt(g.group_id);
@@ -430,14 +430,14 @@ async function syncDisFromGroups(){
       
       for(const gsid in dayScores){
         const sdata=dayScores[gsid];
+        // 找到对应的V2学生（按名字匹配）
+        const gStudent=(gdata.students||[]).find(s=>s.id===gsid);
+        if(!gStudent)continue;
+        const v2Student=state.students.find(s=>s.name===gStudent.name&&s.group===gid);
+        if(!v2Student)continue;
+        
+        // 纪律数据：class记录
         if(sdata.class&&sdata.class.length>0){
-          // 找到对应的V2学生（按名字匹配）
-          const gStudent=(gdata.students||[]).find(s=>s.id===gsid);
-          if(!gStudent)continue;
-          const v2Student=state.students.find(s=>s.name===gStudent.name&&s.group===gid);
-          if(!v2Student)continue;
-          
-          // 用小组数据的class记录更新V2（小组数据是权威）
           state.disRecords[d][v2Student.id]=sdata.class.map(r=>({
             id:r.id||uid(),
             value:r.v,
@@ -445,21 +445,21 @@ async function syncDisFromGroups(){
             by:r.by||'admin',
             ts:r.ts||Date.now()
           }));
+        }else{
+          delete state.disRecords[d][v2Student.id];
+        }
+        
+        // 眼操数据：eye记录（eye记录值+2基础分=显示分数）
+        if(sdata.eye&&sdata.eye.length>0){
+          const eyeVal=sdata.eye[0].v;
+          state.eyeRecords[d][v2Student.id]=eyeVal+2; // 加回基础分
+        }else{
+          delete state.eyeRecords[d][v2Student.id];
         }
       }
     }
-    
-    // 保存更新后的数据
-    state.lastModified=Date.now();
-    await fetch(SUPABASE_URL+'/rest/v1/class_data_v2?id=eq.class',{
-      method:'PATCH',
-      headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken,'Content-Type':'application/json','Prefer':'return=minimal'},
-      body:JSON.stringify({data:state})
-    });
-    try{localStorage.setItem(CACHE_KEY,JSON.stringify(state));}catch(e){}
-    
   }catch(e){
-    console.log('从小组同步课堂表现失败:',e);
+    console.log('加载当日数据失败:',e);
   }
 }
 
@@ -661,9 +661,11 @@ function switchView(v){
 }
 
 // ================= 日期 =================
-function shiftDate(n){
+async function shiftDate(n){
   currentDate.setDate(currentDate.getDate()+n);
   updateDateDisplay();
+  // 从group_data加载该日期的数据
+  await loadDayData(curDateStr());
   renderAll();
 }
 function updateDateDisplay(){
@@ -682,10 +684,12 @@ function openDatePicker(){
   input.style.opacity='0';
   document.body.appendChild(input);
   input.click();
-  input.onchange=()=>{
+  input.onchange=async ()=>{
     if(input.value){
       currentDate=new Date(input.value+'T00:00:00');
       updateDateDisplay();
+      // 从group_data加载该日期的数据
+      await loadDayData(curDateStr());
       renderAll();
     }
     document.body.removeChild(input);
