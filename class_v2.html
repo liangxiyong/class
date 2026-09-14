@@ -232,6 +232,7 @@ let sbAccessToken='';
 let isUpdating=false; // 防止自己修改触发Realtime循环
 let realtimeSub=null;
 let groupRealtimeSubs={}; // 每个组的Realtime订阅
+let saveQueues={}; // 每个学生的保存队列，防止并发覆盖
 
 // ================= 工具 =================
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
@@ -365,9 +366,11 @@ async function loadDayData(d){
           }));
         }
 
-        // 眼操：eye字段（eye记录值+2=显示分数）
+        // 眼操：eye字段（所有eye记录的v值总和+2=显示分数，兼容小组积分追加多条记录）
         if(sdata.eye&&Array.isArray(sdata.eye)&&sdata.eye.length>0){
-          newEye[v2s.id]=sdata.eye[0].v+2;
+          let eyeSum=0;
+          for(const er of sdata.eye){eyeSum+=(er.v||0);}
+          newEye[v2s.id]=eyeSum+2;
         }
       }
     }
@@ -382,13 +385,18 @@ async function loadDayData(d){
 async function saveDisToGroup(v2id,records){
   const student=state.students.find(s=>s.id===v2id);
   if(!student||!student.gid)return;
+  // 保存队列：同一个学生的保存按顺序执行，防止并发覆盖
+  if(!saveQueues[v2id])saveQueues[v2id]=Promise.resolve();
+  saveQueues[v2id]=saveQueues[v2id].then(()=>_saveDisToGroup(v2id,records,student));
+  return saveQueues[v2id];
+}
+async function _saveDisToGroup(v2id,records,student){
   const d=curDateStr();
   const gid=String(student.group);
-
   try{
     const resp=await fetch(SUPABASE_URL+'/rest/v1/group_data?group_id=eq.'+gid+'&select=data',{headers:sbHeaders()});
     const rows=await resp.json();
-    if(!rows||!rows.length)return;
+    if(!rows||!rows.length)throw new Error('小组数据不存在');
     const gd=rows[0].data;
     if(!gd.scores)gd.scores={};
     if(!gd.scores[d])gd.scores[d]={};
@@ -399,20 +407,17 @@ async function saveDisToGroup(v2id,records){
         v:r.value,by:currentUser?currentUser.name:'admin',id:r.id||uid(),ts:r.ts||Date.now(),label:r.label||''
       }));
     }else{
-      // 没有记录了，删除class字段
       if(gd.scores[d][student.gid].class)delete gd.scores[d][student.gid].class;
-      // 如果该学生当天没有任何数据了，删除该学生
       if(Object.keys(gd.scores[d][student.gid]).length===0)delete gd.scores[d][student.gid];
     }
-    // 如果当天没有任何学生数据了，删除该日期
     if(Object.keys(gd.scores[d]).length===0)delete gd.scores[d];
 
     gd.lastModified=Date.now();
     isUpdating=true;
-    await fetch(SUPABASE_URL+'/rest/v1/group_data?group_id=eq.'+gid,{
+    const patchResp=await fetch(SUPABASE_URL+'/rest/v1/group_data?group_id=eq.'+gid,{
       method:'PATCH',headers:sbHeaders(),body:JSON.stringify({data:gd})
     });
-    // 保存完成后延迟重置，确保Realtime通知已处理完
+    if(!patchResp.ok)throw new Error('保存失败 HTTP '+patchResp.status);
     setTimeout(()=>{isUpdating=false;},1500);
   }catch(e){console.log('保存纪律失败:',e);isUpdating=false;throw e;}
 }
@@ -421,36 +426,38 @@ async function saveDisToGroup(v2id,records){
 async function saveEyeToGroup(v2id,val){
   const student=state.students.find(s=>s.id===v2id);
   if(!student||!student.gid)return;
+  if(!saveQueues[v2id])saveQueues[v2id]=Promise.resolve();
+  saveQueues[v2id]=saveQueues[v2id].then(()=>_saveEyeToGroup(v2id,val,student));
+  return saveQueues[v2id];
+}
+async function _saveEyeToGroup(v2id,val,student){
   const d=curDateStr();
   const gid=String(student.group);
-
   try{
     const resp=await fetch(SUPABASE_URL+'/rest/v1/group_data?group_id=eq.'+gid+'&select=data',{headers:sbHeaders()});
     const rows=await resp.json();
-    if(!rows||!rows.length)return;
+    if(!rows||!rows.length)throw new Error('小组数据不存在');
     const gd=rows[0].data;
     if(!gd.scores)gd.scores={};
     if(!gd.scores[d])gd.scores[d]={};
     if(!gd.scores[d][student.gid])gd.scores[d][student.gid]={};
 
     if(val===2||val===undefined){
-      // 默认+2，删除eye记录
       if(gd.scores[d][student.gid].eye)delete gd.scores[d][student.gid].eye;
     }else{
-      // 非默认值，eye记录值 = 显示分数 - 2
       gd.scores[d][student.gid].eye=[{
         v:val-2,by:currentUser?currentUser.name:'admin',id:uid(),ts:Date.now(),label:EYE_LABELS[String(val)]||''
       }];
     }
-    // 清理空数据
     if(Object.keys(gd.scores[d][student.gid]).length===0)delete gd.scores[d][student.gid];
     if(Object.keys(gd.scores[d]).length===0)delete gd.scores[d];
 
     gd.lastModified=Date.now();
     isUpdating=true;
-    await fetch(SUPABASE_URL+'/rest/v1/group_data?group_id=eq.'+gid,{
+    const patchResp=await fetch(SUPABASE_URL+'/rest/v1/group_data?group_id=eq.'+gid,{
       method:'PATCH',headers:sbHeaders(),body:JSON.stringify({data:gd})
     });
+    if(!patchResp.ok)throw new Error('保存失败 HTTP '+patchResp.status);
     setTimeout(()=>{isUpdating=false;},1500);
   }catch(e){console.log('保存眼操失败:',e);isUpdating=false;throw e;}
 }
