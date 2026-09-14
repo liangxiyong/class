@@ -185,6 +185,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
           <option value="10">10组</option>
         </select>
         <button onclick="addMember()">添加</button>
+        <button onclick="syncStudentsFromGroups()" style="background:var(--accent);color:#fff;margin-left:8px">同步名单</button>
       </div>
       <div id="memberList"></div>
     </div>
@@ -323,20 +324,36 @@ async function init(){
   renderAll();
 }
 
-// ================= 数据加载（人员名单从group_data动态读取） =================
+// ================= 数据加载（直接从class_data_v2读取，含人员名单） =================
 async function loadData(){
   try{
-    // 并行加载：group_data学生名单 + class_data_v2纪律眼操数据
-    const [gResp,cResp]=await Promise.all([
-      fetch(SUPABASE_URL+'/rest/v1/group_data?select=group_id,data->students&order=group_id',{
-        headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken}
-      }),
-      fetch(SUPABASE_URL+'/rest/v1/class_data_v2?id=eq.class&select=data',{
-        headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken}
-      })
-    ]);
+    // 直接从class_data_v2读取所有数据（含人员名单）
+    const cResp=await fetch(SUPABASE_URL+'/rest/v1/class_data_v2?id=eq.class&select=data',{
+      headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken}
+    });
+    const cRows=await cResp.json();
+    if(cRows&&cRows.length&&cRows[0].data){
+      state=cRows[0].data;
+      if(!state.students)state.students=[];
+      if(!state.disRecords)state.disRecords={};
+      if(!state.eyeRecords)state.eyeRecords={};
+    }
     
-    // 解析学生名单
+    // 如果没有人员名单，从group_data同步一次
+    if(!state.students||state.students.length===0){
+      await syncStudentsFromGroups();
+    }
+  }catch(e){
+    toast('数据加载失败: '+e.message);
+  }
+}
+
+// 从group_data同步人员名单到class_data_v2
+async function syncStudentsFromGroups(){
+  try{
+    const gResp=await fetch(SUPABASE_URL+'/rest/v1/group_data?select=group_id,data->students&order=group_id',{
+      headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken}
+    });
     const groups=await gResp.json();
     const students=[];
     for(const g of groups){
@@ -352,20 +369,11 @@ async function loadData(){
       }
     }
     students.sort((a,b)=>a.group-b.group||a.order-b.order);
-    
-    // 解析纪律眼操数据
-    let disRecords={},eyeRecords={};
-    try{
-      const cRows=await cResp.json();
-      if(cRows&&cRows.length&&cRows[0].data){
-        disRecords=cRows[0].data.disRecords||{};
-        eyeRecords=cRows[0].data.eyeRecords||{};
-      }
-    }catch(e){console.log('读取班级数据失败:',e);}
-    
-    state={students,disRecords,eyeRecords,admin2Enabled:true,version:2};
+    state.students=students;
+    await saveData();
+    toast('已同步人员名单');
   }catch(e){
-    toast('数据加载失败: '+e.message);
+    toast('同步人员名单失败: '+e.message);
   }
 }
 
@@ -373,18 +381,11 @@ async function saveData(){
   if(saveTimer)clearTimeout(saveTimer);
   saveTimer=setTimeout(async()=>{
     try{
-      // 只保存纪律和眼操数据，不保存人员名单
-      const saveObj={
-        disRecords:state.disRecords,
-        eyeRecords:state.eyeRecords,
-        admin2Enabled:true,
-        version:2,
-        lastModified:Date.now()
-      };
+      state.lastModified=Date.now();
       await fetch(SUPABASE_URL+'/rest/v1/class_data_v2?id=eq.class',{
         method:'PATCH',
         headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken,'Content-Type':'application/json','Prefer':'return=minimal'},
-        body:JSON.stringify({data:saveObj})
+        body:JSON.stringify({data:state})
       });
       // 同步到小组数据
       await syncToGroups();
@@ -772,7 +773,7 @@ async function addMember(){
   }
   
   document.getElementById('newName').value='';
-  await loadData();
+  await syncStudentsFromGroups();
   renderAll();
   toast('已添加 '+name);
 }
@@ -805,7 +806,7 @@ async function deleteMember(sid){
     return;
   }
   
-  await loadData();
+  await syncStudentsFromGroups();
   renderAll();
   toast('已删除 '+member.name);
 }
