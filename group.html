@@ -4602,6 +4602,12 @@ if(currentUser)render();
       requireLogin();
       return;
     }
+    // 维护时间检查：禁止使用小组积分V1
+    var nowD=new Date();
+    if(nowD.getHours()===0 && nowD.getMinutes()<30){
+      document.body.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background:#f6f1e8;text-align:center;padding:20px"><div style="font-size:60px;margin-bottom:20px">🔧</div><div style="font-size:20px;font-weight:700;color:#c0392b;margin-bottom:10px">小组积分维护中</div><div style="font-size:14px;color:#7a6d61;line-height:1.8">每天 0:00 - 0:30 为系统维护时间<br>维护期间小组积分V1暂不可用<br>请使用小组积分V2或在 0:30 后重新访问</div><div style="margin-top:24px"><a href="index.html" style="display:inline-block;padding:10px 24px;background:#c0392b;color:#fff;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600">返回登录页</a></div></div>';
+      return;
+    }
     let gid=null;
     if(currentUser.role==='admin')gid=currentGroupId||'3';
     else if(currentUser.role==='teacher')gid=currentGroupId||'1';
