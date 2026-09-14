@@ -12,8 +12,6 @@
   --orange:#f39c12;--purple:#9b59b6;
 }
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:70px}
-
-/* 顶部栏 */
 .topbar{position:sticky;top:0;z-index:100;background:var(--card);padding:12px 16px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
 .topbar-row1{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
 .topbar-title{font-size:18px;font-weight:700}
@@ -23,24 +21,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .date-btn{padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);font-size:13px;cursor:pointer;min-width:36px;text-align:center}
 .date-current{flex:1;text-align:center;font-size:14px;font-weight:600;padding:6px;background:var(--bg);border-radius:8px}
 .sync-btn{padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);font-size:12px;cursor:pointer;color:var(--text-soft)}
-
-/* 内容区 */
 .content{padding:12px}
 .view{display:none}
 .view.active{display:block;animation:fadeIn .2s ease}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-
-/* 卡片 */
 .card{background:var(--card);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
 .card-title{font-size:15px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
 .card-title .badge{font-size:11px;font-weight:500;color:var(--text-soft);background:var(--bg);padding:2px 8px;border-radius:10px}
-
-/* 组别筛选 */
 .group-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:10px;-webkit-overflow-scrolling:touch}
 .group-tab{padding:6px 14px;border-radius:20px;background:var(--bg);font-size:13px;white-space:nowrap;cursor:pointer;border:1px solid transparent;transition:all .15s}
 .group-tab.active{background:var(--accent);color:#fff}
-
-/* 学生列表 - 纪律 */
 .student-item{display:flex;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
 .student-item:last-child{border-bottom:none}
 .student-info{flex:1;min-width:0}
@@ -54,25 +44,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .score-btn:active{transform:scale(.9)}
 .score-btn.plus{background:rgba(39,174,96,.15);color:var(--green)}
 .score-btn.minus{background:rgba(231,76,60,.15);color:var(--red)}
-
-/* 眼操滑块 */
-.eye-item{padding:12px 0;border-bottom:1px solid var(--line)}
-.eye-item:last-child{border-bottom:none}
-.eye-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-.eye-name{font-size:15px;font-weight:600}
-.eye-value{font-size:16px;font-weight:700}
-.eye-value.v2{color:var(--green)}
-.eye-value.v0{color:var(--text-soft)}
-.eye-value.v-2{color:var(--orange)}
-.eye-value.v-4{color:var(--red)}
-.eye-slider{width:100%;height:30px;-webkit-appearance:none;appearance:none;background:transparent;outline:none;margin:8px 0}
-.eye-slider::-webkit-slider-runnable-track{height:8px;background:var(--line);border-radius:4px}
-.eye-slider::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.3);margin-top:-10px;border:2px solid #fff}
-.eye-slider::-moz-range-track{height:8px;background:var(--line);border-radius:4px}
-.eye-slider::-moz-range-thumb{width:28px;height:28px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.3);border:2px solid #fff}
-.eye-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--text-soft);margin-top:4px}
-
-/* 成员管理 */
 .member-add{display:flex;gap:8px;margin-bottom:12px}
 .member-add input{flex:1;padding:10px;border:1px solid var(--line);border-radius:8px;font-size:14px;min-width:0}
 .member-add select{padding:10px;border:1px solid var(--line);border-radius:8px;font-size:14px;background:var(--card)}
@@ -83,54 +54,32 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .member-row .name{flex:1;font-size:14px}
 .member-row .grp{font-size:11px;color:var(--text-soft);margin-right:10px}
 .member-row .del{color:var(--red);font-size:13px;cursor:pointer;padding:4px 8px}
-
-/* 统计 */
 .stat-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
 .stat-row:last-child{border-bottom:none}
 .stat-name{color:var(--text)}
 .stat-val{font-weight:600}
 .stat-val.positive{color:var(--green)}
 .stat-val.negative{color:var(--red)}
-
-/* 导出 */
 .export-btn{width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;margin-bottom:10px}
 .export-btn.secondary{background:var(--bg);color:var(--text);border:1px solid var(--line)}
-
-/* 底部Tab栏 */
 .tabbar{position:fixed;bottom:0;left:0;right:0;background:var(--card);display:flex;box-shadow:0 -2px 10px rgba(0,0,0,.08);z-index:100;padding-bottom:env(safe-area-inset-bottom)}
 .tab-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 4px;cursor:pointer;color:var(--text-soft);transition:color .15s}
 .tab-item.active{color:var(--accent)}
 .tab-item .ico{font-size:20px;margin-bottom:2px}
 .tab-item .txt{font-size:10px;font-weight:500}
-
-/* 弹窗 */
 .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:flex-end;justify-content:center}
 .modal-overlay.show{display:flex}
 .modal{background:var(--card);width:100%;max-width:500px;border-radius:16px 16px 0 0;padding:20px;max-height:80vh;overflow-y:auto;animation:slideUp .25s ease}
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 .modal-title{font-size:17px;font-weight:700;margin-bottom:16px;text-align:center}
 .modal-close{position:absolute;top:16px;right:16px;font-size:20px;color:var(--text-soft);cursor:pointer}
-.preset-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
-.preset-btn{padding:12px 8px;border-radius:10px;border:1.5px solid var(--line);background:var(--bg);font-size:13px;cursor:pointer;text-align:center;transition:all .15s}
-.preset-btn:active{transform:scale(.95)}
-.preset-btn .pv{font-size:18px;font-weight:700;display:block;margin-bottom:2px}
-.preset-btn.plus .pv{color:var(--green)}
-.preset-btn.minus .pv{color:var(--red)}
-.custom-input{display:flex;gap:8px;align-items:center;margin-bottom:16px}
-.custom-input input{flex:1;padding:10px;border:1px solid var(--line);border-radius:8px;font-size:14px;text-align:center}
-.modal-confirm{width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer}
-
-/* Toast */
 .toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.8);color:#fff;padding:12px 20px;border-radius:8px;font-size:14px;z-index:300;opacity:0;transition:opacity .2s;pointer-events:none}
 .toast.show{opacity:1}
-
-/* 加载中 */
 .loading{text-align:center;padding:40px;color:var(--text-soft);font-size:14px}
 </style>
 </head>
 <body>
 
-<!-- 顶部栏 -->
 <div class="topbar">
   <div class="topbar-row1">
     <div class="topbar-title" id="pageTitle">纪律打分</div>
@@ -146,14 +95,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   </div>
 </div>
 
-<!-- 只读模式提示 -->
 <div id="readonlyBanner" style="display:none;background:#fef3c7;color:#92400e;padding:8px 16px;text-align:center;font-size:13px;font-weight:600">
   ⚠️ 当前为只读模式，无法修改数据
 </div>
 
-<!-- 内容区 -->
 <div class="content">
-  <!-- 纪律 -->
   <div class="view active" id="view-dis">
     <div class="card">
       <div class="card-title">
@@ -165,7 +111,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     </div>
   </div>
 
-  <!-- 眼操 -->
   <div class="view" id="view-eye">
     <div class="card">
       <div class="card-title">
@@ -177,7 +122,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     </div>
   </div>
 
-  <!-- 成员 -->
   <div class="view" id="view-members">
     <div class="card">
       <div class="card-title"><span>👥 成员管理</span><span class="badge" id="memberCount">0人</span></div>
@@ -196,7 +140,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     </div>
   </div>
 
-  <!-- 统计 -->
   <div class="view" id="view-stats">
     <div class="card">
       <div class="card-title"><span>📊 当日统计</span><span class="badge" id="statsDateBadge">今天</span></div>
@@ -208,7 +151,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     </div>
   </div>
 
-  <!-- 导出 -->
   <div class="view" id="view-export">
     <div class="card">
       <div class="card-title"><span>📤 数据导出</span></div>
@@ -223,7 +165,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   </div>
 </div>
 
-<!-- 底部Tab栏 -->
 <div class="tabbar">
   <div class="tab-item active" data-view="dis" onclick="switchView('dis')"><span class="ico">📋</span><span class="txt">纪律</span></div>
   <div class="tab-item" data-view="eye" onclick="switchView('eye')"><span class="ico">👁️</span><span class="txt">眼操</span></div>
@@ -232,7 +173,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   <div class="tab-item" data-view="export" onclick="switchView('export')"><span class="ico">📤</span><span class="txt">导出</span></div>
 </div>
 
-<!-- 加减分弹窗 -->
 <div class="modal-overlay" id="scoreModal" onclick="if(event.target===this)closeScoreModal()">
   <div class="modal">
     <span class="modal-close" onclick="closeScoreModal()">✕</span>
@@ -249,7 +189,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
         <span>-10</span><span>0</span><span>+10</span>
       </div>
     </div>
-    <button class="modal-confirm" onclick="confirmCustomScore()">确认加分</button>
+    <button class="modal-confirm" onclick="confirmCustomScore()" style="width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer">确认加分</button>
     <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--line)">
       <div style="font-size:13px;font-weight:600;margin-bottom:8px">今日记录</div>
       <div id="modalRecordList" style="max-height:150px;overflow-y:auto"></div>
@@ -257,12 +197,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   </div>
 </div>
 
-<!-- 眼操弹窗 -->
 <div class="modal-overlay" id="eyeModal" onclick="if(event.target===this)closeEyeModal()">
   <div class="modal" id="eyeModalContent"></div>
 </div>
 
-<!-- Toast -->
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -272,33 +210,28 @@ const SUPABASE_URL='https://zaeijgfuykhkabteqljw.supabase.co';
 const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InphZWlqZ2Z1eWtoa2FidGVxbGp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1ODA5MzgsImV4cCI6MjEwNDE1NjkzOH0.CQ-jqsslzaWpeeXg0OJnQsaW-iMNoCKbJGW_-p1F3D8';
 const SB=window.supabase?window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;
 const SESSION_KEY='jfz_session_v1';
+const CACHE_KEY='jfz_class_v2_cache';
 const GROUP_NAMES={'1':'第一组','2':'第二组','3':'第三组','4':'第四组','5':'第五组','6':'第六组','7':'第七组','8':'第八组','9':'第九组','10':'第十组'};
-
-// 纪律预设
-const DIS_PRESETS=[
-  {label:'表现好',value:2},{label:'受表扬',value:4},
-  {label:'说话',value:-2},{label:'睡觉',value:-4},
-  {label:'吃东西',value:-6},{label:'玩手机',value:-8},
-  {label:'打架',value:-10},{label:'迟到',value:-4},{label:'其他',value:0}
-];
-
-// 眼操分值
 const EYE_VALUES=[-4,-2,0,2];
 const EYE_LABELS={'-4':'不做操','-2':'不认真','0':'未评','2':'优秀'};
-
-// 是否允许修改（true=允许，false=只读）
 const ALLOW_EDIT=true;
 
 // ================= 状态 =================
-let state={students:[],disRecords:{},eyeRecords:{},admin2Enabled:true,version:1};
+// students: V2人员名单，每个学生含 id(V2内部), name, group(组号), gid(group_data里的学生ID)
+// disDay/eyeDay: 只存当天的分数数据（内存，不持久化）
+let state={students:[],version:2};
+let disDay={};  // 当天纪律 {v2id: [{value,label,by,ts,id}]}
+let eyeDay={};  // 当天眼操 {v2id: value}
 let currentUser=null;
 let currentView='dis';
 let currentDate=new Date();
 let disFilterGroup=0;
 let eyeFilterGroup=0;
 let modalStudent=null;
-let saveTimer=null;
 let sbAccessToken='';
+let isUpdating=false; // 防止自己修改触发Realtime循环
+let realtimeSub=null;
+let groupRealtimeSubs={}; // 每个组的Realtime订阅
 
 // ================= 工具 =================
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
@@ -307,6 +240,7 @@ function todayStr(){return fmtDate(new Date());}
 function curDateStr(){return fmtDate(currentDate);}
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
 function esc(s){return String(s).replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function sbHeaders(){return {'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken,'Content-Type':'application/json'};}
 
 // ================= 认证 =================
 function loadSession(){try{const r=localStorage.getItem(SESSION_KEY);return r?JSON.parse(r):null;}catch(e){return null;}}
@@ -318,165 +252,73 @@ async function init(){
     location.href='index.html';return;
   }
   document.getElementById('userInfo').textContent=currentUser.name||'';
-  
   if(!SB){toast('Supabase加载失败');return;}
   const {data:sd}=await SB.auth.getSession();
   if(!sd||!sd.session){location.href='index.html';return;}
   sbAccessToken=sd.session.access_token;
-  
-  // 只读模式提示
-  if(!ALLOW_EDIT){
-    document.getElementById('readonlyBanner').style.display='block';
-  }
-  
-  // 先尝试显示缓存
-  let hasCache=false;
+  if(!ALLOW_EDIT)document.getElementById('readonlyBanner').style.display='block';
+
+  // 先显示缓存的人员名单
   try{
     const cache=localStorage.getItem(CACHE_KEY);
-    if(cache){
-      const cached=JSON.parse(cache);
-      if(cached.students&&cached.students.length>0){
-        state=cached;
-        renderAll();
-        hasCache=true;
-      }
-    }
+    if(cache){const c=JSON.parse(cache);if(c.students&&c.students.length){state.students=c.students;renderAll();}}
   }catch(e){}
-  
-  if(!hasCache){
-    document.getElementById('disList').innerHTML='<div class="loading">加载中...</div>';
-  }
-  
-  // 后台加载最新数据
-  loadData().then(()=>{
-    // 加载完后重新渲染（无论有没有缓存）
-    renderAll();
-    // 开启实时监听
-    startRealtime();
-  });
+
+  document.getElementById('disList').innerHTML='<div class="loading">加载中...</div>';
+
+  // 加载人员名单 + 当天分数
+  await loadStudents();
+  await loadDayData(curDateStr());
+  renderAll();
+  startRealtime();
 }
 
-// 开启实时监听
-function startRealtime(){
-  if(!SB||realtimeSubscription)return;
-  
-  realtimeSubscription = SB
-    .channel('class_data_v2_changes')
-    .on('postgres_changes', 
-      { event: '*', schema: 'public', table: 'class_data_v2' }, 
-      (payload) => {
-        if(isUpdating)return; // 自己修改的，不刷新
-        console.log('收到实时更新:', payload);
-        // 延迟一点再加载，避免频繁刷新
-        setTimeout(()=>{
-          loadData().then(()=>renderAll());
-        }, 500);
-      }
-    )
-    .subscribe((status)=>{
-      console.log('Realtime状态:', status);
-    });
-}
-
-// ================= 数据加载（先显示缓存+后台更新） =================
-const CACHE_KEY='jfz_class_v2_cache';
-let realtimeSubscription=null;
-let isUpdating=false; // 防止自己修改导致的循环刷新
-
-async function loadData(){
+// ================= 人员名单（存在class_data_v2） =================
+async function loadStudents(){
   try{
-    // 1. 从class_data_v2加载人员名单和配置
-    const cResp=await fetch(SUPABASE_URL+'/rest/v1/class_data_v2?id=eq.class&select=data',{
-      headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken}
-    });
-    const cRows=await cResp.json();
-    if(cRows&&cRows.length&&cRows[0].data){
-      state=cRows[0].data;
-      if(!state.students)state.students=[];
-      if(!state.disRecords)state.disRecords={};
-      if(!state.eyeRecords)state.eyeRecords={};
-      
-      // 如果没有人员名单，从group_data同步一次
-      if(!state.students||state.students.length===0){
+    const resp=await fetch(SUPABASE_URL+'/rest/v1/class_data_v2?id=eq.class&select=data',{headers:sbHeaders()});
+    const rows=await resp.json();
+    if(rows&&rows.length&&rows[0].data&&rows[0].data.students){
+      state.students=rows[0].data.students;
+      // 如果名单里没有gid，从group_data同步一次
+      const needGid=state.students.some(s=>!s.gid);
+      if(needGid||state.students.length===0){
         await syncStudentsFromGroups();
       }
-      
-      // 2. 从group_data加载当天的纪律和眼操数据（权威数据源）
-      await loadDayData(curDateStr());
-      
-      // 保存到本地缓存
-      try{localStorage.setItem(CACHE_KEY,JSON.stringify(state));}catch(e){}
+    }else{
+      await syncStudentsFromGroups();
     }
+    try{localStorage.setItem(CACHE_KEY,JSON.stringify({students:state.students}));}catch(e){}
   }catch(e){
-    toast('数据加载失败: '+e.message);
+    console.log('加载名单失败:',e);
   }
 }
 
-// 从group_data加载指定日期的纪律和眼操数据
-async function loadDayData(d){
+async function saveStudents(){
   try{
-    const resp=await fetch(SUPABASE_URL+'/rest/v1/group_data?select=group_id,data&order=group_id',{
-      headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken}
+    isUpdating=true;
+    await fetch(SUPABASE_URL+'/rest/v1/class_data_v2?id=eq.class',{
+      method:'PATCH',headers:sbHeaders(),
+      body:JSON.stringify({data:{students:state.students,version:2,lastModified:Date.now()}})
     });
-    const groups=await resp.json();
-    
-    if(!state.disRecords[d])state.disRecords[d]={};
-    if(!state.eyeRecords[d])state.eyeRecords[d]={};
-    
-    for(const g of groups){
-      const gid=parseInt(g.group_id);
-      const gdata=g.data;
-      const dayScores=(gdata.scores&&gdata.scores[d])||{};
-      
-      for(const gsid in dayScores){
-        const sdata=dayScores[gsid];
-        // 找到对应的V2学生（按名字匹配）
-        const gStudent=(gdata.students||[]).find(s=>s.id===gsid);
-        if(!gStudent)continue;
-        const v2Student=state.students.find(s=>s.name===gStudent.name&&s.group===gid);
-        if(!v2Student)continue;
-        
-        // 纪律数据：class记录
-        if(sdata.class&&sdata.class.length>0){
-          state.disRecords[d][v2Student.id]=sdata.class.map(r=>({
-            id:r.id||uid(),
-            value:r.v,
-            label:r.label||'',
-            by:r.by||'admin',
-            ts:r.ts||Date.now()
-          }));
-        }else{
-          delete state.disRecords[d][v2Student.id];
-        }
-        
-        // 眼操数据：eye记录（eye记录值+2基础分=显示分数）
-        if(sdata.eye&&sdata.eye.length>0){
-          const eyeVal=sdata.eye[0].v;
-          state.eyeRecords[d][v2Student.id]=eyeVal+2; // 加回基础分
-        }else{
-          delete state.eyeRecords[d][v2Student.id];
-        }
-      }
-    }
-  }catch(e){
-    console.log('加载当日数据失败:',e);
-  }
+    try{localStorage.setItem(CACHE_KEY,JSON.stringify({students:state.students}));}catch(e){}
+    setTimeout(()=>{isUpdating=false;},1000);
+  }catch(e){toast('保存名单失败: '+e.message);isUpdating=false;}
 }
 
-// 从group_data同步人员名单到class_data_v2
+// 从group_data同步人员名单到class_data_v2（保存gid）
 async function syncStudentsFromGroups(){
   try{
-    const gResp=await fetch(SUPABASE_URL+'/rest/v1/group_data?select=group_id,data->students&order=group_id',{
-      headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken}
-    });
-    const groups=await gResp.json();
+    const resp=await fetch(SUPABASE_URL+'/rest/v1/group_data?select=group_id,data&order=group_id',{headers:sbHeaders()});
+    const groups=await resp.json();
     const students=[];
     for(const g of groups){
       const gid=parseInt(g.group_id);
-      const gstudents=g.students||[];
+      const gstudents=(g.data&&g.data.students)||[];
       for(let i=0;i<gstudents.length;i++){
         students.push({
-          id:gstudents[i].id||('g'+gid+'_'+i),
+          id:'v2_'+gid+'_'+i,
+          gid:gstudents[i].id,  // 保存group_data里的学生ID
           name:gstudents[i].name,
           group:gid,
           order:i
@@ -485,165 +327,165 @@ async function syncStudentsFromGroups(){
     }
     students.sort((a,b)=>a.group-b.group||a.order-b.order);
     state.students=students;
-    await saveData();
-    toast('已同步人员名单');
-  }catch(e){
-    toast('同步人员名单失败: '+e.message);
-  }
+    await saveStudents();
+    toast('已同步人员名单（'+students.length+'人）');
+  }catch(e){toast('同步名单失败: '+e.message);}
 }
 
-async function saveData(){
-  if(saveTimer)clearTimeout(saveTimer);
-  saveTimer=setTimeout(async()=>{
-    try{
-      isUpdating=true;
-      state.lastModified=Date.now();
-      // 先保存班级数据（快速）
-      await fetch(SUPABASE_URL+'/rest/v1/class_data_v2?id=eq.class',{
-        method:'PATCH',
-        headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken,'Content-Type':'application/json','Prefer':'return=minimal'},
-        body:JSON.stringify({data:state})
-      });
-      // 更新本地缓存
-      try{localStorage.setItem(CACHE_KEY,JSON.stringify(state));}catch(e){}
-      // 异步同步到小组数据（不阻塞界面）
-      syncToGroups().then(()=>{
-        toast('已同步到小组积分');
-      }).catch(e=>{
-        toast('同步失败: '+e.message);
-      }).finally(()=>{
-        setTimeout(()=>{isUpdating=false;},1000);
-      });
-    }catch(e){
-      toast('保存失败: '+e.message);
-      isUpdating=false;
-    }
-  },300);
-}
-
-// 立即保存（不防抖，用于眼操等需要立即同步的操作）
-async function saveDataImmediate(){
+// ================= 当天分数（从group_data读取，按gid匹配） =================
+async function loadDayData(d){
   try{
-    isUpdating=true;
-    state.lastModified=Date.now();
-    // 先保存班级数据
-    await fetch(SUPABASE_URL+'/rest/v1/class_data_v2?id=eq.class',{
-      method:'PATCH',
-      headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken,'Content-Type':'application/json','Prefer':'return=minimal'},
-      body:JSON.stringify({data:state})
-    });
-    // 更新本地缓存
-    try{localStorage.setItem(CACHE_KEY,JSON.stringify(state));}catch(e){}
-    // 同步到小组数据
-    await syncToGroups();
-    setTimeout(()=>{isUpdating=false;},1000);
-  }catch(e){
-    toast('保存失败: '+e.message);
-    isUpdating=false;
-  }
+    const resp=await fetch(SUPABASE_URL+'/rest/v1/group_data?select=group_id,data&order=group_id',{headers:sbHeaders()});
+    const groups=await resp.json();
+    const newDis={};
+    const newEye={};
+
+    for(const g of groups){
+      const gid=parseInt(g.group_id);
+      const gdata=g.data||{};
+      const dayScores=(gdata.scores&&gdata.scores[d])||{};
+      const gStudents=(gdata.students)||[];
+
+      // 建立 group_data学生ID -> V2学生 的映射
+      const gidToV2={};
+      for(const gs of gStudents){
+        const v2s=state.students.find(s=>s.gid===gs.id);
+        if(v2s)gidToV2[gs.id]=v2s;
+      }
+
+      for(const gsid in dayScores){
+        const v2s=gidToV2[gsid];
+        if(!v2s)continue;
+        const sdata=dayScores[gsid];
+
+        // 纪律：class字段
+        if(sdata.class&&Array.isArray(sdata.class)&&sdata.class.length>0){
+          newDis[v2s.id]=sdata.class.map(r=>({
+            id:r.id||uid(),value:r.v,label:r.label||'',by:r.by||'admin',ts:r.ts||Date.now()
+          }));
+        }
+
+        // 眼操：eye字段（eye记录值+2=显示分数）
+        if(sdata.eye&&Array.isArray(sdata.eye)&&sdata.eye.length>0){
+          newEye[v2s.id]=sdata.eye[0].v+2;
+        }
+      }
+    }
+
+    disDay=newDis;
+    eyeDay=newEye;
+  }catch(e){console.log('加载当日数据失败:',e);}
 }
 
-// 同步到小组数据（纪律→class，眼操→eye，注意眼操不重复加分）
-async function syncToGroups(){
+// ================= 保存分数（直接写group_data，按gid匹配） =================
+// 纪律：写入 group_data.scores[date][gid].class
+async function saveDisToGroup(v2id,records){
+  const student=state.students.find(s=>s.id===v2id);
+  if(!student||!student.gid)return;
   const d=curDateStr();
-  const disDay=state.disRecords[d]||{};
-  const eyeDay=state.eyeRecords[d]||{};
-  
-  // 按组统计
-  const groupData={};
-  for(const s of state.students){
-    const g=String(s.group);
-    if(!groupData[g])groupData[g]={dis:{},eye:{},allStudents:[]};
-    groupData[g].allStudents.push(s);
-    if(disDay[s.id]&&disDay[s.id].length>0)groupData[g].dis[s.id]=disDay[s.id];
-    // 眼操：有记录就存值，没记录就是默认+2（需要清除eye）
-    if(eyeDay[s.id]!==undefined)groupData[g].eye[s.id]=eyeDay[s.id];
+  const gid=String(student.group);
+
+  try{
+    const resp=await fetch(SUPABASE_URL+'/rest/v1/group_data?group_id=eq.'+gid+'&select=data',{headers:sbHeaders()});
+    const rows=await resp.json();
+    if(!rows||!rows.length)return;
+    const gd=rows[0].data;
+    if(!gd.scores)gd.scores={};
+    if(!gd.scores[d])gd.scores[d]={};
+    if(!gd.scores[d][student.gid])gd.scores[d][student.gid]={};
+
+    if(records&&records.length>0){
+      gd.scores[d][student.gid].class=records.map(r=>({
+        v:r.value,by:currentUser?currentUser.name:'admin',id:r.id||uid(),ts:r.ts||Date.now(),label:r.label||''
+      }));
+    }else{
+      // 没有记录了，删除class字段
+      if(gd.scores[d][student.gid].class)delete gd.scores[d][student.gid].class;
+      // 如果该学生当天没有任何数据了，删除该学生
+      if(Object.keys(gd.scores[d][student.gid]).length===0)delete gd.scores[d][student.gid];
+    }
+    // 如果当天没有任何学生数据了，删除该日期
+    if(Object.keys(gd.scores[d]).length===0)delete gd.scores[d];
+
+    gd.lastModified=Date.now();
+    isUpdating=true;
+    await fetch(SUPABASE_URL+'/rest/v1/group_data?group_id=eq.'+gid,{
+      method:'PATCH',headers:sbHeaders(),body:JSON.stringify({data:gd})
+    });
+    setTimeout(()=>{isUpdating=false;},1000);
+  }catch(e){console.log('保存纪律失败:',e);throw e;}
+}
+
+// 眼操：写入 group_data.scores[date][gid].eye（默认+2不存记录）
+async function saveEyeToGroup(v2id,val){
+  const student=state.students.find(s=>s.id===v2id);
+  if(!student||!student.gid)return;
+  const d=curDateStr();
+  const gid=String(student.group);
+
+  try{
+    const resp=await fetch(SUPABASE_URL+'/rest/v1/group_data?group_id=eq.'+gid+'&select=data',{headers:sbHeaders()});
+    const rows=await resp.json();
+    if(!rows||!rows.length)return;
+    const gd=rows[0].data;
+    if(!gd.scores)gd.scores={};
+    if(!gd.scores[d])gd.scores[d]={};
+    if(!gd.scores[d][student.gid])gd.scores[d][student.gid]={};
+
+    if(val===2||val===undefined){
+      // 默认+2，删除eye记录
+      if(gd.scores[d][student.gid].eye)delete gd.scores[d][student.gid].eye;
+    }else{
+      // 非默认值，eye记录值 = 显示分数 - 2
+      gd.scores[d][student.gid].eye=[{
+        v:val-2,by:currentUser?currentUser.name:'admin',id:uid(),ts:Date.now(),label:EYE_LABELS[String(val)]||''
+      }];
+    }
+    // 清理空数据
+    if(Object.keys(gd.scores[d][student.gid]).length===0)delete gd.scores[d][student.gid];
+    if(Object.keys(gd.scores[d]).length===0)delete gd.scores[d];
+
+    gd.lastModified=Date.now();
+    isUpdating=true;
+    await fetch(SUPABASE_URL+'/rest/v1/group_data?group_id=eq.'+gid,{
+      method:'PATCH',headers:sbHeaders(),body:JSON.stringify({data:gd})
+    });
+    setTimeout(()=>{isUpdating=false;},1000);
+  }catch(e){console.log('保存眼操失败:',e);throw e;}
+}
+
+// ================= 实时同步（监听class_data_v2 + 10个group_data） =================
+function startRealtime(){
+  if(!SB)return;
+
+  // 监听人员名单变化
+  realtimeSub=SB.channel('class_v2_students')
+    .on('postgres_changes',{event:'*',schema:'public',table:'class_data_v2'},(payload)=>{
+      if(isUpdating)return;
+      setTimeout(()=>{loadStudents().then(()=>renderAll());},500);
+    })
+    .subscribe();
+
+  // 监听每个小组的分数变化
+  for(let g=1;g<=10;g++){
+    const ch=SB.channel('group_'+g)
+      .on('postgres_changes',{
+        event:'UPDATE',schema:'public',table:'group_data',
+        filter:'group_id=eq.'+g
+      },(payload)=>{
+        if(isUpdating)return;
+        // 只重新加载当天数据
+        setTimeout(()=>{loadDayData(curDateStr()).then(()=>renderAll());},300);
+      })
+      .subscribe();
+    groupRealtimeSubs[g]=ch;
   }
-  
-  // 如果没有数据，不同步
-  if(Object.keys(groupData).length===0){
-    console.log('今日无需要同步的数据');
-    return;
-  }
-  
-  // 并行更新每个小组
-  const promises=[];
-  for(const gid in groupData){
-    promises.push((async()=>{
-      try{
-        const resp=await fetch(SUPABASE_URL+'/rest/v1/group_data?group_id=eq.'+gid+'&select=data',{
-          headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken}
-        });
-        const rows=await resp.json();
-        if(rows&&rows.length){
-          const gd=rows[0].data;
-          if(!gd.scores)gd.scores={};
-          if(!gd.scores[d])gd.scores[d]={};
-          
-          let changed=false;
-          
-          // 同步纪律→class（覆盖式）
-          for(const sid in groupData[gid].dis){
-            const student=state.students.find(s=>s.id===sid);
-            if(!student)continue;
-            const gStudent=(gd.students||[]).find(gs=>gs.name===student.name);
-            if(!gStudent)continue;
-            if(!gd.scores[d][gStudent.id])gd.scores[d][gStudent.id]={};
-            gd.scores[d][gStudent.id].class=groupData[gid].dis[sid].map(r=>({
-              v:r.value,by:currentUser?currentUser.name:'admin',id:r.id||uid(),ts:r.ts||Date.now(),label:r.label||''
-            }));
-            changed=true;
-          }
-          
-          // 同步眼操→eye（遍历所有学生，默认+2时清除eye记录）
-          for(const student of groupData[gid].allStudents){
-            const gStudent=(gd.students||[]).find(gs=>gs.name===student.name);
-            if(!gStudent)continue;
-            if(!gd.scores[d][gStudent.id])gd.scores[d][gStudent.id]={};
-            
-            const v2Val=groupData[gid].eye[student.id];
-            if(v2Val===undefined){
-              // 默认+2，清除eye记录
-              if(gd.scores[d][gStudent.id].eye){
-                delete gd.scores[d][gStudent.id].eye;
-                changed=true;
-              }
-            }else{
-              // 非默认值，eye记录值 = V2分数 - 2基础分
-              const eyeVal=v2Val-2;
-              gd.scores[d][gStudent.id].eye=[{
-                v:eyeVal,
-                by:currentUser?currentUser.name:'admin',
-                id:uid(),
-                ts:Date.now(),
-                label:EYE_LABELS[String(v2Val)]||''
-              }];
-              changed=true;
-            }
-          }
-          
-          if(changed){
-            gd.lastModified=Date.now();
-            await fetch(SUPABASE_URL+'/rest/v1/group_data?group_id=eq.'+gid,{
-              method:'PATCH',
-              headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken,'Content-Type':'application/json','Prefer':'return=minimal'},
-              body:JSON.stringify({data:gd})
-            });
-            console.log('第'+gid+'组同步成功');
-          }
-        }
-      }catch(e){
-        console.log('同步小组'+gid+'失败:',e);
-        throw e;
-      }
-    })());
-  }
-  await Promise.all(promises);
 }
 
 async function forceRefresh(){
   toast('正在刷新...');
-  await loadData();
+  await loadStudents();
+  await loadDayData(curDateStr());
   renderAll();
   toast('已刷新');
 }
@@ -664,7 +506,6 @@ function switchView(v){
 async function shiftDate(n){
   currentDate.setDate(currentDate.getDate()+n);
   updateDateDisplay();
-  // 从group_data加载该日期的数据
   await loadDayData(curDateStr());
   renderAll();
 }
@@ -678,17 +519,13 @@ function updateDateDisplay(){
 }
 function openDatePicker(){
   const input=document.createElement('input');
-  input.type='date';
-  input.value=curDateStr();
-  input.style.position='fixed';
-  input.style.opacity='0';
-  document.body.appendChild(input);
-  input.click();
-  input.onchange=async ()=>{
+  input.type='date';input.value=curDateStr();
+  input.style.position='fixed';input.style.opacity='0';
+  document.body.appendChild(input);input.click();
+  input.onchange=async()=>{
     if(input.value){
       currentDate=new Date(input.value+'T00:00:00');
       updateDateDisplay();
-      // 从group_data加载该日期的数据
       await loadDayData(curDateStr());
       renderAll();
     }
@@ -698,24 +535,17 @@ function openDatePicker(){
 
 // ================= 纪律 =================
 function renderDis(){
-  // 组别筛选
   const groups=[...new Set(state.students.map(s=>s.group))].sort((a,b)=>a-b);
   let tabs='<div class="group-tab'+(disFilterGroup===0?' active':'')+'" onclick="setDisGroup(0)">全部</div>';
-  for(const g of groups){
-    tabs+='<div class="group-tab'+(disFilterGroup===g?' active':'')+'" onclick="setDisGroup('+g+')">第'+g+'组</div>';
-  }
+  for(const g of groups)tabs+='<div class="group-tab'+(disFilterGroup===g?' active':'')+'" onclick="setDisGroup('+g+')">第'+g+'组</div>';
   document.getElementById('disGroupTabs').innerHTML=tabs;
-  
-  // 学生列表
+
   let students=state.students.slice().sort((a,b)=>a.group-b.group||(a.order||0)-(b.order||0));
   if(disFilterGroup>0)students=students.filter(s=>s.group===disFilterGroup);
-  
-  const d=curDateStr();
-  const dayRec=state.disRecords[d]||{};
-  
+
   let html='';
   for(const s of students){
-    const recs=dayRec[s.id]||[];
+    const recs=disDay[s.id]||[];
     const total=recs.reduce((sum,r)=>sum+r.value,0);
     const cls=total>0?'positive':total<0?'negative':'';
     html+='<div class="student-item">';
@@ -730,43 +560,43 @@ function renderDis(){
   if(!html)html='<div class="loading">暂无学生</div>';
   document.getElementById('disList').innerHTML=html;
 }
-
 function setDisGroup(g){disFilterGroup=g;renderDis();}
 
 function quickScore(sid,val){
-  const student=state.students.find(s=>s.id===sid);
-  if(!student)return;
   addScore(sid,val,val===2?'表现好':val===-2?'说话':'');
 }
 
-function addScore(sid,val,label){
+async function addScore(sid,val,label){
   if(!ALLOW_EDIT){toast('当前为只读模式');return;}
-  const d=curDateStr();
-  if(!state.disRecords[d])state.disRecords[d]={};
-  if(!state.disRecords[d][sid])state.disRecords[d][sid]=[];
-  state.disRecords[d][sid].push({id:uid(),value:val,label:label||'',by:currentUser?currentUser.name:'admin',ts:Date.now()});
-  saveData();
+  if(!disDay[sid])disDay[sid]=[];
+  const rec={id:uid(),value:val,label:label||'',by:currentUser?currentUser.name:'admin',ts:Date.now()};
+  disDay[sid].push(rec);
   renderDis();
   const student=state.students.find(s=>s.id===sid);
   toast((student?student.name:'')+' '+(val>0?'+':'')+val+'分');
+  try{await saveDisToGroup(sid,disDay[sid]);}catch(e){toast('同步失败: '+e.message);}
 }
 
 // 长按弹窗
 let longPressTimer=null;
 function setupLongPress(){
-  document.getElementById('disList').addEventListener('touchstart',function(e){
-    const item=e.target.closest('.student-item');
-    if(!item)return;
+  const list=document.getElementById('disList');
+  list.addEventListener('touchstart',function(e){
+    const item=e.target.closest('.student-item');if(!item)return;
     const name=item.querySelector('.student-name').textContent;
-    const student=state.students.find(s=>s.name===name);
-    if(!student)return;
-    longPressTimer=setTimeout(()=>{
-      modalStudent=student;
-      openScoreModal(student);
-    },500);
+    const student=state.students.find(s=>s.name===name);if(!student)return;
+    longPressTimer=setTimeout(()=>{modalStudent=student;openScoreModal(student);},500);
   });
-  document.getElementById('disList').addEventListener('touchend',()=>{if(longPressTimer)clearTimeout(longPressTimer);});
-  document.getElementById('disList').addEventListener('touchmove',()=>{if(longPressTimer)clearTimeout(longPressTimer);});
+  list.addEventListener('touchend',()=>{if(longPressTimer)clearTimeout(longPressTimer);});
+  list.addEventListener('touchmove',()=>{if(longPressTimer)clearTimeout(longPressTimer);});
+  // PC端右键
+  list.addEventListener('contextmenu',function(e){
+    e.preventDefault();
+    const item=e.target.closest('.student-item');if(!item)return;
+    const name=item.querySelector('.student-name').textContent;
+    const student=state.students.find(s=>s.name===name);if(!student)return;
+    modalStudent=student;openScoreModal(student);
+  });
 }
 
 function openScoreModal(student){
@@ -775,10 +605,7 @@ function openScoreModal(student){
   document.getElementById('modalScoreSlider').value=0;
   document.getElementById('modalScoreValue').textContent='0';
   document.getElementById('modalScoreValue').style.color='var(--text-soft)';
-  
-  // 显示今日记录
-  const d=curDateStr();
-  const recs=(state.disRecords[d]&&state.disRecords[d][student.id])||[];
+  const recs=disDay[student.id]||[];
   let listHtml='';
   if(recs.length===0){
     listHtml='<div style="text-align:center;color:var(--text-soft);font-size:12px;padding:10px">今日暂无记录</div>';
@@ -797,47 +624,38 @@ function openScoreModal(student){
   document.getElementById('modalRecordList').innerHTML=listHtml;
   document.getElementById('scoreModal').classList.add('show');
 }
-
 function closeScoreModal(){document.getElementById('scoreModal').classList.remove('show');modalStudent=null;}
-
 function confirmCustomScore(){
   const val=parseInt(document.getElementById('modalScoreSlider').value)||0;
-  if(modalStudent&&val!==0){addScore(modalStudent.id,val,'自定义');}
+  if(modalStudent&&val!==0)addScore(modalStudent.id,val,'自定义');
   closeScoreModal();
 }
 
-function deleteRecord(sid,index){
+async function deleteRecord(sid,index){
   if(!ALLOW_EDIT){toast('当前为只读模式');return;}
-  const d=curDateStr();
-  if(!state.disRecords[d]||!state.disRecords[d][sid])return;
-  state.disRecords[d][sid].splice(index,1);
-  if(state.disRecords[d][sid].length===0)delete state.disRecords[d][sid];
-  saveData();
-  // 刷新弹窗
+  if(!disDay[sid])return;
+  disDay[sid].splice(index,1);
+  if(disDay[sid].length===0)delete disDay[sid];
   const student=state.students.find(s=>s.id===sid);
   if(student)openScoreModal(student);
   renderDis();
   toast('已删除记录');
+  try{await saveDisToGroup(sid,disDay[sid]||[]);}catch(e){toast('同步失败: '+e.message);}
 }
 
 // ================= 眼操 =================
 function renderEye(){
   const groups=[...new Set(state.students.map(s=>s.group))].sort((a,b)=>a-b);
   let tabs='<div class="group-tab'+(eyeFilterGroup===0?' active':'')+'" onclick="setEyeGroup(0)">全部</div>';
-  for(const g of groups){
-    tabs+='<div class="group-tab'+(eyeFilterGroup===g?' active':'')+'" onclick="setEyeGroup('+g+')">第'+g+'组</div>';
-  }
+  for(const g of groups)tabs+='<div class="group-tab'+(eyeFilterGroup===g?' active':'')+'" onclick="setEyeGroup('+g+')">第'+g+'组</div>';
   document.getElementById('eyeGroupTabs').innerHTML=tabs;
-  
+
   let students=state.students.slice().sort((a,b)=>a.group-b.group||(a.order||0)-(b.order||0));
   if(eyeFilterGroup>0)students=students.filter(s=>s.group===eyeFilterGroup);
-  
-  const d=curDateStr();
-  const dayRec=state.eyeRecords[d]||{};
-  
+
   let html='';
   for(const s of students){
-    const val=dayRec[s.id]!==undefined?dayRec[s.id]:2;
+    const val=eyeDay[s.id]!==undefined?eyeDay[s.id]:2;
     const cls=val>0?'positive':val<0?'negative':'';
     html+='<div class="student-item" oncontextmenu="event.preventDefault();openEyeModal(\''+s.id+'\')" ontouchstart="startEyeLongPress(\''+s.id+'\')" ontouchend="cancelEyeLongPress()" ontouchmove="cancelEyeLongPress()">';
     html+='<div class="student-info"><div class="student-name">'+esc(s.name)+'</div>';
@@ -851,38 +669,24 @@ function renderEye(){
   if(!html)html='<div class="loading">暂无学生</div>';
   document.getElementById('eyeList').innerHTML=html;
 }
-
 function setEyeGroup(g){eyeFilterGroup=g;renderEye();}
 
 let eyeLongPressTimer=null;
-function startEyeLongPress(sid){
-  eyeLongPressTimer=setTimeout(()=>{openEyeModal(sid);eyeLongPressTimer=null;},500);
-}
+function startEyeLongPress(sid){eyeLongPressTimer=setTimeout(()=>{openEyeModal(sid);eyeLongPressTimer=null;},500);}
 function cancelEyeLongPress(){if(eyeLongPressTimer){clearTimeout(eyeLongPressTimer);eyeLongPressTimer=null;}}
 
-function changeEye(sid,delta){
+async function changeEye(sid,delta){
   if(!ALLOW_EDIT){toast('当前为只读模式');return;}
-  const d=curDateStr();
-  if(!state.eyeRecords[d])state.eyeRecords[d]={};
-  let val=(state.eyeRecords[d][sid]!==undefined?state.eyeRecords[d][sid]:2)+delta;
+  let val=(eyeDay[sid]!==undefined?eyeDay[sid]:2)+delta;
   val=Math.max(-4,Math.min(2,val));
-  if(val===2){
-    // 改回默认+2时删除记录
-    delete state.eyeRecords[d][sid];
-  }else{
-    state.eyeRecords[d][sid]=val;
-  }
-  // 眼操立即保存同步
-  saveDataImmediate();
+  if(val===2)delete eyeDay[sid];else eyeDay[sid]=val;
   renderEye();
+  try{await saveEyeToGroup(sid,val===2?undefined:val);}catch(e){toast('同步失败: '+e.message);}
 }
 
 function openEyeModal(sid){
-  const student=state.students.find(s=>s.id===sid);
-  if(!student)return;
-  const d=curDateStr();
-  const val=state.eyeRecords[d]&&state.eyeRecords[d][sid]!==undefined?state.eyeRecords[d][sid]:2;
-  
+  const student=state.students.find(s=>s.id===sid);if(!student)return;
+  const val=eyeDay[sid]!==undefined?eyeDay[sid]:2;
   let html='<div style="text-align:center;margin-bottom:16px">';
   html+='<div style="font-size:18px;font-weight:700;margin-bottom:8px">'+student.name+' - 眼操</div>';
   html+='<div style="font-size:32px;font-weight:700;color:var(--accent)">'+(val>0?'+':'')+val+' '+EYE_LABELS[String(val)]+'</div>';
@@ -895,27 +699,15 @@ function openEyeModal(sid){
   }
   html+='</div>';
   html+='<button onclick="closeEyeModal()" style="width:100%;padding:12px;background:var(--line);border:none;border-radius:8px;font-size:15px;cursor:pointer">关闭</button>';
-  
   document.getElementById('eyeModalContent').innerHTML=html;
   document.getElementById('eyeModal').classList.add('show');
 }
-
-function setEyeVal(sid,val){
+async function setEyeVal(sid,val){
   if(!ALLOW_EDIT){toast('当前为只读模式');return;}
-  const d=curDateStr();
-  if(!state.eyeRecords[d])state.eyeRecords[d]={};
-  if(val===2){
-    // 改回默认+2时删除记录
-    delete state.eyeRecords[d][sid];
-  }else{
-    state.eyeRecords[d][sid]=val;
-  }
-  // 眼操立即保存同步
-  saveDataImmediate();
-  closeEyeModal();
-  renderEye();
+  if(val===2)delete eyeDay[sid];else eyeDay[sid]=val;
+  closeEyeModal();renderEye();
+  try{await saveEyeToGroup(sid,val===2?undefined:val);}catch(e){toast('同步失败: '+e.message);}
 }
-
 function closeEyeModal(){document.getElementById('eyeModal').classList.remove('show');}
 
 // ================= 成员管理 =================
@@ -941,97 +733,69 @@ async function addMember(){
   const name=document.getElementById('newName').value.trim();
   const group=parseInt(document.getElementById('newGroup').value);
   if(!name){toast('请输入姓名');return;}
-  
-  // 读取对应小组数据
   try{
-    const resp=await fetch(SUPABASE_URL+'/rest/v1/group_data?group_id=eq.'+group+'&select=data',{
-      headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken}
-    });
+    const resp=await fetch(SUPABASE_URL+'/rest/v1/group_data?group_id=eq.'+group+'&select=data',{headers:sbHeaders()});
     const rows=await resp.json();
     if(rows&&rows.length){
-      const gdata=rows[0].data;
-      if(!gdata.students)gdata.students=[];
-      gdata.students.push({id:'seed'+group+'_'+(gdata.students.length+1),name:name});
-      gdata.lastModified=Date.now();
-      
-      // 保存回group_data
+      const gd=rows[0].data;
+      if(!gd.students)gd.students=[];
+      const newGid='seed'+group+'_'+(gd.students.length+1);
+      gd.students.push({id:newGid,name:name});
+      gd.lastModified=Date.now();
+      isUpdating=true;
       await fetch(SUPABASE_URL+'/rest/v1/group_data?group_id=eq.'+group,{
-        method:'PATCH',
-        headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken,'Content-Type':'application/json','Prefer':'return=minimal'},
-        body:JSON.stringify({data:gdata})
+        method:'PATCH',headers:sbHeaders(),body:JSON.stringify({data:gd})
       });
+      setTimeout(()=>{isUpdating=false;},1000);
     }
-  }catch(e){
-    toast('添加失败: '+e.message);
-    return;
-  }
-  
+  }catch(e){toast('添加失败: '+e.message);return;}
   document.getElementById('newName').value='';
   await syncStudentsFromGroups();
+  await loadDayData(curDateStr());
   renderAll();
   toast('已添加 '+name);
 }
 
 async function deleteMember(sid){
   if(!ALLOW_EDIT){toast('当前为只读模式');return;}
-  const member=state.students.find(s=>s.id===sid);
-  if(!member)return;
+  const member=state.students.find(s=>s.id===sid);if(!member)return;
   if(!confirm('确定删除 '+member.name+' 吗？'))return;
-  
-  // 读取对应小组数据
   try{
-    const resp=await fetch(SUPABASE_URL+'/rest/v1/group_data?group_id=eq.'+member.group+'&select=data',{
-      headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken}
-    });
+    const resp=await fetch(SUPABASE_URL+'/rest/v1/group_data?group_id=eq.'+member.group+'&select=data',{headers:sbHeaders()});
     const rows=await resp.json();
     if(rows&&rows.length){
-      const gdata=rows[0].data;
-      gdata.students=(gdata.students||[]).filter(s=>s.name!==member.name);
-      gdata.lastModified=Date.now();
-      
-      // 保存回group_data
+      const gd=rows[0].data;
+      gd.students=(gd.students||[]).filter(s=>s.id!==member.gid);
+      gd.lastModified=Date.now();
+      isUpdating=true;
       await fetch(SUPABASE_URL+'/rest/v1/group_data?group_id=eq.'+member.group,{
-        method:'PATCH',
-        headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken,'Content-Type':'application/json','Prefer':'return=minimal'},
-        body:JSON.stringify({data:gdata})
+        method:'PATCH',headers:sbHeaders(),body:JSON.stringify({data:gd})
       });
+      setTimeout(()=>{isUpdating=false;},1000);
     }
-  }catch(e){
-    toast('删除失败: '+e.message);
-    return;
-  }
-  
+  }catch(e){toast('删除失败: '+e.message);return;}
   await syncStudentsFromGroups();
+  await loadDayData(curDateStr());
   renderAll();
   toast('已删除 '+member.name);
 }
 
 // ================= 统计 =================
 function renderStats(){
-  const d=curDateStr();
-  const dayDis=state.disRecords[d]||{};
-  const dayEye=state.eyeRecords[d]||{};
-  
-  // 当日统计
-  let html='';
   let totalDis=0,totalEye=0;
   const stats=[];
   for(const s of state.students){
-    const disRecs=dayDis[s.id]||[];
-    const disSum=disRecs.reduce((sum,r)=>sum+r.value,0);
-    const eyeVal=dayEye[s.id]!==undefined?dayEye[s.id]:2;
-    totalDis+=disSum;
-    totalEye+=eyeVal;
-    if(disSum!==0||eyeVal!==2){
-      stats.push({name:s.name,group:s.group,dis:disSum,eye:eyeVal});
-    }
+    const recs=disDay[s.id]||[];
+    const disSum=recs.reduce((sum,r)=>sum+r.value,0);
+    const eyeVal=eyeDay[s.id]!==undefined?eyeDay[s.id]:2;
+    totalDis+=disSum;totalEye+=eyeVal;
+    if(disSum!==0||eyeVal!==2)stats.push({name:s.name,group:s.group,dis:disSum,eye:eyeVal});
   }
   stats.sort((a,b)=>(b.dis+b.eye)-(a.dis+a.eye));
-  
+  let html='';
   html+='<div class="stat-row"><span class="stat-name">纪律总分</span><span class="stat-val '+(totalDis>0?'positive':totalDis<0?'negative':'')+'">'+(totalDis>0?'+':'')+totalDis+'</span></div>';
   html+='<div class="stat-row"><span class="stat-name">眼操总分</span><span class="stat-val">'+totalEye+'</span></div>';
   html+='<div class="stat-row"><span class="stat-name">有记录人数</span><span class="stat-val">'+stats.length+'</span></div>';
-  
   if(stats.length>0){
     html+='<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line)">';
     for(const s of stats.slice(0,10)){
@@ -1041,62 +805,78 @@ function renderStats(){
     html+='</div>';
   }
   document.getElementById('statsList').innerHTML=html;
-  
-  // 本周统计
-  const weekStats={};
+
+  // 本周统计（需要加载本周所有日期的数据）
+  renderWeekStats();
+}
+
+async function renderWeekStats(){
   const monday=new Date(currentDate);
   const day=(monday.getDay()+6)%7;
   monday.setDate(monday.getDate()-day);
-  for(let i=0;i<7;i++){
-    const dt=new Date(monday);
-    dt.setDate(dt.getDate()+i);
+  const weekStats={};
+  // 加载本周5天的数据
+  for(let i=0;i<5;i++){
+    const dt=new Date(monday);dt.setDate(dt.getDate()+i);
     const ds=fmtDate(dt);
-    const dis=state.disRecords[ds]||{};
-    for(const sid in dis){
-      const student=state.students.find(s=>s.id===sid);
-      if(!student)continue;
-      if(!weekStats[student.name])weekStats[student.name]={group:student.group,total:0};
-      weekStats[student.name].total+=dis[sid].reduce((sum,r)=>sum+r.value,0);
+    if(ds===curDateStr()){
+      // 当天用内存数据
+      for(const sid in disDay){
+        const student=state.students.find(s=>s.id===sid);if(!student)continue;
+        if(!weekStats[student.name])weekStats[student.name]={group:student.group,total:0};
+        weekStats[student.name].total+=disDay[sid].reduce((sum,r)=>sum+r.value,0);
+      }
+    }else{
+      // 其他日期从group_data读
+      try{
+        const resp=await fetch(SUPABASE_URL+'/rest/v1/group_data?select=group_id,data',{headers:sbHeaders()});
+        const groups=await resp.json();
+        for(const g of groups){
+          const gdata=g.data||{};
+          const dayScores=(gdata.scores&&gdata.scores[ds])||{};
+          const gStudents=(gdata.students)||[];
+          for(const gs of gStudents){
+            const v2s=state.students.find(s=>s.gid===gs.id);if(!v2s)continue;
+            const sdata=dayScores[gs.id];
+            if(sdata&&sdata.class&&Array.isArray(sdata.class)){
+              if(!weekStats[v2s.name])weekStats[v2s.name]={group:v2s.group,total:0};
+              weekStats[v2s.name].total+=sdata.class.reduce((sum,r)=>sum+(r.v||0),0);
+            }
+          }
+        }
+      }catch(e){}
     }
   }
   const weekArr=Object.entries(weekStats).map(([name,v])=>({name,...v})).sort((a,b)=>b.total-a.total);
   let whtml='';
-  if(weekArr.length===0){
-    whtml='<div class="loading">本周暂无记录</div>';
-  }else{
-    for(const s of weekArr){
-      whtml+='<div class="stat-row"><span class="stat-name">'+esc(s.name)+'（第'+s.group+'组）</span>';
-      whtml+='<span class="stat-val '+(s.total>0?'positive':s.total<0?'negative':'')+'">'+(s.total>0?'+':'')+s.total+'</span></div>';
-    }
+  if(weekArr.length===0)whtml='<div class="loading">本周暂无记录</div>';
+  else for(const s of weekArr){
+    whtml+='<div class="stat-row"><span class="stat-name">'+esc(s.name)+'（第'+s.group+'组）</span>';
+    whtml+='<span class="stat-val '+(s.total>0?'positive':s.total<0?'negative':'')+'">'+(s.total>0?'+':'')+s.total+'</span></div>';
   }
   document.getElementById('weekStatsList').innerHTML=whtml;
 }
 
 // ================= 导出 =================
-// 动态加载xlsx库
 let xlsxLoaded=false;
 function loadXlsx(){
   return new Promise((resolve,reject)=>{
     if(window.XLSX){resolve();return;}
     const s=document.createElement('script');
     s.src='https://cdn.bootcdn.net/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
-    s.onload=()=>{xlsxLoaded=true;resolve();};
-    s.onerror=reject;
+    s.onload=()=>{xlsxLoaded=true;resolve();};s.onerror=reject;
     document.head.appendChild(s);
   });
 }
-
 async function exportDay(){
   await loadXlsx();
   const d=curDateStr();
-  const dayDis=state.disRecords[d]||{};
-  const dayEye=state.eyeRecords[d]||{};
   const data=[['组别','姓名','纪律分','眼操分','纪律记录']];
   for(const s of state.students){
-    const disRecs=dayDis[s.id]||[];
-    const disSum=disRecs.reduce((sum,r)=>sum+r.value,0);
-    const eyeVal=dayEye[s.id]!==undefined?dayEye[s.id]:2;
-    const recStr=disRecs.map(r=>(r.label||'自定义')+':'+(r.value>0?'+':'')+r.value).join('; ');
+    const recs=disDay[s.id]||[];
+    const disSum=recs.reduce((sum,r)=>sum+r.value,0);
+    const eyeVal=eyeDay[s.id]!==undefined?eyeDay[s.id]:2;
+    const recStr=recs.map(r=>(r.label||'自定义')+':'+(r.value>0?'+':'')+r.value).join('; ');
     data.push(['第'+s.group+'组',s.name,disSum,eyeVal,recStr]);
   }
   const ws=XLSX.utils.aoa_to_sheet(data);
@@ -1105,7 +885,6 @@ async function exportDay(){
   XLSX.writeFile(wb,'班级数据_'+d+'.xlsx');
   toast('已导出当日数据');
 }
-
 async function exportWeek(){
   await loadXlsx();
   const monday=new Date(currentDate);
@@ -1114,25 +893,27 @@ async function exportWeek(){
   const data=[['组别','姓名']];
   const dates=[];
   for(let i=0;i<5;i++){
-    const dt=new Date(monday);
-    dt.setDate(dt.getDate()+i);
-    dates.push(fmtDate(dt));
-    data[0].push(fmtDate(dt));
+    const dt=new Date(monday);dt.setDate(dt.getDate()+i);
+    dates.push(fmtDate(dt));data[0].push(fmtDate(dt));
   }
   data[0].push('本周合计');
-  
   for(const s of state.students){
-    const row=['第'+s.group+'组',s.name];
-    let total=0;
+    const row=['第'+s.group+'组',s.name];let total=0;
     for(const d of dates){
-      const dis=state.disRecords[d]||{};
-      const recs=dis[s.id]||[];
-      const sum=recs.reduce((sum,r)=>sum+r.value,0);
-      row.push(sum);
-      total+=sum;
+      // 从group_data读
+      let sum=0;
+      try{
+        const resp=await fetch(SUPABASE_URL+'/rest/v1/group_data?group_id=eq.'+s.group+'&select=data',{headers:sbHeaders()});
+        const rows=await resp.json();
+        if(rows&&rows.length){
+          const gd=rows[0].data;
+          const dayData=(gd.scores&&gd.scores[d]&&gd.scores[d][s.gid])||{};
+          if(dayData.class&&Array.isArray(dayData.class))sum=dayData.class.reduce((a,r)=>a+(r.v||0),0);
+        }
+      }catch(e){}
+      row.push(sum);total+=sum;
     }
-    row.push(total);
-    data.push(row);
+    row.push(total);data.push(row);
   }
   const ws=XLSX.utils.aoa_to_sheet(data);
   const wb=XLSX.utils.book_new();
@@ -1140,23 +921,15 @@ async function exportWeek(){
   XLSX.writeFile(wb,'班级本周数据.xlsx');
   toast('已导出本周数据');
 }
-
 function exportJSON(){
-  const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download='班级数据_'+todayStr()+'.json';
-  a.click();
+  const blob=new Blob([JSON.stringify({students:state.students,exportTime:new Date().toISOString()},null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='班级名单_'+todayStr()+'.json';a.click();
   toast('已导出JSON');
 }
-
 function exportBackup(){
-  const backup={exportTime:new Date().toISOString(),classData:state};
+  const backup={exportTime:new Date().toISOString(),students:state.students};
   const blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download='班级备份_'+todayStr()+'.json';
-  a.click();
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='班级备份_'+todayStr()+'.json';a.click();
   toast('已导出备份');
 }
 
