@@ -287,7 +287,7 @@ const EYE_VALUES=[-2,0,2];
 const EYE_LABELS={'-2':'不认真','0':'未评','2':'优秀'};
 
 // 是否允许修改（true=允许，false=只读）
-const ALLOW_EDIT=false;
+const ALLOW_EDIT=true;
 
 // ================= 状态 =================
 let state={students:[],disRecords:{},eyeRecords:{},admin2Enabled:true,version:1};
@@ -433,19 +433,23 @@ async function saveData(){
   },300);
 }
 
-// 同步到小组数据（眼操→eye，纪律→class）
+// 同步到小组数据（只同步纪律→class，眼操不同步避免重复）
 async function syncToGroups(){
   const d=curDateStr();
   const disDay=state.disRecords[d]||{};
-  const eyeDay=state.eyeRecords[d]||{};
   
-  // 按组统计
+  // 按组统计纪律数据
   const groupData={};
   for(const s of state.students){
     const g=String(s.group);
-    if(!groupData[g])groupData[g]={dis:{},eye:{}};
-    if(disDay[s.id])groupData[g].dis[s.id]=disDay[s.id];
-    if(eyeDay[s.id]!==undefined)groupData[g].eye[s.id]=eyeDay[s.id];
+    if(!groupData[g])groupData[g]={dis:{}};
+    if(disDay[s.id]&&disDay[s.id].length>0)groupData[g].dis[s.id]=disDay[s.id];
+  }
+  
+  // 如果没有纪律数据，不同步
+  if(Object.keys(groupData).length===0){
+    console.log('今日无纪律数据，跳过同步');
+    return;
   }
   
   // 并行更新每个小组
@@ -462,41 +466,37 @@ async function syncToGroups(){
           if(!gd.scores)gd.scores={};
           if(!gd.scores[d])gd.scores[d]={};
           
-          // 同步纪律→class
+          // 同步纪律→class（覆盖式）
+          let syncedCount=0;
           for(const sid in groupData[gid].dis){
             const student=state.students.find(s=>s.id===sid);
             if(!student)continue;
+            // 按名字匹配小组里的学生
             const gStudent=(gd.students||[]).find(gs=>gs.name===student.name);
-            if(!gStudent)continue;
+            if(!gStudent){
+              console.log('未找到学生:',student.name,'在第'+gid+'组');
+              continue;
+            }
             if(!gd.scores[d][gStudent.id])gd.scores[d][gStudent.id]={};
             gd.scores[d][gStudent.id].class=groupData[gid].dis[sid].map(r=>({
-              v:r.value,by:currentUser?currentUser.name:'admin',id:r.id||uid(),ts:r.ts||Date.now(),label:r.label||''
+              v:r.value,
+              by:currentUser?currentUser.name:'admin',
+              id:r.id||uid(),
+              ts:r.ts||Date.now(),
+              label:r.label||''
             }));
+            syncedCount++;
           }
           
-          // 同步眼操→eye
-          for(const sid in groupData[gid].eye){
-            const student=state.students.find(s=>s.id===sid);
-            if(!student)continue;
-            const gStudent=(gd.students||[]).find(gs=>gs.name===student.name);
-            if(!gStudent)continue;
-            if(!gd.scores[d][gStudent.id])gd.scores[d][gStudent.id]={};
-            const val=groupData[gid].eye[sid];
-            if(val===2){
-              gd.scores[d][gStudent.id].eye=[{v:2,by:currentUser?currentUser.name:'admin',id:uid(),ts:Date.now(),label:'优秀'}];
-            }else if(val===0){
-              gd.scores[d][gStudent.id].eye=[];
-            }else{
-              gd.scores[d][gStudent.id].eye=[{v:val,by:currentUser?currentUser.name:'admin',id:uid(),ts:Date.now(),label:EYE_LABELS[String(val)]||''}];
-            }
+          if(syncedCount>0){
+            gd.lastModified=Date.now();
+            await fetch(SUPABASE_URL+'/rest/v1/group_data?group_id=eq.'+gid,{
+              method:'PATCH',
+              headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken,'Content-Type':'application/json','Prefer':'return=minimal'},
+              body:JSON.stringify({data:gd})
+            });
+            console.log('第'+gid+'组同步成功，'+syncedCount+'人');
           }
-          
-          gd.lastModified=Date.now();
-          await fetch(SUPABASE_URL+'/rest/v1/group_data?group_id=eq.'+gid,{
-            method:'PATCH',
-            headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken,'Content-Type':'application/json','Prefer':'return=minimal'},
-            body:JSON.stringify({data:gd})
-          });
         }
       }catch(e){
         console.log('同步小组'+gid+'失败:',e);
