@@ -324,10 +324,24 @@ async function init(){
   renderAll();
 }
 
-// ================= 数据加载（直接从class_data_v2读取，含人员名单） =================
+// ================= 数据加载（先显示缓存+后台更新） =================
+const CACHE_KEY='jfz_class_v2_cache';
+
 async function loadData(){
   try{
-    // 直接从class_data_v2读取所有数据（含人员名单）
+    // 1. 先显示本地缓存（如果有），让页面立即显示
+    try{
+      const cache=localStorage.getItem(CACHE_KEY);
+      if(cache){
+        const cached=JSON.parse(cache);
+        if(cached.students&&cached.students.length>0){
+          state=cached;
+          renderAll();
+        }
+      }
+    }catch(e){}
+    
+    // 2. 从云端加载最新数据
     const cResp=await fetch(SUPABASE_URL+'/rest/v1/class_data_v2?id=eq.class&select=data',{
       headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken}
     });
@@ -337,11 +351,16 @@ async function loadData(){
       if(!state.students)state.students=[];
       if(!state.disRecords)state.disRecords={};
       if(!state.eyeRecords)state.eyeRecords={};
-    }
-    
-    // 如果没有人员名单，从group_data同步一次
-    if(!state.students||state.students.length===0){
-      await syncStudentsFromGroups();
+      
+      // 保存到本地缓存
+      try{localStorage.setItem(CACHE_KEY,JSON.stringify(state));}catch(e){}
+      
+      // 如果没有人员名单，从group_data同步一次
+      if(!state.students||state.students.length===0){
+        await syncStudentsFromGroups();
+      }
+      
+      renderAll();
     }
   }catch(e){
     toast('数据加载失败: '+e.message);
@@ -382,13 +401,16 @@ async function saveData(){
   saveTimer=setTimeout(async()=>{
     try{
       state.lastModified=Date.now();
+      // 先保存班级数据（快速）
       await fetch(SUPABASE_URL+'/rest/v1/class_data_v2?id=eq.class',{
         method:'PATCH',
         headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken,'Content-Type':'application/json','Prefer':'return=minimal'},
         body:JSON.stringify({data:state})
       });
-      // 同步到小组数据
-      await syncToGroups();
+      // 更新本地缓存
+      try{localStorage.setItem(CACHE_KEY,JSON.stringify(state));}catch(e){}
+      // 异步同步到小组数据（不阻塞界面）
+      syncToGroups();
     }catch(e){
       toast('保存失败: '+e.message);
     }
@@ -663,7 +685,7 @@ function renderEye(){
     html+='<span class="student-name">'+esc(s.name)+'</span>';
     html+='<span class="student-group">第'+s.group+'组</span>';
     html+='</div>';
-    html+='<div class="score-display"><span class="'+cls+'">'+(val>0?'+':'')+val+'</span><span class="score-label">'+EYE_LABELS[String(val)]+'</span></div>';
+    html+='<div class="score-display"><span class="'+cls+'">'+(val>0?'+':'')+val+'</span></div>';
     html+='<div class="score-btns">';
     html+='<button class="score-btn minus" onclick="event.stopPropagation();changeEye(\''+s.id+'\',-2)">−</button>';
     html+='<button class="score-btn plus" onclick="event.stopPropagation();changeEye(\''+s.id+'\',2)">+</button>';
