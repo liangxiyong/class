@@ -433,22 +433,25 @@ async function saveData(){
   },300);
 }
 
-// 同步到小组数据（只同步纪律→class，眼操不同步避免重复）
+// 同步到小组数据（纪律→class，眼操→eye，注意眼操不重复加分）
 async function syncToGroups(){
   const d=curDateStr();
   const disDay=state.disRecords[d]||{};
+  const eyeDay=state.eyeRecords[d]||{};
   
-  // 按组统计纪律数据
+  // 按组统计
   const groupData={};
   for(const s of state.students){
     const g=String(s.group);
-    if(!groupData[g])groupData[g]={dis:{}};
+    if(!groupData[g])groupData[g]={dis:{},eye:{}};
     if(disDay[s.id]&&disDay[s.id].length>0)groupData[g].dis[s.id]=disDay[s.id];
+    // 眼操只同步非默认值（默认+2不同步，让小组积分显示默认分）
+    if(eyeDay[s.id]!==undefined&&eyeDay[s.id]!==2)groupData[g].eye[s.id]=eyeDay[s.id];
   }
   
-  // 如果没有纪律数据，不同步
+  // 如果没有数据，不同步
   if(Object.keys(groupData).length===0){
-    console.log('今日无纪律数据，跳过同步');
+    console.log('今日无需要同步的数据');
     return;
   }
   
@@ -466,36 +469,53 @@ async function syncToGroups(){
           if(!gd.scores)gd.scores={};
           if(!gd.scores[d])gd.scores[d]={};
           
+          let changed=false;
+          
           // 同步纪律→class（覆盖式）
-          let syncedCount=0;
           for(const sid in groupData[gid].dis){
             const student=state.students.find(s=>s.id===sid);
             if(!student)continue;
-            // 按名字匹配小组里的学生
             const gStudent=(gd.students||[]).find(gs=>gs.name===student.name);
-            if(!gStudent){
-              console.log('未找到学生:',student.name,'在第'+gid+'组');
-              continue;
-            }
+            if(!gStudent)continue;
             if(!gd.scores[d][gStudent.id])gd.scores[d][gStudent.id]={};
             gd.scores[d][gStudent.id].class=groupData[gid].dis[sid].map(r=>({
-              v:r.value,
-              by:currentUser?currentUser.name:'admin',
-              id:r.id||uid(),
-              ts:r.ts||Date.now(),
-              label:r.label||''
+              v:r.value,by:currentUser?currentUser.name:'admin',id:r.id||uid(),ts:r.ts||Date.now(),label:r.label||''
             }));
-            syncedCount++;
+            changed=true;
           }
           
-          if(syncedCount>0){
+          // 同步眼操→eye（关键：eye记录值 = V2分数 - 2基础分，避免重复加分）
+          for(const sid in groupData[gid].eye){
+            const student=state.students.find(s=>s.id===sid);
+            if(!student)continue;
+            const gStudent=(gd.students||[]).find(gs=>gs.name===student.name);
+            if(!gStudent)continue;
+            if(!gd.scores[d][gStudent.id])gd.scores[d][gStudent.id]={};
+            const v2Val=groupData[gid].eye[sid];
+            const eyeVal=v2Val-2; // 减去基础分2
+            if(eyeVal===0){
+              // 0分就清除eye记录
+              if(gd.scores[d][gStudent.id].eye)delete gd.scores[d][gStudent.id].eye;
+            }else{
+              gd.scores[d][gStudent.id].eye=[{
+                v:eyeVal,
+                by:currentUser?currentUser.name:'admin',
+                id:uid(),
+                ts:Date.now(),
+                label:EYE_LABELS[String(v2Val)]||''
+              }];
+            }
+            changed=true;
+          }
+          
+          if(changed){
             gd.lastModified=Date.now();
             await fetch(SUPABASE_URL+'/rest/v1/group_data?group_id=eq.'+gid,{
               method:'PATCH',
               headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken,'Content-Type':'application/json','Prefer':'return=minimal'},
               body:JSON.stringify({data:gd})
             });
-            console.log('第'+gid+'组同步成功，'+syncedCount+'人');
+            console.log('第'+gid+'组同步成功');
           }
         }
       }catch(e){
@@ -699,7 +719,7 @@ function renderEye(){
   
   let html='';
   for(const s of students){
-    const val=dayRec[s.id]!==undefined?dayRec[s.id]:0;
+    const val=dayRec[s.id]!==undefined?dayRec[s.id]:2;
     const cls=val>0?'positive':val<0?'negative':'';
     html+='<div class="student-item" oncontextmenu="event.preventDefault();openEyeModal(\''+s.id+'\')" ontouchstart="startEyeLongPress(\''+s.id+'\')" ontouchend="cancelEyeLongPress()" ontouchmove="cancelEyeLongPress()">';
     html+='<div class="student-info"><div class="student-name">'+esc(s.name)+'</div>';
@@ -726,7 +746,7 @@ function changeEye(sid,delta){
   if(!ALLOW_EDIT){toast('当前为只读模式');return;}
   const d=curDateStr();
   if(!state.eyeRecords[d])state.eyeRecords[d]={};
-  let val=(state.eyeRecords[d][sid]!==undefined?state.eyeRecords[d][sid]:0)+delta;
+  let val=(state.eyeRecords[d][sid]!==undefined?state.eyeRecords[d][sid]:2)+delta;
   val=Math.max(-2,Math.min(2,val));
   state.eyeRecords[d][sid]=val;
   saveData();
