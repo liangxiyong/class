@@ -33,8 +33,10 @@ input,select{font-family:inherit;color:inherit;outline:none}
 .sidebar-logout{margin-top:8px;padding:9px;border-radius:8px;background:rgba(255,255,255,.08);color:#f7f1e6;font-size:12.5px;transition:all .15s}
 .sidebar-logout:hover{background:var(--red)}
 .main{flex:1;overflow-y:auto;padding:22px 26px}
-.topbar{display:flex;align-items:center;gap:16px;margin-bottom:20px;flex-wrap:wrap}
-.topbar .title{font-size:22px;font-weight:800}
+.topbar{margin-bottom:20px}
+.topbar-row1{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.topbar-row2{display:flex;align-items:center;gap:8px}
+.topbar .title{font-size:22px;font-weight:800;flex:1}
 .date-box{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:7px 12px}
 .date-box label{font-size:12px;color:var(--ink-soft)}
 .date-box input{border:none;font-size:13px;background:transparent}
@@ -235,28 +237,33 @@ tr:hover td{background:rgba(246,241,232,.5)}
   .sidebar-logout{padding:5px 7px;font-size:10.5px}
   .admin-btn{padding:4px 7px;font-size:10.5px}
   .main{padding:8px 8px 72px}
-  .topbar{margin-bottom:10px;gap:6px}
+  .topbar{margin-bottom:10px}
+  .topbar-row1{gap:8px;margin-bottom:6px}
+  .topbar-row2{gap:6px}
   .topbar .title{font-size:16px}
-  .date-box{padding:4px 6px}
+  .date-box{padding:4px 8px}
   .date-box input{font-size:12px}
+  .topbar-row2 .btn{padding:5px 10px;font-size:11px;min-height:32px}
   .panel{padding:10px 8px}
   .panel-title{font-size:14px}
-  .eye-btn{padding:4px 6px;font-size:10px;min-height:32px}
-  .eye-btns{gap:3px}
-  .dis-tab{padding:4px 8px;font-size:11px}
+  /* 眼操按钮优化 */
+  .eye-btns{gap:6px;flex-wrap:wrap}
+  .eye-btn{padding:8px 12px;font-size:12px;min-height:38px;border-radius:10px}
+  .eye-default{font-size:10px;margin-left:6px}
+  .dis-tab{padding:6px 12px;font-size:12px}
   .member-add{flex-wrap:wrap;gap:6px}
   .member-add input{flex:1;min-width:100px;font-size:13px}
   .member-add select{font-size:13px}
   .member-add .btn{flex:1;justify-content:center;min-height:36px;font-size:13px}
-  table{font-size:11px}
-  th{padding:5px 4px;font-size:10px}
-  td{padding:4px 3px}
-  .st-name{font-size:11px;max-width:50px}
-  .dis-cell{min-width:45px;padding:4px 3px}
-  .dis-cell .dis-val-display{font-size:12px}
-  .member-row{padding:6px 8px}
-  .member-row .name{font-size:12px}
-  .grp-head{font-size:11px}
+  table{font-size:12px}
+  th{padding:6px 5px;font-size:11px}
+  td{padding:6px 4px}
+  .st-name{font-size:12px;max-width:55px}
+  .dis-cell{min-width:50px;padding:6px 4px}
+  .dis-cell .dis-val-display{font-size:13px}
+  .member-row{padding:8px 10px}
+  .member-row .name{font-size:13px}
+  .grp-head{font-size:12px}
   .week-nav{gap:6px}
   .week-nav button{padding:6px 10px;font-size:12px;min-height:36px}
   .export-actions .btn{min-height:38px;font-size:13px}
@@ -315,7 +322,6 @@ tr:hover td{background:rgba(246,241,232,.5)}
       <div class="nav-item active" data-view="eye" onclick="switchView('eye')"><span class="ico">👁️</span><span class="txt">当天眼操</span></div>
       <div class="nav-item" data-view="dis" onclick="switchView('dis')"><span class="ico">📋</span><span class="txt">当天纪律</span></div>
       <div class="nav-item" data-view="members" onclick="switchView('members')"><span class="ico">👥</span><span class="txt">成员管理</span></div>
-      <div class="nav-item" data-view="order" onclick="switchView('order')"><span class="ico">🔀</span><span class="txt">调整顺序</span></div>
       <div class="nav-item" data-view="export" onclick="switchView('export')"><span class="ico">📤</span><span class="txt">数据导出</span></div>
     </nav>
     <div class="sidebar-sync" id="sidebarSync">☁️ 未同步</div>
@@ -324,15 +330,18 @@ tr:hover td{background:rgba(246,241,232,.5)}
 
   <main class="main">
     <div class="topbar">
-      <button class="admin-btn" id="adminBtn" style="display:none" onclick="openAdminModal()">⚙️ 管理</button>
-      <div class="title" id="viewTitle">当天眼操</div>
-      <div class="date-box">
-        <label>日期</label>
-        <input type="date" id="curDate" onchange="onDateChange()">
+      <div class="topbar-row1">
+        <button class="admin-btn" id="adminBtn" style="display:none" onclick="openAdminModal()">⚙️</button>
+        <div class="title" id="viewTitle">当天眼操</div>
+        <div class="date-box">
+          <input type="date" id="curDate" onchange="onDateChange()">
+        </div>
       </div>
-      <button class="btn btn-ghost btn-sm" onclick="cloudPush()" title="上传本地数据到云端">☁️ 上传</button>
-      <button class="btn btn-ghost btn-sm" onclick="cloudPullMerge()" title="从云端提取数据">☁️ 提取</button>
-      <div class="sync-status" id="syncStatus"></div>
+      <div class="topbar-row2">
+        <button class="btn btn-ghost btn-sm" onclick="cloudPush()" title="上传本地数据到云端">☁️ 上传</button>
+        <button class="btn btn-ghost btn-sm" onclick="cloudPullMerge()" title="从云端提取数据">🔄 刷新</button>
+        <div class="sync-status" id="syncStatus"></div>
+      </div>
     </div>
 
     <!-- 眼操 -->
