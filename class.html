@@ -313,7 +313,42 @@ tr:hover td{background:rgba(246,241,232,.5)}
 </head>
 <body>
 <script>
-document.body.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background:#f6f1e8;font-family:sans-serif;color:#2b2420;text-align:center;padding:20px"><div style="font-size:64px;margin-bottom:20px">🚫</div><div style="font-size:24px;font-weight:700;margin-bottom:12px">班级管理 V1 已停止服务</div><div style="font-size:15px;color:#7a6d61;line-height:1.8">该版本已停用<br>请联系管理员获取新版本</div></div>';
+(function(){
+  const SUPABASE_URL='https://zaeijgfuykhkabteqljw.supabase.co';
+  const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InphZWlqZ2Z1eWtoa2FidGVxbGp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1ODA5MzgsImV4cCI6MjEwNDE1NjkzOH0.CQ-jqsslzaWpeeXg0OJnQsaW-iMNoCKbJGW_-p1F3D8';
+  const SESSION_KEY='jfz_session_v1';
+  
+  document.body.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;background:#f6f1e8;font-family:sans-serif;color:#2b2420;text-align:center;padding:20px"><div style="font-size:64px;margin-bottom:20px">🚫</div><div style="font-size:24px;font-weight:700;margin-bottom:12px">班级管理 V1 已停止服务</div><div style="font-size:15px;color:#7a6d61;line-height:1.8;margin-bottom:30px">该版本已停用<br>仅保留数据导出功能</div><button id="exportBtn" style="padding:14px 40px;background:#c0392b;color:#fff;border:none;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer;margin-bottom:12px">📤 导出全部数据</button><div id="status" style="font-size:13px;color:#7a6d61;margin-top:10px"></div></div>';
+  
+  document.getElementById('exportBtn').onclick=async function(){
+    const status=document.getElementById('status');
+    status.textContent='正在导出...';
+    try{
+      // 获取登录token
+      let token='';
+      try{
+        const s=JSON.parse(localStorage.getItem(SESSION_KEY)||'{}');
+        if(s&&s.access_token)token=s.access_token;
+      }catch(e){}
+      
+      // 读取所有小组数据
+      const resp=await fetch(SUPABASE_URL+'/rest/v1/group_data?select=*&order=group_id',{
+        headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+token}
+      });
+      const data=await resp.json();
+      
+      // 导出JSON
+      const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);
+      a.download='小组积分全部数据_'+new Date().toISOString().slice(0,10)+'.json';
+      a.click();
+      status.textContent='✅ 导出成功，共'+data.length+'个小组';
+    }catch(e){
+      status.textContent='❌ 导出失败: '+e.message;
+    }
+  };
+})();
 throw new Error('V1已停止服务');
 </script>
 
