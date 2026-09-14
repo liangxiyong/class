@@ -44,13 +44,41 @@ async function exportAll(){
     const resp=await fetch(SUPABASE_URL+'/rest/v1/group_data?select=*&order=group_id',{
       headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+token}
     });
-    const data=await resp.json();
-    const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+    const raw=await resp.json();
+    if(!Array.isArray(raw)||raw.length===0){
+      status.textContent='❌ 未读取到数据，请确认已登录';
+      status.style.color='#c62828';
+      return;
+    }
+    // 日期范围：8月31日到今天
+    const today=new Date().toISOString().slice(0,10);
+    const startDate='2026-08-31';
+    // 过滤每个小组的scores，只保留日期范围内的
+    const exportData=raw.map(row=>{
+      const d=row.data||{};
+      const filteredScores={};
+      if(d.scores){
+        for(const date in d.scores){
+          if(date>=startDate&&date<=today){
+            filteredScores[date]=d.scores[date];
+          }
+        }
+      }
+      return {
+        group_id:row.group_id,
+        groupName:d.groupName||('第'+row.group_id+'组'),
+        students:d.students||[],
+        scores:filteredScores,
+        baseOff:d.baseOff||{},
+        weightFactor:d.weightFactor||1
+      };
+    });
+    const blob=new Blob([JSON.stringify(exportData,null,2)],{type:'application/json'});
     const a=document.createElement('a');
     a.href=URL.createObjectURL(blob);
-    a.download='小组积分全部数据_'+new Date().toISOString().slice(0,10)+'.json';
+    a.download='小组积分数据_'+startDate+'_至_'+today+'.json';
     a.click();
-    status.textContent='✅ 导出成功，共'+data.length+'个小组';
+    status.textContent='✅ 导出成功，共'+exportData.length+'个小组（'+startDate+'至'+today+'）';
     status.style.color='#2e7d32';
   }catch(e){
     status.textContent='❌ 导出失败: '+e.message;
