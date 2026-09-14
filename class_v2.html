@@ -329,11 +329,29 @@ async function init(){
     document.getElementById('readonlyBanner').style.display='block';
   }
   
-  // 显示加载提示
-  document.getElementById('disList').innerHTML='<div class="loading">加载中...</div>';
+  // 先尝试显示缓存
+  let hasCache=false;
+  try{
+    const cache=localStorage.getItem(CACHE_KEY);
+    if(cache){
+      const cached=JSON.parse(cache);
+      if(cached.students&&cached.students.length>0){
+        state=cached;
+        renderAll();
+        hasCache=true;
+      }
+    }
+  }catch(e){}
   
-  await loadData();
-  renderAll();
+  if(!hasCache){
+    document.getElementById('disList').innerHTML='<div class="loading">加载中...</div>';
+  }
+  
+  // 后台加载最新数据
+  loadData().then(()=>{
+    // 加载完后重新渲染（无论有没有缓存）
+    renderAll();
+  });
 }
 
 // ================= 数据加载（先显示缓存+后台更新） =================
@@ -341,19 +359,7 @@ const CACHE_KEY='jfz_class_v2_cache';
 
 async function loadData(){
   try{
-    // 1. 先显示本地缓存（如果有），让页面立即显示
-    try{
-      const cache=localStorage.getItem(CACHE_KEY);
-      if(cache){
-        const cached=JSON.parse(cache);
-        if(cached.students&&cached.students.length>0){
-          state=cached;
-          renderAll();
-        }
-      }
-    }catch(e){}
-    
-    // 2. 从云端加载最新数据
+    // 从云端加载最新数据
     const cResp=await fetch(SUPABASE_URL+'/rest/v1/class_data_v2?id=eq.class&select=data',{
       headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken}
     });
@@ -371,8 +377,6 @@ async function loadData(){
       if(!state.students||state.students.length===0){
         await syncStudentsFromGroups();
       }
-      
-      renderAll();
     }
   }catch(e){
     toast('数据加载失败: '+e.message);
