@@ -142,6 +142,7 @@ input{font-family:inherit;color:inherit}
       <div class="role-tag">已登录：<b id="chooseName"></b></div>
       <button class="choose-btn" id="chooseBtnG" onclick="go('group.html')"><span class="ico">📊</span>小组积分</button>
       <button class="choose-btn" id="chooseClassBtn" onclick="go('class.html')"><span class="ico">🏫</span>班级管理</button>
+      <button class="choose-btn" id="chooseClassV2Btn" style="display:none;background:linear-gradient(135deg,#e74c3c,#c0392b);color:#fff" onclick="go('class_v2.html')"><span class="ico">✨</span>班级管理V2（新版）</button>
       <div class="choose-back" onclick="backToLogin()">← 返回重新登录</div>
     </div>
   </div>
@@ -297,6 +298,7 @@ async function doLogin(){
     document.getElementById('chooseName').textContent=name;
     document.getElementById('loginFields').style.display='none';
     document.getElementById('chooseBox').style.display='block';
+    document.getElementById('chooseClassV2Btn').style.display='flex';
     return;
   }
   if(!gid){err.textContent='该账号无权限，请联系管理员';await SB.auth.signOut();localStorage.removeItem(SESSION_KEY);return;}
