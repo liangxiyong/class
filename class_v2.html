@@ -65,8 +65,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .eye-value.v0{color:var(--text-soft)}
 .eye-value.v-2{color:var(--orange)}
 .eye-value.v-4{color:var(--red)}
-.eye-slider{width:100%;height:8px;-webkit-appearance:none;appearance:none;background:var(--line);border-radius:4px;outline:none}
-.eye-slider::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.eye-slider{width:100%;height:30px;-webkit-appearance:none;appearance:none;background:transparent;outline:none;margin:8px 0}
+.eye-slider::-webkit-slider-runnable-track{height:8px;background:var(--line);border-radius:4px}
+.eye-slider::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.3);margin-top:-10px;border:2px solid #fff}
+.eye-slider::-moz-range-track{height:8px;background:var(--line);border-radius:4px}
+.eye-slider::-moz-range-thumb{width:28px;height:28px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.3);border:2px solid #fff}
 .eye-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--text-soft);margin-top:4px}
 
 /* 成员管理 */
@@ -643,7 +646,7 @@ function renderEye(){
     html+='<div class="eye-item">';
     html+='<div class="eye-header"><span class="eye-name">'+esc(s.name)+'（第'+s.group+'组）</span>';
     html+='<span class="eye-value v'+val+'">'+(val>0?'+':'')+val+' '+EYE_LABELS[String(val)]+'</span></div>';
-    html+='<input type="range" class="eye-slider" min="-4" max="2" step="2" value="'+val+'" oninput="setEye(\''+s.id+'\',this.value)">';
+    html+='<input type="range" class="eye-slider" min="-4" max="2" step="2" value="'+val+'" oninput="setEye(\''+s.id+'\',this.value)" onchange="setEye(\''+s.id+'\',this.value)">';
     html+='<div class="eye-labels"><span>-4 不做操</span><span>-2 不认真</span><span>0 未评</span><span>+2 优秀</span></div>';
     html+='</div>';
   }
