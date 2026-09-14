@@ -301,19 +301,44 @@ async function init(){
   renderAll();
 }
 
-// ================= 数据加载（强制云端） =================
+// ================= 数据加载（人员名单从group_data动态读取） =================
 async function loadData(){
   try{
-    const resp=await fetch(SUPABASE_URL+'/rest/v1/class_data_v2?id=eq.class&select=data',{
+    // 1. 从各个group_data读取人员名单
+    const gResp=await fetch(SUPABASE_URL+'/rest/v1/group_data?select=group_id,data&order=group_id',{
       headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken}
     });
-    const rows=await resp.json();
-    if(rows&&rows.length&&rows[0].data){
-      state=rows[0].data;
-      if(!state.students)state.students=[];
-      if(!state.disRecords)state.disRecords={};
-      if(!state.eyeRecords)state.eyeRecords={};
+    const groups=await gResp.json();
+    const students=[];
+    for(const g of groups){
+      const gid=g.group_id;
+      const gstudents=(g.data&&g.data.students)||[];
+      for(let i=0;i<gstudents.length;i++){
+        students.push({
+          id:gstudents[i].id||('g'+gid+'_'+i),
+          name:gstudents[i].name,
+          group:gid,
+          order:i
+        });
+      }
     }
+    // 按组号和组内顺序排序
+    students.sort((a,b)=>a.group-b.group||a.order-b.order);
+    
+    // 2. 从class_data_v2读取纪律和眼操数据
+    let disRecords={},eyeRecords={};
+    try{
+      const cResp=await fetch(SUPABASE_URL+'/rest/v1/class_data_v2?id=eq.class&select=data',{
+        headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken}
+      });
+      const cRows=await cResp.json();
+      if(cRows&&cRows.length&&cRows[0].data){
+        disRecords=cRows[0].data.disRecords||{};
+        eyeRecords=cRows[0].data.eyeRecords||{};
+      }
+    }catch(e){console.log('读取班级数据失败:',e);}
+    
+    state={students,disRecords,eyeRecords,admin2Enabled:true,version:2};
   }catch(e){
     toast('数据加载失败: '+e.message);
   }
@@ -323,11 +348,18 @@ async function saveData(){
   if(saveTimer)clearTimeout(saveTimer);
   saveTimer=setTimeout(async()=>{
     try{
-      state.lastModified=Date.now();
+      // 只保存纪律和眼操数据，不保存人员名单
+      const saveObj={
+        disRecords:state.disRecords,
+        eyeRecords:state.eyeRecords,
+        admin2Enabled:true,
+        version:2,
+        lastModified:Date.now()
+      };
       await fetch(SUPABASE_URL+'/rest/v1/class_data_v2?id=eq.class',{
         method:'PATCH',
         headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken,'Content-Type':'application/json','Prefer':'return=minimal'},
-        body:JSON.stringify({data:state})
+        body:JSON.stringify({data:saveObj})
       });
       // 同步到小组数据
       await syncToGroups();
