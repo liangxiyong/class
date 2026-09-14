@@ -73,12 +73,38 @@ body.theme-eye .card{border-left:3px solid var(--accent)}
 body.theme-eye .score-btn.plus{background:rgba(22,160,133,.15);color:#16a085}
 body.theme-eye .score-btn.minus{background:rgba(230,126,34,.15);color:#e67e22}
 body.theme-dis .card{border-left:3px solid var(--accent)}
-.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:flex-end;justify-content:center}
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:200;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(2px)}
 .modal-overlay.show{display:flex}
-.modal{background:var(--card);width:100%;max-width:500px;border-radius:16px 16px 0 0;padding:20px;max-height:80vh;overflow-y:auto;animation:slideUp .25s ease}
-@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
-.modal-title{font-size:17px;font-weight:700;margin-bottom:16px;text-align:center}
-.modal-close{position:absolute;top:16px;right:16px;font-size:20px;color:var(--text-soft);cursor:pointer}
+.modal{background:var(--card);width:100%;max-width:380px;border-radius:20px;padding:24px;max-height:85vh;overflow-y:auto;animation:modalIn .25s ease;box-shadow:0 20px 60px rgba(0,0,0,.15)}
+@keyframes modalIn{from{opacity:0;transform:scale(.92) translateY(10px)}to{opacity:1;transform:none}}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.modal-title{font-size:18px;font-weight:700}
+.modal-close{width:32px;height:32px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--text-soft);cursor:pointer;transition:all .15s}
+.modal-close:hover{background:var(--line);color:var(--text)}
+.modal-score-display{text-align:center;margin-bottom:20px}
+.modal-score-num{font-size:48px;font-weight:800;line-height:1}
+.modal-score-label{font-size:12px;color:var(--text-soft);margin-top:6px}
+.modal-slider-wrap{margin-bottom:24px}
+.modal-slider{width:100%;height:10px;-webkit-appearance:none;background:var(--line);border-radius:5px;outline:none}
+.modal-slider::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.2);border:3px solid #fff;transition:transform .1s}
+.modal-slider::-webkit-slider-thumb:active{transform:scale(1.15)}
+.modal-slider::-moz-range-thumb{width:28px;height:28px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.2);border:3px solid #fff}
+.modal-slider-marks{display:flex;justify-content:space-between;font-size:11px;color:var(--text-soft);margin-top:8px}
+.modal-actions{display:flex;gap:10px;margin-bottom:20px}
+.modal-btn{flex:1;padding:14px;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;transition:all .15s}
+.modal-btn:active{transform:scale(.97)}
+.modal-btn.primary{background:var(--accent);color:#fff}
+.modal-btn.secondary{background:var(--bg);color:var(--text)}
+.modal-records{border-top:1px solid var(--line);padding-top:16px}
+.modal-records-title{font-size:13px;font-weight:600;color:var(--text-soft);margin-bottom:10px}
+.modal-record-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg);border-radius:10px;margin-bottom:6px}
+.modal-record-item:last-child{margin-bottom:0}
+.modal-record-info{flex:1;min-width:0}
+.modal-record-label{font-size:13px;font-weight:500}
+.modal-record-by{font-size:11px;color:var(--text-soft);margin-top:2px}
+.modal-record-val{font-size:16px;font-weight:700;margin-right:10px}
+.modal-record-del{color:var(--red);font-size:12px;cursor:pointer;padding:4px 8px;border-radius:6px;transition:background .15s}
+.modal-record-del:hover{background:rgba(231,76,60,.1)}
 .toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.8);color:#fff;padding:12px 20px;border-radius:8px;font-size:14px;z-index:300;opacity:0;transition:opacity .2s;pointer-events:none}
 .toast.show{opacity:1}
 .loading{text-align:center;padding:40px;color:var(--text-soft);font-size:14px}
@@ -158,24 +184,26 @@ body.theme-dis .card{border-left:3px solid var(--accent)}
 
 <div class="modal-overlay" id="scoreModal" onclick="if(event.target===this)closeScoreModal()">
   <div class="modal">
-    <span class="modal-close" onclick="closeScoreModal()">✕</span>
-    <div class="modal-title" id="modalTitle">加减分</div>
-    <div style="margin-bottom:16px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <span style="font-size:13px;color:var(--text-soft)">分值</span>
-        <span id="modalScoreValue" style="font-size:24px;font-weight:700;color:var(--accent)">0</span>
-      </div>
-      <input type="range" id="modalScoreSlider" min="-10" max="10" step="1" value="0" 
-        style="width:100%;height:8px;-webkit-appearance:none;background:var(--line);border-radius:4px;outline:none"
-        oninput="document.getElementById('modalScoreValue').textContent=(this.value>0?'+':'')+this.value;document.getElementById('modalScoreValue').style.color=this.value>0?'var(--green)':this.value<0?'var(--red)':'var(--text-soft)'">
-      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-soft);margin-top:4px">
-        <span>-10</span><span>0</span><span>+10</span>
-      </div>
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">加减分</div>
+      <div class="modal-close" onclick="closeScoreModal()">✕</div>
     </div>
-    <button class="modal-confirm" onclick="confirmCustomScore()" style="width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer">确认加分</button>
-    <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--line)">
-      <div style="font-size:13px;font-weight:600;margin-bottom:8px">今日记录</div>
-      <div id="modalRecordList" style="max-height:150px;overflow-y:auto"></div>
+    <div class="modal-score-display">
+      <div class="modal-score-num" id="modalScoreValue" style="color:var(--text-soft)">0</div>
+      <div class="modal-score-label">拖动滑块选择分值</div>
+    </div>
+    <div class="modal-slider-wrap">
+      <input type="range" class="modal-slider" id="modalScoreSlider" min="-10" max="10" step="1" value="0"
+        oninput="var v=parseInt(this.value);document.getElementById('modalScoreValue').textContent=(v>0?'+':'')+v;document.getElementById('modalScoreValue').style.color=v>0?'var(--green)':v<0?'var(--red)':'var(--text-soft)'">
+      <div class="modal-slider-marks"><span>-10</span><span>0</span><span>+10</span></div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn secondary" onclick="closeScoreModal()">取消</button>
+      <button class="modal-btn primary" onclick="confirmCustomScore()">确认</button>
+    </div>
+    <div class="modal-records">
+      <div class="modal-records-title">今日记录</div>
+      <div id="modalRecordList"></div>
     </div>
   </div>
 </div>
@@ -602,17 +630,19 @@ function openScoreModal(student){
   const recs=disDay[student.id]||[];
   let listHtml='';
   if(recs.length===0){
-    listHtml='<div style="text-align:center;color:var(--text-soft);font-size:12px;padding:10px">今日暂无记录</div>';
+    listHtml='<div style="text-align:center;color:var(--text-soft);font-size:12px;padding:16px">今日暂无记录</div>';
   }else{
     for(let i=0;i<recs.length;i++){
       const r=recs[i];
-      const cls=r.value>0?'positive':r.value<0?'negative':'';
-      listHtml+='<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)">';
-      listHtml+='<span style="font-size:13px">'+(r.label||'自定义')+'</span>';
-      listHtml+='<span style="display:flex;align-items:center;gap:10px">';
-      listHtml+='<span class="'+cls+'" style="font-weight:600;font-size:14px">'+(r.value>0?'+':'')+r.value+'</span>';
-      listHtml+='<span onclick="deleteRecord(\''+student.id+'\','+i+')" style="color:var(--red);font-size:12px;cursor:pointer;padding:4px 8px">删除</span>';
-      listHtml+='</span></div>';
+      const valCls=r.value>0?'positive':r.value<0?'negative':'';
+      listHtml+='<div class="modal-record-item">';
+      listHtml+='<div class="modal-record-info">';
+      listHtml+='<div class="modal-record-label">'+(r.label||'自定义')+'</div>';
+      listHtml+='<div class="modal-record-by">'+(r.by||'')+'</div>';
+      listHtml+='</div>';
+      listHtml+='<span class="modal-record-val '+valCls+'">'+(r.value>0?'+':'')+r.value+'</span>';
+      listHtml+='<span class="modal-record-del" onclick="deleteRecord(\''+student.id+'\','+i+')">删除</span>';
+      listHtml+='</div>';
     }
   }
   document.getElementById('modalRecordList').innerHTML=listHtml;
