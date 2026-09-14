@@ -251,6 +251,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   </div>
 </div>
 
+<!-- 眼操弹窗 -->
+<div class="modal-overlay" id="eyeModal" onclick="if(event.target===this)closeEyeModal()">
+  <div class="modal" id="eyeModalContent"></div>
+</div>
+
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
@@ -651,12 +656,17 @@ function renderEye(){
   let html='';
   for(const s of students){
     const val=dayRec[s.id]!==undefined?dayRec[s.id]:2;
-    html+='<div class="eye-item">';
-    html+='<div class="eye-header"><span class="eye-name">'+esc(s.name)+'（第'+s.group+'组）</span>';
-    html+='<span class="eye-value v'+val+'">'+(val>0?'+':'')+val+' '+EYE_LABELS[String(val)]+'</span></div>';
-    html+='<input type="range" class="eye-slider" min="-4" max="2" step="2" value="'+val+'" oninput="setEye(\''+s.id+'\',this.value)" onchange="setEye(\''+s.id+'\',this.value)">';
-    html+='<div class="eye-labels"><span>-4 不做操</span><span>-2 不认真</span><span>0 未评</span><span>+2 优秀</span></div>';
+    const cls=val>0?'positive':val<0?'negative':'';
+    html+='<div class="student-item" oncontextmenu="event.preventDefault();openEyeModal(\''+s.id+'\')" ontouchstart="startEyeLongPress(\''+s.id+'\')" ontouchend="cancelEyeLongPress()" ontouchmove="cancelEyeLongPress()">';
+    html+='<div class="student-info">';
+    html+='<span class="student-name">'+esc(s.name)+'</span>';
+    html+='<span class="student-group">第'+s.group+'组</span>';
     html+='</div>';
+    html+='<div class="score-display"><span class="'+cls+'">'+(val>0?'+':'')+val+'</span><span class="score-label">'+EYE_LABELS[String(val)]+'</span></div>';
+    html+='<div class="score-btns">';
+    html+='<button class="score-btn minus" onclick="event.stopPropagation();changeEye(\''+s.id+'\',-2)">−</button>';
+    html+='<button class="score-btn plus" onclick="event.stopPropagation();changeEye(\''+s.id+'\',2)">+</button>';
+    html+='</div></div>';
   }
   if(!html)html='<div class="loading">暂无学生</div>';
   document.getElementById('eyeList').innerHTML=html;
@@ -664,21 +674,55 @@ function renderEye(){
 
 function setEyeGroup(g){eyeFilterGroup=g;renderEye();}
 
-function setEye(sid,val){
+let eyeLongPressTimer=null;
+function startEyeLongPress(sid){
+  eyeLongPressTimer=setTimeout(()=>{openEyeModal(sid);eyeLongPressTimer=null;},500);
+}
+function cancelEyeLongPress(){if(eyeLongPressTimer){clearTimeout(eyeLongPressTimer);eyeLongPressTimer=null;}}
+
+function changeEye(sid,delta){
   const d=curDateStr();
   if(!state.eyeRecords[d])state.eyeRecords[d]={};
-  state.eyeRecords[d][sid]=parseInt(val);
+  let val=(state.eyeRecords[d][sid]!==undefined?state.eyeRecords[d][sid]:2)+delta;
+  val=Math.max(-4,Math.min(2,val));
+  state.eyeRecords[d][sid]=val;
   saveData();
-  // 更新显示
-  const student=state.students.find(s=>s.id===sid);
-  const items=document.querySelectorAll('.eye-item');
-  for(const item of items){
-    if(item.querySelector('.eye-name').textContent.startsWith(student.name)){
-      item.querySelector('.eye-value').textContent=(val>0?'+':'')+val+' '+EYE_LABELS[String(val)];
-      item.querySelector('.eye-value').className='eye-value v'+val;
-    }
-  }
+  renderEye();
 }
+
+function openEyeModal(sid){
+  const student=state.students.find(s=>s.id===sid);
+  if(!student)return;
+  const d=curDateStr();
+  const val=state.eyeRecords[d]&&state.eyeRecords[d][sid]!==undefined?state.eyeRecords[d][sid]:2;
+  
+  let html='<div style="text-align:center;margin-bottom:16px">';
+  html+='<div style="font-size:18px;font-weight:700;margin-bottom:8px">'+student.name+' - 眼操</div>';
+  html+='<div style="font-size:32px;font-weight:700;color:var(--accent)">'+(val>0?'+':'')+val+' '+EYE_LABELS[String(val)]+'</div>';
+  html+='</div>';
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">';
+  const opts=[{v:-4,l:'不做操'},{v:-2,l:'不认真'},{v:0,l:'未评'},{v:2,l:'优秀'}];
+  for(const o of opts){
+    const active=val===o.v?'style="background:var(--accent);color:#fff"':'';
+    html+='<button '+active+' onclick="setEyeVal(\''+sid+'\','+o.v+')" style="padding:12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);font-size:14px;cursor:pointer">'+o.l+' ('+(o.v>0?'+':'')+o.v+')</button>';
+  }
+  html+='</div>';
+  html+='<button onclick="closeEyeModal()" style="width:100%;padding:12px;background:var(--line);border:none;border-radius:8px;font-size:15px;cursor:pointer">关闭</button>';
+  
+  document.getElementById('eyeModalContent').innerHTML=html;
+  document.getElementById('eyeModal').classList.add('show');
+}
+
+function setEyeVal(sid,val){
+  const d=curDateStr();
+  if(!state.eyeRecords[d])state.eyeRecords[d]={};
+  state.eyeRecords[d][sid]=val;
+  saveData();
+  closeEyeModal();
+  renderEye();
+}
+
+function closeEyeModal(){document.getElementById('eyeModal').classList.remove('show');}
 
 // ================= 成员管理 =================
 function renderMembers(){
