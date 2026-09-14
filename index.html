@@ -109,13 +109,6 @@ input{font-family:inherit;color:inherit}
     <div class="login-mark">积</div>
     <div class="login-title">班级积分管理系统</div>
 
-    <!-- 维护中提示横幅（不阻止登录） -->
-    <div id="maintBanner" style="display:none;background:linear-gradient(135deg,#fff3cd,#ffeaa7);border:1px solid #f0c36d;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#856404;line-height:1.5">
-      <span style="font-weight:600">🔧 系统维护中</span>
-      <span style="margin-left:6px">每天 0:00 - 0:30 为维护时间，部分功能可能延迟，仍可正常登录使用</span>
-      <span id="maintCountdown" style="margin-left:6px;font-weight:600"></span>
-    </div>
-
     <div id="loginFields">
       <div class="login-field">
         <label>用户名</label>
@@ -139,11 +132,6 @@ input{font-family:inherit;color:inherit}
 
     <div class="choose-box" id="chooseBox">
       <div class="role-tag">已登录：<b id="chooseName"></b></div>
-      <!-- 维护提示（登录后选择页面时显示） -->
-      <div id="chooseMaintBanner" style="display:none;background:linear-gradient(135deg,#fff3cd,#ffeaa7);border:1px solid #f0c36d;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#856404;line-height:1.5">
-        <span style="font-weight:600">🔧 小组积分维护中</span>
-        <span style="margin-left:6px">当前为维护时间（0:00-0:30），小组积分V1暂不可用，可使用小组积分V2或班级管理</span>
-      </div>
       <button class="choose-btn" id="chooseBtnG" onclick="go('group.html')"><span class="ico">📊</span>小组积分</button>
       <button class="choose-btn" id="chooseGroupV2Btn" style="display:none;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff" onclick="go('group_v2.html')"><span class="ico">✨</span>小组积分V2（新版）</button>
       <button class="choose-btn" id="chooseClassBtn" onclick="go('class.html')"><span class="ico">🏫</span>班级管理</button>
@@ -195,22 +183,10 @@ function maintCountdownText(){
   return '约 '+remain+' 分钟后恢复';
 }
 function checkMaintBlock(){
-  var banner=document.getElementById('maintBanner');
-  if(isMaintTime()){
-    banner.style.display='block';
-    document.getElementById('maintCountdown').textContent=maintCountdownText();
-  }else{
-    banner.style.display='none';
-  }
+  // 维护时间不再显示横幅，只通过按钮置灰提示
 }
 setInterval(function(){
-  var banner=document.getElementById('maintBanner');
-  if(isMaintTime()){
-    banner.style.display='block';
-    document.getElementById('maintCountdown').textContent=maintCountdownText();
-  }else{
-    banner.style.display='none';
-  }
+  // 维护时间不再显示横幅
 },30000);
 
 // 记录登录日志（异步，不阻塞登录流程）
@@ -280,8 +256,6 @@ async function doLogin(){
     document.getElementById('chooseName').textContent=name;
     document.getElementById('loginFields').style.display='none';
     document.getElementById('chooseBox').style.display='block';
-    // 维护提示
-    document.getElementById('chooseMaintBanner').style.display=isMaintTime()?'block':'none';
     // 维护时间禁用小组积分V1
     var gBtn2=document.getElementById('chooseBtnG');
     if(isMaintTime()){
@@ -319,8 +293,6 @@ async function doLogin(){
     document.getElementById('chooseBox').style.display='block';
     document.getElementById('chooseClassV2Btn').style.display='flex';
     document.getElementById('chooseGroupV2Btn').style.display='flex';
-    // 维护提示
-    document.getElementById('chooseMaintBanner').style.display=isMaintTime()?'block':'none';
     // 维护时间禁用小组积分V1
     var gBtn=document.getElementById('chooseBtnG');
     if(isMaintTime()){
