@@ -146,6 +146,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   </div>
 </div>
 
+<!-- 只读模式提示 -->
+<div id="readonlyBanner" style="display:none;background:#fef3c7;color:#92400e;padding:8px 16px;text-align:center;font-size:13px;font-weight:600">
+  ⚠️ 当前为只读模式，无法修改数据
+</div>
+
 <!-- 内容区 -->
 <div class="content">
   <!-- 纪律 -->
@@ -278,8 +283,11 @@ const DIS_PRESETS=[
 ];
 
 // 眼操分值
-const EYE_VALUES=[-4,-2,0,2];
-const EYE_LABELS={'-4':'不做操','-2':'不认真','0':'未评','2':'优秀'};
+const EYE_VALUES=[-2,0,2];
+const EYE_LABELS={'-2':'不认真','0':'未评','2':'优秀'};
+
+// 是否允许修改（true=允许，false=只读）
+const ALLOW_EDIT=false;
 
 // ================= 状态 =================
 let state={students:[],disRecords:{},eyeRecords:{},admin2Enabled:true,version:1};
@@ -315,6 +323,11 @@ async function init(){
   const {data:sd}=await SB.auth.getSession();
   if(!sd||!sd.session){location.href='index.html';return;}
   sbAccessToken=sd.session.access_token;
+  
+  // 只读模式提示
+  if(!ALLOW_EDIT){
+    document.getElementById('readonlyBanner').style.display='block';
+  }
   
   // 显示加载提示
   document.getElementById('disList').innerHTML='<div class="loading">加载中...</div>';
@@ -589,6 +602,7 @@ function quickScore(sid,val){
 }
 
 function addScore(sid,val,label){
+  if(!ALLOW_EDIT){toast('当前为只读模式');return;}
   const d=curDateStr();
   if(!state.disRecords[d])state.disRecords[d]={};
   if(!state.disRecords[d][sid])state.disRecords[d][sid]=[];
@@ -655,6 +669,7 @@ function confirmCustomScore(){
 }
 
 function deleteRecord(sid,index){
+  if(!ALLOW_EDIT){toast('当前为只读模式');return;}
   const d=curDateStr();
   if(!state.disRecords[d]||!state.disRecords[d][sid])return;
   state.disRecords[d][sid].splice(index,1);
@@ -684,7 +699,7 @@ function renderEye(){
   
   let html='';
   for(const s of students){
-    const val=dayRec[s.id]!==undefined?dayRec[s.id]:2;
+    const val=dayRec[s.id]!==undefined?dayRec[s.id]:0;
     const cls=val>0?'positive':val<0?'negative':'';
     html+='<div class="student-item" oncontextmenu="event.preventDefault();openEyeModal(\''+s.id+'\')" ontouchstart="startEyeLongPress(\''+s.id+'\')" ontouchend="cancelEyeLongPress()" ontouchmove="cancelEyeLongPress()">';
     html+='<div class="student-info"><div class="student-name">'+esc(s.name)+'</div>';
@@ -708,10 +723,11 @@ function startEyeLongPress(sid){
 function cancelEyeLongPress(){if(eyeLongPressTimer){clearTimeout(eyeLongPressTimer);eyeLongPressTimer=null;}}
 
 function changeEye(sid,delta){
+  if(!ALLOW_EDIT){toast('当前为只读模式');return;}
   const d=curDateStr();
   if(!state.eyeRecords[d])state.eyeRecords[d]={};
-  let val=(state.eyeRecords[d][sid]!==undefined?state.eyeRecords[d][sid]:2)+delta;
-  val=Math.max(-4,Math.min(2,val));
+  let val=(state.eyeRecords[d][sid]!==undefined?state.eyeRecords[d][sid]:0)+delta;
+  val=Math.max(-2,Math.min(2,val));
   state.eyeRecords[d][sid]=val;
   saveData();
   renderEye();
@@ -728,7 +744,7 @@ function openEyeModal(sid){
   html+='<div style="font-size:32px;font-weight:700;color:var(--accent)">'+(val>0?'+':'')+val+' '+EYE_LABELS[String(val)]+'</div>';
   html+='</div>';
   html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">';
-  const opts=[{v:-4,l:'不做操'},{v:-2,l:'不认真'},{v:0,l:'未评'},{v:2,l:'优秀'}];
+  const opts=[{v:-2,l:'不认真'},{v:0,l:'未评'},{v:2,l:'优秀'}];
   for(const o of opts){
     const active=val===o.v?'style="background:var(--accent);color:#fff"':'';
     html+='<button '+active+' onclick="setEyeVal(\''+sid+'\','+o.v+')" style="padding:12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);font-size:14px;cursor:pointer">'+o.l+' ('+(o.v>0?'+':'')+o.v+')</button>';
@@ -741,6 +757,7 @@ function openEyeModal(sid){
 }
 
 function setEyeVal(sid,val){
+  if(!ALLOW_EDIT){toast('当前为只读模式');return;}
   const d=curDateStr();
   if(!state.eyeRecords[d])state.eyeRecords[d]={};
   state.eyeRecords[d][sid]=val;
@@ -770,6 +787,7 @@ function renderMembers(){
 }
 
 async function addMember(){
+  if(!ALLOW_EDIT){toast('当前为只读模式');return;}
   const name=document.getElementById('newName').value.trim();
   const group=parseInt(document.getElementById('newGroup').value);
   if(!name){toast('请输入姓名');return;}
@@ -805,6 +823,7 @@ async function addMember(){
 }
 
 async function deleteMember(sid){
+  if(!ALLOW_EDIT){toast('当前为只读模式');return;}
   const member=state.students.find(s=>s.id===sid);
   if(!member)return;
   if(!confirm('确定删除 '+member.name+' 吗？'))return;
