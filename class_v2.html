@@ -351,11 +351,37 @@ async function init(){
   loadData().then(()=>{
     // 加载完后重新渲染（无论有没有缓存）
     renderAll();
+    // 开启实时监听
+    startRealtime();
   });
+}
+
+// 开启实时监听
+function startRealtime(){
+  if(!SB||realtimeSubscription)return;
+  
+  realtimeSubscription = SB
+    .channel('class_data_v2_changes')
+    .on('postgres_changes', 
+      { event: '*', schema: 'public', table: 'class_data_v2' }, 
+      (payload) => {
+        if(isUpdating)return; // 自己修改的，不刷新
+        console.log('收到实时更新:', payload);
+        // 延迟一点再加载，避免频繁刷新
+        setTimeout(()=>{
+          loadData().then(()=>renderAll());
+        }, 500);
+      }
+    )
+    .subscribe((status)=>{
+      console.log('Realtime状态:', status);
+    });
 }
 
 // ================= 数据加载（先显示缓存+后台更新） =================
 const CACHE_KEY='jfz_class_v2_cache';
+let realtimeSubscription=null;
+let isUpdating=false; // 防止自己修改导致的循环刷新
 
 async function loadData(){
   try{
@@ -416,6 +442,7 @@ async function saveData(){
   if(saveTimer)clearTimeout(saveTimer);
   saveTimer=setTimeout(async()=>{
     try{
+      isUpdating=true;
       state.lastModified=Date.now();
       // 先保存班级数据（快速）
       await fetch(SUPABASE_URL+'/rest/v1/class_data_v2?id=eq.class',{
@@ -430,9 +457,12 @@ async function saveData(){
         toast('已同步到小组积分');
       }).catch(e=>{
         toast('同步失败: '+e.message);
+      }).finally(()=>{
+        setTimeout(()=>{isUpdating=false;},1000);
       });
     }catch(e){
       toast('保存失败: '+e.message);
+      isUpdating=false;
     }
   },300);
 }
@@ -440,6 +470,7 @@ async function saveData(){
 // 立即保存（不防抖，用于眼操等需要立即同步的操作）
 async function saveDataImmediate(){
   try{
+    isUpdating=true;
     state.lastModified=Date.now();
     // 先保存班级数据
     await fetch(SUPABASE_URL+'/rest/v1/class_data_v2?id=eq.class',{
@@ -451,8 +482,10 @@ async function saveDataImmediate(){
     try{localStorage.setItem(CACHE_KEY,JSON.stringify(state));}catch(e){}
     // 同步到小组数据
     await syncToGroups();
+    setTimeout(()=>{isUpdating=false;},1000);
   }catch(e){
     toast('保存失败: '+e.message);
+    isUpdating=false;
   }
 }
 
