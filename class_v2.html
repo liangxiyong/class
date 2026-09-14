@@ -311,6 +311,9 @@ async function init(){
   if(!sd||!sd.session){location.href='index.html';return;}
   sbAccessToken=sd.session.access_token;
   
+  // 显示加载提示
+  document.getElementById('disList').innerHTML='<div class="loading">加载中...</div>';
+  
   await loadData();
   renderAll();
 }
@@ -318,15 +321,22 @@ async function init(){
 // ================= 数据加载（人员名单从group_data动态读取） =================
 async function loadData(){
   try{
-    // 1. 从各个group_data读取人员名单
-    const gResp=await fetch(SUPABASE_URL+'/rest/v1/group_data?select=group_id,data&order=group_id',{
-      headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken}
-    });
+    // 并行加载：group_data学生名单 + class_data_v2纪律眼操数据
+    const [gResp,cResp]=await Promise.all([
+      fetch(SUPABASE_URL+'/rest/v1/group_data?select=group_id,data->students&order=group_id',{
+        headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken}
+      }),
+      fetch(SUPABASE_URL+'/rest/v1/class_data_v2?id=eq.class&select=data',{
+        headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken}
+      })
+    ]);
+    
+    // 解析学生名单
     const groups=await gResp.json();
     const students=[];
     for(const g of groups){
       const gid=parseInt(g.group_id);
-      const gstudents=(g.data&&g.data.students)||[];
+      const gstudents=g.students||[];
       for(let i=0;i<gstudents.length;i++){
         students.push({
           id:gstudents[i].id||('g'+gid+'_'+i),
@@ -336,15 +346,11 @@ async function loadData(){
         });
       }
     }
-    // 按组号和组内顺序排序
     students.sort((a,b)=>a.group-b.group||a.order-b.order);
     
-    // 2. 从class_data_v2读取纪律和眼操数据
+    // 解析纪律眼操数据
     let disRecords={},eyeRecords={};
     try{
-      const cResp=await fetch(SUPABASE_URL+'/rest/v1/class_data_v2?id=eq.class&select=data',{
-        headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken}
-      });
       const cRows=await cResp.json();
       if(cRows&&cRows.length&&cRows[0].data){
         disRecords=cRows[0].data.disRecords||{};
@@ -398,58 +404,60 @@ async function syncToGroups(){
     if(eyeDay[s.id]!==undefined)groupData[g].eye[s.id]=eyeDay[s.id];
   }
   
-  // 更新每个小组
+  // 并行更新每个小组
+  const promises=[];
   for(const gid in groupData){
-    try{
-      const resp=await fetch(SUPABASE_URL+'/rest/v1/group_data?group_id=eq.'+gid+'&select=data',{
-        headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken}
-      });
-      const rows=await resp.json();
-      if(rows&&rows.length){
-        const gd=rows[0].data;
-        if(!gd.scores)gd.scores={};
-        if(!gd.scores[d])gd.scores[d]={};
-        
-        // 同步纪律→class
-        for(const sid in groupData[gid].dis){
-          const student=state.students.find(s=>s.id===sid);
-          if(!student)continue;
-          // 找小组里对应的学生（按名字匹配）
-          const gStudent=(gd.students||[]).find(gs=>gs.name===student.name);
-          if(!gStudent)continue;
-          if(!gd.scores[d][gStudent.id])gd.scores[d][gStudent.id]={};
-          // 替换class记录
-          gd.scores[d][gStudent.id].class=groupData[gid].dis[sid].map(r=>({
-            v:r.value,by:currentUser?currentUser.name:'admin',id:r.id||uid(),ts:r.ts||Date.now(),label:r.label||''
-          }));
-        }
-        
-        // 同步眼操→eye
-        for(const sid in groupData[gid].eye){
-          const student=state.students.find(s=>s.id===sid);
-          if(!student)continue;
-          const gStudent=(gd.students||[]).find(gs=>gs.name===student.name);
-          if(!gStudent)continue;
-          if(!gd.scores[d][gStudent.id])gd.scores[d][gStudent.id]={};
-          const val=groupData[gid].eye[sid];
-          if(val===2){
-            gd.scores[d][gStudent.id].eye=[{v:2,by:currentUser?currentUser.name:'admin',id:uid(),ts:Date.now(),label:'优秀'}];
-          }else if(val===0){
-            gd.scores[d][gStudent.id].eye=[];
-          }else{
-            gd.scores[d][gStudent.id].eye=[{v:val,by:currentUser?currentUser.name:'admin',id:uid(),ts:Date.now(),label:EYE_LABELS[String(val)]||''}];
-          }
-        }
-        
-        gd.lastModified=Date.now();
-        await fetch(SUPABASE_URL+'/rest/v1/group_data?group_id=eq.'+gid,{
-          method:'PATCH',
-          headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken,'Content-Type':'application/json','Prefer':'return=minimal'},
-          body:JSON.stringify({data:gd})
+    promises.push((async()=>{
+      try{
+        const resp=await fetch(SUPABASE_URL+'/rest/v1/group_data?group_id=eq.'+gid+'&select=data',{
+          headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken}
         });
-      }
-    }catch(e){console.log('同步小组'+gid+'失败:',e);}
+        const rows=await resp.json();
+        if(rows&&rows.length){
+          const gd=rows[0].data;
+          if(!gd.scores)gd.scores={};
+          if(!gd.scores[d])gd.scores[d]={};
+          
+          // 同步纪律→class
+          for(const sid in groupData[gid].dis){
+            const student=state.students.find(s=>s.id===sid);
+            if(!student)continue;
+            const gStudent=(gd.students||[]).find(gs=>gs.name===student.name);
+            if(!gStudent)continue;
+            if(!gd.scores[d][gStudent.id])gd.scores[d][gStudent.id]={};
+            gd.scores[d][gStudent.id].class=groupData[gid].dis[sid].map(r=>({
+              v:r.value,by:currentUser?currentUser.name:'admin',id:r.id||uid(),ts:r.ts||Date.now(),label:r.label||''
+            }));
+          }
+          
+          // 同步眼操→eye
+          for(const sid in groupData[gid].eye){
+            const student=state.students.find(s=>s.id===sid);
+            if(!student)continue;
+            const gStudent=(gd.students||[]).find(gs=>gs.name===student.name);
+            if(!gStudent)continue;
+            if(!gd.scores[d][gStudent.id])gd.scores[d][gStudent.id]={};
+            const val=groupData[gid].eye[sid];
+            if(val===2){
+              gd.scores[d][gStudent.id].eye=[{v:2,by:currentUser?currentUser.name:'admin',id:uid(),ts:Date.now(),label:'优秀'}];
+            }else if(val===0){
+              gd.scores[d][gStudent.id].eye=[];
+            }else{
+              gd.scores[d][gStudent.id].eye=[{v:val,by:currentUser?currentUser.name:'admin',id:uid(),ts:Date.now(),label:EYE_LABELS[String(val)]||''}];
+            }
+          }
+          
+          gd.lastModified=Date.now();
+          await fetch(SUPABASE_URL+'/rest/v1/group_data?group_id=eq.'+gid,{
+            method:'PATCH',
+            headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken,'Content-Type':'application/json','Prefer':'return=minimal'},
+            body:JSON.stringify({data:gd})
+          });
+        }
+      }catch(e){console.log('同步小组'+gid+'失败:',e);}
+    })());
   }
+  await Promise.all(promises);
 }
 
 async function forceRefresh(){
