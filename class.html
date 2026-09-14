@@ -234,12 +234,32 @@ tr:hover td{background:rgba(246,241,232,.5)}
   .nav-item{padding:5px 2px;font-size:10px}
   .sidebar-logout{padding:5px 7px;font-size:10.5px}
   .admin-btn{padding:4px 7px;font-size:10.5px}
-  .main{padding:12px 10px 78px}
-  .topbar .title{font-size:17px}
-  .panel{padding:12px 10px}
-  .eye-btn{padding:4px 7px;font-size:10.5px}
-  .dis-tab{padding:5px 10px;font-size:11.5px}
-  .member-add .btn{flex:1;justify-content:center}
+  .main{padding:8px 8px 72px}
+  .topbar{margin-bottom:10px;gap:6px}
+  .topbar .title{font-size:16px}
+  .date-box{padding:4px 6px}
+  .date-box input{font-size:12px}
+  .panel{padding:10px 8px}
+  .panel-title{font-size:14px}
+  .eye-btn{padding:4px 6px;font-size:10px;min-height:32px}
+  .eye-btns{gap:3px}
+  .dis-tab{padding:4px 8px;font-size:11px}
+  .member-add{flex-wrap:wrap;gap:6px}
+  .member-add input{flex:1;min-width:100px;font-size:13px}
+  .member-add select{font-size:13px}
+  .member-add .btn{flex:1;justify-content:center;min-height:36px;font-size:13px}
+  table{font-size:11px}
+  th{padding:5px 4px;font-size:10px}
+  td{padding:4px 3px}
+  .st-name{font-size:11px;max-width:50px}
+  .dis-cell{min-width:45px;padding:4px 3px}
+  .dis-cell .dis-val-display{font-size:12px}
+  .member-row{padding:6px 8px}
+  .member-row .name{font-size:12px}
+  .grp-head{font-size:11px}
+  .week-nav{gap:6px}
+  .week-nav button{padding:6px 10px;font-size:12px;min-height:36px}
+  .export-actions .btn{min-height:38px;font-size:13px}
 }
 
 /* ================= 手机版增强（触摸目标 / 流畅滚动 / 安全区） ================= */
@@ -785,18 +805,19 @@ async function cloudPullMerge(silent){
     const remote=await loadClassData();
     if(!remote||!remote.students)return;
     if(remote.admin2Enabled!==undefined)state.admin2Enabled=remote.admin2Enabled;
-    if(remote.version!==state.version)return;
-    const lt=state.lastModified||0;
-    const rt=remote.lastModified||0;
-    if(!silent&&lt>rt&&!confirm('本地有更新的数据（比云端新），确定用云端覆盖本地吗？')){cloudSyncing=false;setSyncStatus('已取消','var(--ink-soft)');return;}
-    state=mergeState(state,remote);
+    // 强制用云端数据覆盖本地，避免本地坏数据
+    state=JSON.parse(JSON.stringify(remote));
     saveLocal();
     render();
+    renderWeekLabel();
     if(checkAdmin2Kick())return;
     cloudCfg.lastSync=Date.now();saveCloudCfg();
-    setSyncStatus('✅ 已从云端拉取 '+new Date().toLocaleTimeString('zh-CN'),'var(--green)');
-    if(!silent)toast('已从云端拉取数据');
-  }catch(e){}
+    lastClassRemoteModified=remote.lastModified||0;
+    setSyncStatus('✅ 已从云端刷新 '+new Date().toLocaleTimeString('zh-CN'),'var(--green)');
+    if(!silent)toast('已从云端刷新最新数据');
+  }catch(e){
+    if(!silent)toast('云端刷新失败');
+  }
   cloudSyncing=false;
 }
 function mergeState(local,remote){
@@ -1336,30 +1357,20 @@ function renderSidebarUser(){
     try{
       const remote=await loadClassData();
       if(!remote){
-        // 云端拉取失败：不基于本地旧缓存判定 admin2，避免误踢
-        toast('云端数据加载失败，请检查网络');
+        toast('云端数据加载失败，使用本地缓存');
         return;
       }
       if(!remote.students)return;
       if(remote.admin2Enabled!==undefined)state.admin2Enabled=remote.admin2Enabled;
       if(checkAdmin2Kick())return;
-      if(remote.version!==state.version)return;
       lastClassRemoteModified=remote.lastModified||0;
-      const localHasData=Object.keys(state.eyeRecords||{}).length>0||Object.keys(state.disRecords||{}).length>0;
-      const lt=state.lastModified||0;
-      const rt=remote.lastModified||0;
-      if(!localHasData||rt>lt){
-        state=mergeState(state,remote);
-        saveLocal();
-        render();
-        renderWeekLabel();
-        toast(!localHasData?'已从云端加载数据':'已更新为云端最新数据');
-      }else if(lt>rt){
-        toast('本地有未上传的数据，已保留本地版本');
-      }
-      setSyncStatus('✅ 云端数据已就绪','var(--green)');
+      // 强制用云端数据覆盖本地，避免本地坏缓存
+      state=mergeState(state,remote);
+      saveLocal();
+      render();
+      renderWeekLabel();
+      setSyncStatus('✅ 已从云端加载最新数据','var(--green)');
     }catch(e){
-      // 拉取异常同样不踢 admin2（避免"有几率误判为不可用"）
       toast('云端数据加载失败，请检查网络');
     }
   })();
