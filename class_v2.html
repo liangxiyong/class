@@ -304,7 +304,7 @@ async function init(){
 // ================= 数据加载（强制云端） =================
 async function loadData(){
   try{
-    const resp=await fetch(SUPABASE_URL+'/rest/v1/class_data?id=eq.class&select=data',{
+    const resp=await fetch(SUPABASE_URL+'/rest/v1/class_data_v2?id=eq.class&select=data',{
       headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken}
     });
     const rows=await resp.json();
@@ -324,7 +324,7 @@ async function saveData(){
   saveTimer=setTimeout(async()=>{
     try{
       state.lastModified=Date.now();
-      await fetch(SUPABASE_URL+'/rest/v1/class_data?id=eq.class',{
+      await fetch(SUPABASE_URL+'/rest/v1/class_data_v2?id=eq.class',{
         method:'PATCH',
         headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken,'Content-Type':'application/json','Prefer':'return=minimal'},
         body:JSON.stringify({data:state})
