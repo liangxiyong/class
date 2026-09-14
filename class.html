@@ -526,8 +526,8 @@ function syncStudentNames(st){
 }
 
 /* ================= 状态 ================= */
-let state=loadState();
-if(syncStudentNames(state)||dedupeStudents(state)){localStorage.setItem(KEY,JSON.stringify(state));}
+// 禁用本地缓存，每次都从云端加载
+let state=defaultState();
 let currentUser=loadSession();
 let currentView='eye';
 let exportWeekStart=getMonday(new Date());
@@ -543,20 +543,8 @@ function defaultState(){
   const students=STUDENT_NAMES.map(([g,n])=>({id:uid(),name:n,group:g}));
   return{students,eyeRecords:{},disRecords:{},admin2Enabled:true,version:1};
 }
-function loadState(){
-  try{
-    const raw=localStorage.getItem(KEY);
-    if(raw){const s=JSON.parse(raw);if(s&&s.students){if(s.admin2Enabled===undefined)s.admin2Enabled=true;return s;}}
-  }catch(e){}
-  return defaultState();
-}
 function save(){
   state.lastModified=Date.now();
-  try{
-    const bak=localStorage.getItem(KEY);
-    if(bak)localStorage.setItem(KEY+'_bak',bak);
-  }catch(e){}
-  localStorage.setItem(KEY,JSON.stringify(state));
   queueClassSave();
 }
 let classSaveTimer=null;
@@ -572,11 +560,7 @@ function queueClassSave(){
   },150);
 }
 function saveLocal(){
-  try{
-    const bak=localStorage.getItem(KEY);
-    if(bak)localStorage.setItem(KEY+'_bak',bak);
-  }catch(e){}
-  localStorage.setItem(KEY,JSON.stringify(state));
+  // 禁用本地缓存，不保存到localStorage
 }
 
 function loadSession(){
@@ -1327,6 +1311,11 @@ function renderSidebarUser(){
 
 /* ================= Init ================= */
 (function init(){
+  // 清除旧的本地缓存，强制从云端加载
+  try{
+    localStorage.removeItem('jfz_class_state_v1');
+    localStorage.removeItem('jfz_class_state_v1_bak');
+  }catch(e){}
   if(!currentUser||(currentUser.role!=='admin'&&currentUser.role!=='admin2'&&currentUser.role!=='teacher')){
     location.href='index.html';
     return;
