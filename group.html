@@ -1088,8 +1088,8 @@ td.total-col.zero{color:#cfc4b4}
     <div class="modal-body">
       <div class="admin-switch-row" id="admin2SwitchRow" style="display:none">
         <div>
-          <div class="admin-switch-title">启用 admin2 班级管理</div>
-          <div class="admin-switch-sub">关闭后 admin2 无法进入班级管理，仍可使用小组积分</div>
+          <div class="admin-switch-title">启用 admin2 班级管理V2</div>
+          <div class="admin-switch-sub">关闭后 admin2 的班级管理V2入口将被禁用，仍可使用小组积分</div>
         </div>
         <div class="admin-switch" id="admin2Switch" onclick="toggleAdmin2()"><div class="admin-switch-knob"></div></div>
       </div>
@@ -1404,7 +1404,7 @@ function renderAdminModal(){
 async function toggleAdmin2(){
   if(!(currentUser&&currentUser.role==='admin'))return;
   const enabling=admin2Enabled===false;
-  if(!enabling&&!confirm('确定禁用 admin2 的班级管理功能吗？禁用后 admin2 无法进入班级管理，仍可使用小组积分。'))return;
+  if(!enabling&&!confirm('确定禁用 admin2 的班级管理V2功能吗？禁用后 admin2 的V2入口将变灰，仍可使用小组积分。'))return;
   try{
     const resp=await sbFetch('class_data?id=eq.class&select=data');
     const rows=await resp.json();
@@ -1413,7 +1413,7 @@ async function toggleAdmin2(){
     await sbFetch('class_data?on_conflict=id',{method:'POST',body:JSON.stringify({id:'class',data:remote,updated_at:new Date().toISOString()}),headers:{'Prefer':'resolution=merge-duplicates,return=minimal'}});
     admin2Enabled=enabling;
     renderAdminModal();
-    toast(enabling?'已启用 admin2 班级管理':'已禁用 admin2 班级管理');
+    toast(enabling?'已启用 admin2 班级管理V2':'已禁用 admin2 班级管理V2');
   }catch(e){
     toast('操作失败：无法连接云端');
   }

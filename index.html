@@ -278,12 +278,24 @@ async function doLogin(){
   }
   if(role==='admin2'){
     const chk=await checkAdmin2Enabled(data.session.access_token);
-    // 禁用仅影响班级管理：admin2 仍可登录、仍可进小组积分，只是班级管理入口置灰
-    localStorage.setItem('jfz_admin2_class_enabled',(!chk.ok||chk.enabled)?'1':'0');
+    const v2Enabled=!chk.ok||chk.enabled;
+    localStorage.setItem('jfz_admin2_class_enabled',v2Enabled?'1':'0');
     if(redirect){location.href=redirect;return;}
     document.getElementById('chooseName').textContent=name;
     document.getElementById('loginFields').style.display='none';
     document.getElementById('chooseBox').style.display='block';
+    // admin2显示V1和V2按钮，V2被禁用时灰色
+    const v2btn=document.getElementById('chooseClassV2Btn');
+    v2btn.style.display='flex';
+    if(v2Enabled){
+      v2btn.style.opacity='1';
+      v2btn.style.cursor='pointer';
+      v2btn.onclick=()=>go('class_v2.html');
+    }else{
+      v2btn.style.opacity='.4';
+      v2btn.style.cursor='not-allowed';
+      v2btn.onclick=()=>alert('班级管理V2已被管理员禁用');
+    }
     return;
   }
   if(role==='teacher'){
