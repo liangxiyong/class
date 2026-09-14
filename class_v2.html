@@ -311,7 +311,7 @@ async function loadData(){
     const groups=await gResp.json();
     const students=[];
     for(const g of groups){
-      const gid=g.group_id;
+      const gid=parseInt(g.group_id);
       const gstudents=(g.data&&g.data.students)||[];
       for(let i=0;i<gstudents.length;i++){
         students.push({
