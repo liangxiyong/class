@@ -409,7 +409,11 @@ async function saveData(){
       // 更新本地缓存
       try{localStorage.setItem(CACHE_KEY,JSON.stringify(state));}catch(e){}
       // 异步同步到小组数据（不阻塞界面）
-      syncToGroups();
+      syncToGroups().then(()=>{
+        toast('已同步到小组积分');
+      }).catch(e=>{
+        toast('同步失败: '+e.message);
+      });
     }catch(e){
       toast('保存失败: '+e.message);
     }
@@ -481,7 +485,10 @@ async function syncToGroups(){
             body:JSON.stringify({data:gd})
           });
         }
-      }catch(e){console.log('同步小组'+gid+'失败:',e);}
+      }catch(e){
+        console.log('同步小组'+gid+'失败:',e);
+        throw e;
+      }
     })());
   }
   await Promise.all(promises);
