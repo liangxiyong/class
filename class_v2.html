@@ -403,9 +403,63 @@ async function loadData(){
       if(!state.students||state.students.length===0){
         await syncStudentsFromGroups();
       }
+      
+      // 后台从小组数据同步最新的课堂表现数据（避免恢复已删除的数据）
+      syncDisFromGroups();
     }
   }catch(e){
     toast('数据加载失败: '+e.message);
+  }
+}
+
+// 从小组数据同步最新的课堂表现数据到V2
+async function syncDisFromGroups(){
+  try{
+    const d=curDateStr();
+    const resp=await fetch(SUPABASE_URL+'/rest/v1/group_data?select=group_id,data&order=group_id',{
+      headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken}
+    });
+    const groups=await resp.json();
+    
+    if(!state.disRecords[d])state.disRecords[d]={};
+    
+    for(const g of groups){
+      const gid=parseInt(g.group_id);
+      const gdata=g.data;
+      const dayScores=(gdata.scores&&gdata.scores[d])||{};
+      
+      for(const gsid in dayScores){
+        const sdata=dayScores[gsid];
+        if(sdata.class&&sdata.class.length>0){
+          // 找到对应的V2学生（按名字匹配）
+          const gStudent=(gdata.students||[]).find(s=>s.id===gsid);
+          if(!gStudent)continue;
+          const v2Student=state.students.find(s=>s.name===gStudent.name&&s.group===gid);
+          if(!v2Student)continue;
+          
+          // 用小组数据的class记录更新V2（小组数据是权威）
+          state.disRecords[d][v2Student.id]=sdata.class.map(r=>({
+            id:r.id||uid(),
+            value:r.v,
+            label:r.label||'',
+            by:r.by||'admin',
+            ts:r.ts||Date.now()
+          }));
+        }
+      }
+    }
+    
+    // 保存更新后的数据
+    state.lastModified=Date.now();
+    await fetch(SUPABASE_URL+'/rest/v1/class_data_v2?id=eq.class',{
+      method:'PATCH',
+      headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken,'Content-Type':'application/json','Prefer':'return=minimal'},
+      body:JSON.stringify({data:state})
+    });
+    try{localStorage.setItem(CACHE_KEY,JSON.stringify(state));}catch(e){}
+    
+  }catch(e){
+    console.log('从小组同步课堂表现失败:',e);
   }
 }
 
@@ -501,8 +555,8 @@ async function syncToGroups(){
     const g=String(s.group);
     if(!groupData[g])groupData[g]={dis:{},eye:{}};
     if(disDay[s.id]&&disDay[s.id].length>0)groupData[g].dis[s.id]=disDay[s.id];
-    // 眼操只同步非默认值（默认+2不同步，让小组积分显示默认分）
-    if(eyeDay[s.id]!==undefined&&eyeDay[s.id]!==2)groupData[g].eye[s.id]=eyeDay[s.id];
+    // 眼操所有值都同步（+2时清除eye记录，0/-2/-4时设置对应值）
+    if(eyeDay[s.id]!==undefined)groupData[g].eye[s.id]=eyeDay[s.id];
   }
   
   // 如果没有数据，不同步
