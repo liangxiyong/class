@@ -140,22 +140,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
     </div>
   </div>
 
-  <div class="view" id="view-stats">
-    <div class="card">
-      <div class="card-title"><span>📊 当日统计</span><span class="badge" id="statsDateBadge">今天</span></div>
-      <div id="statsList"></div>
-    </div>
-    <div class="card">
-      <div class="card-title"><span>📈 本周统计</span></div>
-      <div id="weekStatsList"></div>
-    </div>
-  </div>
-
   <div class="view" id="view-export">
     <div class="card">
       <div class="card-title"><span>📤 数据导出</span></div>
       <button class="export-btn" onclick="exportDay()">导出当日数据（Excel）</button>
-      <button class="export-btn secondary" onclick="exportWeek()">导出本周数据（Excel）</button>
       <button class="export-btn secondary" onclick="exportJSON()">导出全部数据（JSON）</button>
     </div>
     <div class="card">
@@ -169,7 +157,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   <div class="tab-item active" data-view="dis" onclick="switchView('dis')"><span class="ico">📋</span><span class="txt">纪律</span></div>
   <div class="tab-item" data-view="eye" onclick="switchView('eye')"><span class="ico">👁️</span><span class="txt">眼操</span></div>
   <div class="tab-item" data-view="members" onclick="switchView('members')"><span class="ico">👥</span><span class="txt">成员</span></div>
-  <div class="tab-item" data-view="stats" onclick="switchView('stats')"><span class="ico">📊</span><span class="txt">统计</span></div>
   <div class="tab-item" data-view="export" onclick="switchView('export')"><span class="ico">📤</span><span class="txt">导出</span></div>
 </div>
 
@@ -506,7 +493,7 @@ function switchView(v){
   document.getElementById('view-'+v).classList.add('active');
   document.querySelectorAll('.tab-item').forEach(el=>el.classList.remove('active'));
   document.querySelector('.tab-item[data-view="'+v+'"]').classList.add('active');
-  const titles={dis:'纪律打分',eye:'眼操打分',members:'成员管理',stats:'数据统计',export:'数据导出'};
+  const titles={dis:'纪律打分',eye:'眼操打分',members:'成员管理',export:'数据导出'};
   document.getElementById('pageTitle').textContent=titles[v];
   renderAll();
 }
@@ -524,7 +511,6 @@ function updateDateDisplay(){
   const isToday=d===todayStr();
   document.getElementById('disDateBadge').textContent=isToday?'今天':d;
   document.getElementById('eyeDateBadge').textContent=isToday?'今天':d;
-  document.getElementById('statsDateBadge').textContent=isToday?'今天':d;
 }
 function openDatePicker(){
   const input=document.createElement('input');
@@ -789,83 +775,6 @@ async function deleteMember(sid){
   toast('已删除 '+member.name);
 }
 
-// ================= 统计 =================
-function renderStats(){
-  let totalDis=0,totalEye=0;
-  const stats=[];
-  for(const s of state.students){
-    const recs=disDay[s.id]||[];
-    const disSum=recs.reduce((sum,r)=>sum+r.value,0);
-    const eyeVal=eyeDay[s.id]!==undefined?eyeDay[s.id]:2;
-    totalDis+=disSum;totalEye+=eyeVal;
-    if(disSum!==0||eyeVal!==2)stats.push({name:s.name,group:s.group,dis:disSum,eye:eyeVal});
-  }
-  stats.sort((a,b)=>(b.dis+b.eye)-(a.dis+a.eye));
-  let html='';
-  html+='<div class="stat-row"><span class="stat-name">纪律总分</span><span class="stat-val '+(totalDis>0?'positive':totalDis<0?'negative':'')+'">'+(totalDis>0?'+':'')+totalDis+'</span></div>';
-  html+='<div class="stat-row"><span class="stat-name">眼操总分</span><span class="stat-val">'+totalEye+'</span></div>';
-  html+='<div class="stat-row"><span class="stat-name">有记录人数</span><span class="stat-val">'+stats.length+'</span></div>';
-  if(stats.length>0){
-    html+='<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line)">';
-    for(const s of stats.slice(0,10)){
-      html+='<div class="stat-row"><span class="stat-name">'+esc(s.name)+'（第'+s.group+'组）</span>';
-      html+='<span class="stat-val">纪律'+(s.dis>0?'+':'')+s.dis+' / 眼操'+(s.eye>0?'+':'')+s.eye+'</span></div>';
-    }
-    html+='</div>';
-  }
-  document.getElementById('statsList').innerHTML=html;
-
-  // 本周统计（需要加载本周所有日期的数据）
-  renderWeekStats();
-}
-
-async function renderWeekStats(){
-  const monday=new Date(currentDate);
-  const day=(monday.getDay()+6)%7;
-  monday.setDate(monday.getDate()-day);
-  const weekStats={};
-  // 加载本周5天的数据
-  for(let i=0;i<5;i++){
-    const dt=new Date(monday);dt.setDate(dt.getDate()+i);
-    const ds=fmtDate(dt);
-    if(ds===curDateStr()){
-      // 当天用内存数据
-      for(const sid in disDay){
-        const student=state.students.find(s=>s.id===sid);if(!student)continue;
-        if(!weekStats[student.name])weekStats[student.name]={group:student.group,total:0};
-        weekStats[student.name].total+=disDay[sid].reduce((sum,r)=>sum+r.value,0);
-      }
-    }else{
-      // 其他日期从group_data读
-      try{
-        const resp=await fetch(SUPABASE_URL+'/rest/v1/group_data?select=group_id,data',{headers:sbHeaders()});
-        const groups=await resp.json();
-        for(const g of groups){
-          const gdata=g.data||{};
-          const dayScores=(gdata.scores&&gdata.scores[ds])||{};
-          const gStudents=(gdata.students)||[];
-          for(const gs of gStudents){
-            const v2s=state.students.find(s=>s.gid===gs.id);if(!v2s)continue;
-            const sdata=dayScores[gs.id];
-            if(sdata&&sdata.class&&Array.isArray(sdata.class)){
-              if(!weekStats[v2s.name])weekStats[v2s.name]={group:v2s.group,total:0};
-              weekStats[v2s.name].total+=sdata.class.reduce((sum,r)=>sum+(r.v||0),0);
-            }
-          }
-        }
-      }catch(e){}
-    }
-  }
-  const weekArr=Object.entries(weekStats).map(([name,v])=>({name,...v})).sort((a,b)=>b.total-a.total);
-  let whtml='';
-  if(weekArr.length===0)whtml='<div class="loading">本周暂无记录</div>';
-  else for(const s of weekArr){
-    whtml+='<div class="stat-row"><span class="stat-name">'+esc(s.name)+'（第'+s.group+'组）</span>';
-    whtml+='<span class="stat-val '+(s.total>0?'positive':s.total<0?'negative':'')+'">'+(s.total>0?'+':'')+s.total+'</span></div>';
-  }
-  document.getElementById('weekStatsList').innerHTML=whtml;
-}
-
 // ================= 导出 =================
 let xlsxLoaded=false;
 function loadXlsx(){
@@ -894,42 +803,6 @@ async function exportDay(){
   XLSX.writeFile(wb,'班级数据_'+d+'.xlsx');
   toast('已导出当日数据');
 }
-async function exportWeek(){
-  await loadXlsx();
-  const monday=new Date(currentDate);
-  const day=(monday.getDay()+6)%7;
-  monday.setDate(monday.getDate()-day);
-  const data=[['组别','姓名']];
-  const dates=[];
-  for(let i=0;i<5;i++){
-    const dt=new Date(monday);dt.setDate(dt.getDate()+i);
-    dates.push(fmtDate(dt));data[0].push(fmtDate(dt));
-  }
-  data[0].push('本周合计');
-  for(const s of state.students){
-    const row=['第'+s.group+'组',s.name];let total=0;
-    for(const d of dates){
-      // 从group_data读
-      let sum=0;
-      try{
-        const resp=await fetch(SUPABASE_URL+'/rest/v1/group_data?group_id=eq.'+s.group+'&select=data',{headers:sbHeaders()});
-        const rows=await resp.json();
-        if(rows&&rows.length){
-          const gd=rows[0].data;
-          const dayData=(gd.scores&&gd.scores[d]&&gd.scores[d][s.gid])||{};
-          if(dayData.class&&Array.isArray(dayData.class))sum=dayData.class.reduce((a,r)=>a+(r.v||0),0);
-        }
-      }catch(e){}
-      row.push(sum);total+=sum;
-    }
-    row.push(total);data.push(row);
-  }
-  const ws=XLSX.utils.aoa_to_sheet(data);
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,'本周数据');
-  XLSX.writeFile(wb,'班级本周数据.xlsx');
-  toast('已导出本周数据');
-}
 function exportJSON(){
   const blob=new Blob([JSON.stringify({students:state.students,exportTime:new Date().toISOString()},null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='班级名单_'+todayStr()+'.json';a.click();
@@ -948,7 +821,6 @@ function renderAll(){
   if(currentView==='dis')renderDis();
   else if(currentView==='eye')renderEye();
   else if(currentView==='members')renderMembers();
-  else if(currentView==='stats')renderStats();
 }
 
 // ================= 启动 =================
