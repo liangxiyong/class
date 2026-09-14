@@ -412,8 +412,9 @@ async function saveDisToGroup(v2id,records){
     await fetch(SUPABASE_URL+'/rest/v1/group_data?group_id=eq.'+gid,{
       method:'PATCH',headers:sbHeaders(),body:JSON.stringify({data:gd})
     });
-    setTimeout(()=>{isUpdating=false;},1000);
-  }catch(e){console.log('保存纪律失败:',e);throw e;}
+    // 保存完成后延迟重置，确保Realtime通知已处理完
+    setTimeout(()=>{isUpdating=false;},1500);
+  }catch(e){console.log('保存纪律失败:',e);isUpdating=false;throw e;}
 }
 
 // 眼操：写入 group_data.scores[date][gid].eye（默认+2不存记录）
@@ -450,8 +451,8 @@ async function saveEyeToGroup(v2id,val){
     await fetch(SUPABASE_URL+'/rest/v1/group_data?group_id=eq.'+gid,{
       method:'PATCH',headers:sbHeaders(),body:JSON.stringify({data:gd})
     });
-    setTimeout(()=>{isUpdating=false;},1000);
-  }catch(e){console.log('保存眼操失败:',e);throw e;}
+    setTimeout(()=>{isUpdating=false;},1500);
+  }catch(e){console.log('保存眼操失败:',e);isUpdating=false;throw e;}
 }
 
 // ================= 实时同步（监听class_data_v2 + 10个group_data） =================
@@ -474,10 +475,11 @@ function startRealtime(){
         filter:'group_id=eq.'+g
       },(payload)=>{
         if(isUpdating)return;
-        // 只重新加载当天数据
-        setTimeout(()=>{loadDayData(curDateStr()).then(()=>renderAll());},300);
+        // 只重新加载当天数据，延迟避免频繁刷新
+        clearTimeout(window._rtTimer);
+        window._rtTimer=setTimeout(()=>{loadDayData(curDateStr()).then(()=>renderAll());},500);
       })
-      .subscribe();
+      .subscribe((status)=>{console.log('group_'+g+' realtime:',status);});
     groupRealtimeSubs[g]=ch;
   }
 }
