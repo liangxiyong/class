@@ -1993,6 +1993,31 @@ function normalizeGroupData(s,groupId){
   fixGoodWeights(s);
   fixFormulaMinN(s);
   normalizeScores(s);
+  // 自动修复分数记录里的学生ID与学生名单ID不匹配的问题（如名单被重建后历史分数仍是旧ID）
+  if(s.students&&s.students.length&&s.scores){
+    const rosterIds=s.students.map(function(st){return st.id;});
+    const rosterSet={};
+    rosterIds.forEach(function(id){rosterSet[id]=true;});
+    for(const dk in s.scores){
+      const day=s.scores[dk];
+      if(!day||typeof day!=='object')continue;
+      const scoreIds=Object.keys(day);
+      // 孤儿ID：分数里有但名单里没有
+      const orphanIds=scoreIds.filter(function(id){return !rosterSet[id];});
+      if(!orphanIds.length)continue;
+      // 缺失ID：名单里有但分数里没有
+      const missingIds=rosterIds.filter(function(id){return !day[id];});
+      if(orphanIds.length===missingIds.length&&missingIds.length>0){
+        // 数量一致：按顺序把孤儿ID的数据迁移到缺失ID
+        orphanIds.sort();missingIds.sort();
+        for(let k=0;k<orphanIds.length;k++){
+          day[missingIds[k]]=day[orphanIds[k]];
+          delete day[orphanIds[k]];
+          fixed=true;
+        }
+      }
+    }
+  }
   // 自动修复被编码污染的姓名（???/？？？）：seed id 可直接还原；手动添加的成员（uid id）按组内位置对齐 GROUP_MEMBERS 还原
   const hasQM=s=>s!=null&&/[?？]/.test(String(s));
   const itemNameMap={};
