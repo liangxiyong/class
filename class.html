@@ -749,14 +749,20 @@ if(typeof document!=='undefined'){
   });
 }
 async function uploadClassState(){
-  // 上传前合并云端 admin2Enabled：避免用本地旧缓存覆盖 group 页刚改的开关状态
+  // 上传前合并云端数据：避免用本地旧缓存覆盖云端的人员名单和开关状态
+  let remoteStudents=null;
   let a2e;
   try{
     const remote=await loadClassData();
-    if(remote&&remote.admin2Enabled!==undefined)a2e=remote.admin2Enabled;
+    if(remote){
+      if(remote.admin2Enabled!==undefined)a2e=remote.admin2Enabled;
+      if(remote.students)remoteStudents=remote.students;
+    }
   }catch(e){}
   const final=JSON.parse(JSON.stringify(state));
   if(a2e!==undefined)final.admin2Enabled=a2e;
+  // 强制使用云端的人员名单，防止本地旧缓存覆盖
+  if(remoteStudents)final.students=remoteStudents;
   await saveClassData(final);
 }
 async function loadClassData(){
