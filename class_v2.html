@@ -500,7 +500,7 @@ function renderDis(){
   document.getElementById('disGroupTabs').innerHTML=tabs;
   
   // 学生列表
-  let students=state.students.slice().sort((a,b)=>a.group-b.group||a.name.localeCompare(b.name,'zh'));
+  let students=state.students.slice().sort((a,b)=>a.group-b.group||(a.order||0)-(b.order||0));
   if(disFilterGroup>0)students=students.filter(s=>s.group===disFilterGroup);
   
   const d=curDateStr();
@@ -595,7 +595,7 @@ function renderEye(){
   }
   document.getElementById('eyeGroupTabs').innerHTML=tabs;
   
-  let students=state.students.slice().sort((a,b)=>a.group-b.group||a.name.localeCompare(b.name,'zh'));
+  let students=state.students.slice().sort((a,b)=>a.group-b.group||(a.order||0)-(b.order||0));
   if(eyeFilterGroup>0)students=students.filter(s=>s.group===eyeFilterGroup);
   
   const d=curDateStr();
