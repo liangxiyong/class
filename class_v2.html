@@ -283,8 +283,8 @@ const DIS_PRESETS=[
 ];
 
 // 眼操分值
-const EYE_VALUES=[-2,0,2];
-const EYE_LABELS={'-2':'不认真','0':'未评','2':'优秀'};
+const EYE_VALUES=[-4,-2,0,2];
+const EYE_LABELS={'-4':'不做操','-2':'不认真','0':'未评','2':'优秀'};
 
 // 是否允许修改（true=允许，false=只读）
 const ALLOW_EDIT=true;
@@ -435,6 +435,25 @@ async function saveData(){
       toast('保存失败: '+e.message);
     }
   },300);
+}
+
+// 立即保存（不防抖，用于眼操等需要立即同步的操作）
+async function saveDataImmediate(){
+  try{
+    state.lastModified=Date.now();
+    // 先保存班级数据
+    await fetch(SUPABASE_URL+'/rest/v1/class_data_v2?id=eq.class',{
+      method:'PATCH',
+      headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken,'Content-Type':'application/json','Prefer':'return=minimal'},
+      body:JSON.stringify({data:state})
+    });
+    // 更新本地缓存
+    try{localStorage.setItem(CACHE_KEY,JSON.stringify(state));}catch(e){}
+    // 同步到小组数据
+    await syncToGroups();
+  }catch(e){
+    toast('保存失败: '+e.message);
+  }
 }
 
 // 同步到小组数据（纪律→class，眼操→eye，注意眼操不重复加分）
@@ -751,9 +770,10 @@ function changeEye(sid,delta){
   const d=curDateStr();
   if(!state.eyeRecords[d])state.eyeRecords[d]={};
   let val=(state.eyeRecords[d][sid]!==undefined?state.eyeRecords[d][sid]:2)+delta;
-  val=Math.max(-2,Math.min(2,val));
+  val=Math.max(-4,Math.min(2,val));
   state.eyeRecords[d][sid]=val;
-  saveData();
+  // 眼操立即保存同步
+  saveDataImmediate();
   renderEye();
 }
 
@@ -768,7 +788,7 @@ function openEyeModal(sid){
   html+='<div style="font-size:32px;font-weight:700;color:var(--accent)">'+(val>0?'+':'')+val+' '+EYE_LABELS[String(val)]+'</div>';
   html+='</div>';
   html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">';
-  const opts=[{v:-2,l:'不认真'},{v:0,l:'未评'},{v:2,l:'优秀'}];
+  const opts=[{v:-4,l:'不做操'},{v:-2,l:'不认真'},{v:0,l:'未评'},{v:2,l:'优秀'}];
   for(const o of opts){
     const active=val===o.v?'style="background:var(--accent);color:#fff"':'';
     html+='<button '+active+' onclick="setEyeVal(\''+sid+'\','+o.v+')" style="padding:12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);font-size:14px;cursor:pointer">'+o.l+' ('+(o.v>0?'+':'')+o.v+')</button>';
@@ -785,7 +805,8 @@ function setEyeVal(sid,val){
   const d=curDateStr();
   if(!state.eyeRecords[d])state.eyeRecords[d]={};
   state.eyeRecords[d][sid]=val;
-  saveData();
+  // 眼操立即保存同步
+  saveDataImmediate();
   closeEyeModal();
   renderEye();
 }
