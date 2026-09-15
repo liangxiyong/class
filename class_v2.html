@@ -430,7 +430,21 @@ async function _saveDisToGroup(v2id,records,student){
       method:'PATCH',headers:sbHeaders(),body:JSON.stringify({data:gd})
     });
     if(!patchResp.ok)throw new Error('保存失败 HTTP '+patchResp.status);
-    setTimeout(()=>{isUpdating=false;},1500);
+    // 保存后回读确认，确保内存和云端一致
+    await new Promise(function(r){setTimeout(r,300);});
+    try{
+      var vr=await fetch(SUPABASE_URL+'/rest/v1/group_data?group_id=eq.'+gid+'&select=data',{headers:sbHeaders()});
+      var vrows=await vr.json();
+      if(vrows&&vrows.length){
+        var vgd=vrows[0].data;
+        var vday=(vgd.scores&&vgd.scores[d])||{};
+        var vstu=(vday[student.gid])||{};
+        var vc=vstu.class||[];
+        disDay[v2id]=vc.map(function(r){return {id:r.id||uid(),value:r.v,label:r.label||'',by:r.by||'admin',ts:r.ts||Date.now()};});
+        if(disDay[v2id].length===0)delete disDay[v2id];
+      }
+    }catch(ve){}
+    setTimeout(function(){isUpdating=false;renderDis();},1500);
   }catch(e){console.log('保存纪律失败:',e);isUpdating=false;throw e;}
 }
 
