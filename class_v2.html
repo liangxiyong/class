@@ -425,26 +425,10 @@ async function _saveDisToGroup(v2id,records,student){
     if(Object.keys(gd.scores[d]).length===0)delete gd.scores[d];
 
     gd.lastModified=Date.now();
-    isUpdating=true;
     const patchResp=await fetch(SUPABASE_URL+'/rest/v1/group_data?group_id=eq.'+gid,{
       method:'PATCH',headers:sbHeaders(),body:JSON.stringify({data:gd})
     });
     if(!patchResp.ok)throw new Error('保存失败 HTTP '+patchResp.status);
-    // 保存后回读确认，确保内存和云端一致
-    await new Promise(function(r){setTimeout(r,300);});
-    try{
-      var vr=await fetch(SUPABASE_URL+'/rest/v1/group_data?group_id=eq.'+gid+'&select=data',{headers:sbHeaders()});
-      var vrows=await vr.json();
-      if(vrows&&vrows.length){
-        var vgd=vrows[0].data;
-        var vday=(vgd.scores&&vgd.scores[d])||{};
-        var vstu=(vday[student.gid])||{};
-        var vc=vstu.class||[];
-        disDay[v2id]=vc.map(function(r){return {id:r.id||uid(),value:r.v,label:r.label||'',by:r.by||'admin',ts:r.ts||Date.now()};});
-        if(disDay[v2id].length===0)delete disDay[v2id];
-      }
-    }catch(ve){}
-    setTimeout(function(){isUpdating=false;renderDis();},1500);
   }catch(e){console.log('保存纪律失败:',e);isUpdating=false;throw e;}
 }
 
@@ -604,13 +588,20 @@ function quickScore(sid,val){
 
 async function addScore(sid,val,label){
   if(!ALLOW_EDIT){toast('当前为只读模式');return;}
+  isUpdating=true; // 提前设置，防止保存过程中Realtime冲掉数据
   if(!disDay[sid])disDay[sid]=[];
   const rec={id:uid(),value:val,label:label||'',by:currentUser?currentUser.name:'admin',ts:Date.now()};
   disDay[sid].push(rec);
   renderDis();
   const student=state.students.find(s=>s.id===sid);
   toast((student?student.name:'')+' '+(val>0?'+':'')+val+'分');
-  try{await saveDisToGroup(sid,disDay[sid]);}catch(e){toast('同步失败: '+e.message);}
+  try{
+    await saveDisToGroup(sid,disDay[sid]);
+    // 保存成功后重新加载当天全部数据，确保内存与云端完全一致
+    await loadDayData(curDateStr());
+    renderDis();
+  }catch(e){toast('同步失败: '+e.message);}
+  setTimeout(function(){isUpdating=false;},2000);
 }
 
 // 长按弹窗
@@ -672,13 +663,19 @@ function confirmCustomScore(){
 async function deleteRecord(sid,index){
   if(!ALLOW_EDIT){toast('当前为只读模式');return;}
   if(!disDay[sid])return;
+  isUpdating=true;
   disDay[sid].splice(index,1);
   if(disDay[sid].length===0)delete disDay[sid];
   const student=state.students.find(s=>s.id===sid);
   if(student)openScoreModal(student);
   renderDis();
   toast('已删除记录');
-  try{await saveDisToGroup(sid,disDay[sid]||[]);}catch(e){toast('同步失败: '+e.message);}
+  try{
+    await saveDisToGroup(sid,disDay[sid]||[]);
+    await loadDayData(curDateStr());
+    renderDis();
+  }catch(e){toast('同步失败: '+e.message);}
+  setTimeout(function(){isUpdating=false;},2000);
 }
 
 // ================= 眼操 =================
