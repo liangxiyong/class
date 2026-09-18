@@ -234,6 +234,28 @@ body.theme-dis .card{border-left:3px solid var(--accent)}
   <div class="modal" id="eyeModalContent"></div>
 </div>
 
+
+<!-- AI悬浮按钮 -->
+<div class="ai-fab" onclick="toggleAI()">🤖</div>
+
+<!-- AI聊天面板 -->
+<div class="ai-panel" id="aiPanel">
+  <div class="ai-header">
+    <div class="ai-title">🤖 AI助手</div>
+    <div class="ai-close" onclick="toggleAI()">✕</div>
+  </div>
+  <div class="ai-messages" id="aiMessages">
+    <div class="ai-msg assistant">
+      <div class="bubble"><div class="ai-bubble">你好！我是AI助手，你可以：<br>• 快速录入：说"张三说话扣2分"<br>• 查数据：问"今天谁扣分了？"<br>• 语音输入：点麦克风直接说</div></div>
+    </div>
+  </div>
+  <div class="ai-input-bar">
+    <input type="text" class="ai-input" id="aiInput" placeholder="输入指令或问题..." onkeydown="if(event.key==='Enter')sendAI()">
+    <button class="ai-voice-btn" id="aiVoiceBtn" onclick="toggleVoice()">🎤</button>
+    <button class="ai-send-btn" onclick="sendAI()">➤</button>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
