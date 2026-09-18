@@ -32,10 +32,10 @@ body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:var(--pap
 .score-table{border-collapse:separate;border-spacing:0;width:100%;min-width:max-content}
 .score-table th{padding:10px 8px;font-size:12px;font-weight:600;color:var(--ink-soft);background:#f6f0e4;border-bottom:1px solid var(--line);white-space:nowrap;text-align:center}
 .score-table th.sticky-col{left:0;z-index:4;background:#f6f0e4;min-width:80px;text-align:left;padding-left:12px;position:sticky}
-.score-table td{padding:10px 8px;font-size:13px;border-bottom:1px solid var(--line-soft);text-align:center;white-space:nowrap}
+.score-table td{padding:10px 8px;font-size:13px;border-bottom:1px solid var(--line);text-align:center;white-space:nowrap}
 .score-table td.sticky-col{position:sticky;left:0;z-index:3;background:var(--card);font-weight:600;text-align:left;padding-left:12px;min-width:80px}
 .score-table tr:last-child td{border-bottom:none}
-.score-table td.cell{cursor:pointer;transition:background .1s}
+.score-table td.cell{cursor:pointer;transition:background .1s;min-width:50px}
 .score-table td.cell:active{background:var(--accent-soft)}
 .val{display:inline-block;min-width:20px}
 .val.pos{color:var(--green);font-weight:600}
@@ -330,33 +330,36 @@ function renderEventHistory(){
 }
 async function applyValue(value,label){
   const {g,sid,iid}=activeCell;const date=fmt(curDate);
+  const gstr=String(g);
   try{
-    const r=await fetch(SB_URL+'/rest/v1/group_data?group_id=eq.'+g+'&select=data',{headers:hdrs()});
-    const rows=await r.json();if(!rows||!rows.length)return;
-    const gd2=rows[0].data;
-    if(!gd2.scores)gd2.scores={};
-    if(!gd2.scores[date])gd2.scores[date]={};
-    if(!gd2.scores[date][sid])gd2.scores[date][sid]={};
-    if(!Array.isArray(gd2.scores[date][sid][iid]))gd2.scores[date][sid][iid]=[];
-    gd2.scores[date][sid][iid].push({v:value,by:user.name||'admin',id:'sm'+Date.now().toString(36),ts:Date.now(),label:label||''});
-    gd2.lastModified=Date.now();
-    await fetch(SB_URL+'/rest/v1/group_data?group_id=eq.'+g,{method:'PATCH',headers:hdrs(),body:JSON.stringify({data:gd2})});
-    await loadAll();renderDaily();updateModalCurrent();renderEventHistory();
+    // 先更新本地
+    if(!groups[gstr].scores)groups[gstr].scores={};
+    if(!groups[gstr].scores[date])groups[gstr].scores[date]={};
+    if(!groups[gstr].scores[date][sid])groups[gstr].scores[date][sid]={};
+    if(!Array.isArray(groups[gstr].scores[date][sid][iid]))groups[gstr].scores[date][sid][iid]=[];
+    const newEvent={v:value,by:user.name||'admin',id:'sm'+Date.now().toString(36),ts:Date.now(),label:label||''};
+    groups[gstr].scores[date][sid][iid].push(newEvent);
+    groups[gstr].lastModified=Date.now();
+    // 立即更新UI
+    renderDaily();updateModalCurrent();renderEventHistory();
+    // 后台保存
+    await fetch(SB_URL+'/rest/v1/group_data?group_id=eq.'+g,{method:'PATCH',headers:hdrs(),body:JSON.stringify({data:groups[gstr]})});
     toast('已 '+value+' 分');
   }catch(e){toast('保存失败');}
 }
 async function deleteEvent(idx){
   const {g,sid,iid}=activeCell;const date=fmt(curDate);
   if(!confirm('确定删除这条记录吗？'))return;
+  const gstr=String(g);
   try{
-    const r=await fetch(SB_URL+'/rest/v1/group_data?group_id=eq.'+g+'&select=data',{headers:hdrs()});
-    const rows=await r.json();if(!rows||!rows.length)return;
-    const gd2=rows[0].data;
-    const arr=gd2.scores?.[date]?.[sid]?.[iid];
+    // 先更新本地
+    const arr=groups[gstr].scores?.[date]?.[sid]?.[iid];
     if(Array.isArray(arr)&&arr[idx])arr.splice(idx,1);
-    gd2.lastModified=Date.now();
-    await fetch(SB_URL+'/rest/v1/group_data?group_id=eq.'+g,{method:'PATCH',headers:hdrs(),body:JSON.stringify({data:gd2})});
-    await loadAll();renderDaily();updateModalCurrent();renderEventHistory();
+    groups[gstr].lastModified=Date.now();
+    // 立即更新UI
+    renderDaily();updateModalCurrent();renderEventHistory();
+    // 后台保存
+    await fetch(SB_URL+'/rest/v1/group_data?group_id=eq.'+g,{method:'PATCH',headers:hdrs(),body:JSON.stringify({data:groups[gstr]})});
     toast('已删除');
   }catch(e){toast('删除失败');}
 }
@@ -400,29 +403,28 @@ function renderBase(){
 }
 async function toggleBase(date,currentlyOff){
   for(let g=1;g<=10;g++){
+    const gstr=String(g);
     try{
-      const r=await fetch(SB_URL+'/rest/v1/group_data?group_id=eq.'+g+'&select=data',{headers:hdrs()});
-      const rows=await r.json();if(!rows||!rows.length)continue;
-      const gd2=rows[0].data;if(!gd2.baseOff)gd2.baseOff={};
-      if(currentlyOff)delete gd2.baseOff[date];else gd2.baseOff[date]=true;
-      gd2.lastModified=Date.now();
-      await fetch(SB_URL+'/rest/v1/group_data?group_id=eq.'+g,{method:'PATCH',headers:hdrs(),body:JSON.stringify({data:gd2})});
+      if(!groups[gstr].baseOff)groups[gstr].baseOff={};
+      if(currentlyOff)delete groups[gstr].baseOff[date];else groups[gstr].baseOff[date]=true;
+      groups[gstr].lastModified=Date.now();
+      await fetch(SB_URL+'/rest/v1/group_data?group_id=eq.'+g,{method:'PATCH',headers:hdrs(),body:JSON.stringify({data:groups[gstr]})});
     }catch(e){}
   }
-  await loadAll();renderBase();toast(currentlyOff?'已开启基础分':'已关闭基础分');
+  renderBase();toast(currentlyOff?'已开启基础分':'已关闭基础分');
 }
 async function saveWeight(){
   const w=parseFloat(document.getElementById('weightSlider').value);
   document.getElementById('weightShow').textContent='×'+w.toFixed(2);
   for(let g=1;g<=10;g++){
+    const gstr=String(g);
     try{
-      const r=await fetch(SB_URL+'/rest/v1/group_data?group_id=eq.'+g+'&select=data',{headers:hdrs()});
-      const rows=await r.json();if(!rows||!rows.length)continue;
-      const gd2=rows[0].data;gd2.weightFactor=w;gd2.lastModified=Date.now();
-      await fetch(SB_URL+'/rest/v1/group_data?group_id=eq.'+g,{method:'PATCH',headers:hdrs(),body:JSON.stringify({data:gd2})});
+      groups[gstr].weightFactor=w;
+      groups[gstr].lastModified=Date.now();
+      await fetch(SB_URL+'/rest/v1/group_data?group_id=eq.'+g,{method:'PATCH',headers:hdrs(),body:JSON.stringify({data:groups[gstr]})});
     }catch(e){}
   }
-  await loadAll();renderAll();toast('已保存系数 ×'+w.toFixed(2));
+  toast('已保存系数 ×'+w.toFixed(2));
 }
 function exportData(){
   const data={exportTime:new Date().toISOString(),groups};
@@ -447,9 +449,12 @@ function renderAll(){
 function startRT(){
   for(let g=1;g<=10;g++){
     const ch=sb.channel('gv2_'+g)
-      .on('postgres_changes',{event:'UPDATE',schema:'public',table:'group_data',filter:'group_id=eq.'+g},()=>{
-        clearTimeout(window._gv2rt);
-        window._gv2rt=setTimeout(async()=>{await loadAll();renderAll();},400);
+      .on('postgres_changes',{event:'UPDATE',schema:'public',table:'group_data',filter:'group_id=eq.'+g},(payload)=>{
+        // 直接用payload里的新数据，不要重新fetch
+        if(payload.new&&payload.new.data){
+          groups[String(g)]=payload.new.data;
+          renderAll();
+        }
       })
       .subscribe();
     realtimeCh.push(ch);
