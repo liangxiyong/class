@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -136,6 +136,7 @@ input{font-family:inherit;color:inherit}
       <button class="choose-btn" id="chooseGroupV2Btn" style="display:none;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff" onclick="go('group_v2.html')"><span class="ico">✨</span>小组积分V2（新版）</button>
       <button class="choose-btn" id="chooseClassBtn" onclick="go('class.html')"><span class="ico">🏫</span>班级管理</button>
       <button class="choose-btn" id="chooseClassV2Btn" style="display:none;background:linear-gradient(135deg,#e74c3c,#c0392b);color:#fff" onclick="go('class_v2.html')"><span class="ico">✨</span>班级管理V2（新版）</button>
+      <button class="choose-btn" id="chooseNoticeBtn" style="display:none;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff" onclick="go('notice_admin.html')"><span class="ico">📢</span>公告管理</button>
       <div class="choose-back" onclick="backToLogin()">← 返回重新登录</div>
     </div>
   </div>
@@ -293,6 +294,7 @@ async function doLogin(){
     document.getElementById('chooseBox').style.display='block';
     document.getElementById('chooseClassV2Btn').style.display='flex';
     document.getElementById('chooseGroupV2Btn').style.display='flex';
+    document.getElementById('chooseNoticeBtn').style.display='flex';
     // 维护时间禁用小组积分V1
     var gBtn=document.getElementById('chooseBtnG');
     if(isMaintTime()){
