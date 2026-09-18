@@ -28,23 +28,21 @@ body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:var(--pap
 .group-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px;-webkit-overflow-scrolling:touch}
 .group-tab{padding:7px 14px;border-radius:18px;background:var(--card);font-size:12px;white-space:nowrap;cursor:pointer;color:var(--ink-soft);flex:none;border:1px solid var(--line)}
 .group-tab.active{background:var(--accent);color:#fff;font-weight:600;border-color:var(--accent)}
-.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:12px;background:var(--card);box-shadow:0 1px 3px rgba(0,0,0,.04)}
-.score-table{border-collapse:separate;border-spacing:0;width:100%;min-width:max-content}
-.score-table th{padding:10px 8px;font-size:12px;font-weight:600;color:var(--ink-soft);background:#f6f0e4;border-bottom:1px solid var(--line);white-space:nowrap;text-align:center}
-.score-table th.sticky-col{left:0;z-index:4;background:#f6f0e4;min-width:80px;text-align:left;padding-left:12px;position:sticky}
-.score-table td{padding:10px 8px;font-size:13px;border-bottom:1px solid var(--line);text-align:center;white-space:nowrap}
-.score-table td.sticky-col{position:sticky;left:0;z-index:3;background:var(--card);font-weight:600;text-align:left;padding-left:12px;min-width:80px}
-.score-table tr:last-child td{border-bottom:none}
-.score-table td.cell{cursor:pointer;transition:background .1s;min-width:50px}
-.score-table td.cell:active{background:var(--accent-soft)}
-.val{display:inline-block;min-width:20px}
-.val.pos{color:var(--green);font-weight:600}
-.val.neg{color:var(--red);font-weight:600}
-.val.zero{color:var(--ink-soft)}
-.total-col{font-weight:700;min-width:60px}
-.total-col.pos{color:var(--green)}
-.total-col.neg{color:var(--red)}
-.ev-count{display:inline-block;background:var(--accent);color:#fff;font-size:9px;padding:1px 4px;border-radius:4px;margin-left:2px;vertical-align:top}
+.stu-card{background:var(--card);border-radius:14px;padding:14px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.04);border:1px solid var(--line)}
+.stu-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.stu-name{font-size:16px;font-weight:700}
+.stu-day-score{font-size:20px;font-weight:800}
+.stu-day-score.positive{color:var(--green)}
+.stu-day-score.negative{color:var(--red)}
+.stu-items{display:flex;flex-direction:column;gap:2px}
+.stu-item{display:flex;align-items:center;justify-content:space-between;padding:10px 8px;border-radius:8px;cursor:pointer;transition:background .1s}
+.stu-item:active{background:var(--accent-soft)}
+.stu-item-left{display:flex;align-items:center;gap:8px}
+.stu-item-name{font-size:14px}
+.stu-item-val{font-size:14px;font-weight:700}
+.stu-item-val.positive{color:var(--green)}
+.stu-item-val.negative{color:var(--red)}
+.ev-count{display:inline-block;background:var(--accent);color:#fff;font-size:9px;padding:1px 4px;border-radius:4px}
 .rank-card{background:var(--card);border-radius:14px;padding:16px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.04);border:1px solid var(--line)}
 .rank-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .rank-left{display:flex;align-items:center;flex:1;min-width:0}
@@ -132,7 +130,7 @@ body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:var(--pap
 <div class="content">
   <div class="view active" id="view-daily">
     <div class="group-tabs" id="groupTabs"></div>
-    <div id="dailyTable"></div>
+    <div id="dailyList"></div>
   </div>
   <div class="view" id="view-rank">
     <div class="stats-row">
@@ -204,7 +202,7 @@ const sb=supabase.createClient(SB_URL,SB_KEY);
 let user=null, accessToken='';
 let view='daily', curDate=new Date(), curGrp=1;
 let groups={}, activeCell=null;
-let realtimeCh=[];
+let realtimeCh=null;
 function fmt(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function today(){return fmt(new Date());}
 function addD(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r;}
@@ -265,27 +263,29 @@ function renderDaily(){
   const date=fmt(curDate);const g=curGrp;
   const sList=stu(g);const itemList=items(g);
   if(!sList.length||!itemList.length){
-    document.getElementById('dailyTable').innerHTML='<div class="empty">该组暂无数据</div>';return;
+    document.getElementById('dailyList').innerHTML='<div class="empty">该组暂无数据</div>';return;
   }
-  let h='<div class="table-wrap"><table class="score-table"><thead><tr><th class="sticky-col">姓名</th>';
-  for(const it of itemList)h+='<th>'+esc(it.name)+'</th>';
-  h+='<th class="total-col">总分</th></tr></thead><tbody>';
+  let html='';
   for(const s of sList){
     const ds=dayScore(g,s.id,date);
-    h+='<tr><td class="sticky-col">'+esc(s.name)+'</td>';
+    html+='<div class="stu-card">';
+    html+='<div class="stu-head"><div class="stu-name">'+esc(s.name)+'</div>';
+    html+='<div class="stu-day-score '+(ds>=0?'positive':'negative')+'">'+(ds>0?'+':'')+ds+'</div></div>';
+    html+='<div class="stu-items">';
     for(const it of itemList){
       const v=cellV(g,s.id,it.id,date);
-      const cls=v>0?'pos':v<0?'neg':'zero';
-      const disp=v===0?'·':(v>0?'+'+v:v);
+      const cls=v>0?'positive':v<0?'negative':'';
+      const disp=v===0?'0':(v>0?'+'+v:v);
       const evs=cellEvents(g,s.id,it.id,date);
       const badge=evs.length>1?'<span class="ev-count">'+evs.length+'</span>':'';
-      h+='<td class="cell" onclick="openScoreModal('+g+',\''+s.id+'\',\''+it.id+'\')"><span class="val '+cls+'">'+disp+'</span>'+badge+'</td>';
+      html+='<div class="stu-item" onclick="openScoreModal('+g+',\''+s.id+'\',\''+it.id+'\')">';
+      html+='<div class="stu-item-left"><span class="stu-item-name">'+esc(it.name)+'</span>'+badge+'</div>';
+      html+='<span class="stu-item-val '+cls+'">'+disp+'</span>';
+      html+='</div>';
     }
-    const tcls=ds>0?'pos':ds<0?'neg':'zero';
-    h+='<td class="total-col '+tcls+'">'+(ds===0?'·':ds)+'</td></tr>';
+    html+='</div></div>';
   }
-  h+='</tbody></table></div>';
-  document.getElementById('dailyTable').innerHTML=h;
+  document.getElementById('dailyList').innerHTML=html;
 }
 function openScoreModal(g,sid,iid){
   activeCell={g,sid,iid};
@@ -332,7 +332,6 @@ async function applyValue(value,label){
   const {g,sid,iid}=activeCell;const date=fmt(curDate);
   const gstr=String(g);
   try{
-    // 先更新本地
     if(!groups[gstr].scores)groups[gstr].scores={};
     if(!groups[gstr].scores[date])groups[gstr].scores[date]={};
     if(!groups[gstr].scores[date][sid])groups[gstr].scores[date][sid]={};
@@ -340,9 +339,7 @@ async function applyValue(value,label){
     const newEvent={v:value,by:user.name||'admin',id:'sm'+Date.now().toString(36),ts:Date.now(),label:label||''};
     groups[gstr].scores[date][sid][iid].push(newEvent);
     groups[gstr].lastModified=Date.now();
-    // 立即更新UI
     renderDaily();updateModalCurrent();renderEventHistory();
-    // 后台保存
     await fetch(SB_URL+'/rest/v1/group_data?group_id=eq.'+g,{method:'PATCH',headers:hdrs(),body:JSON.stringify({data:groups[gstr]})});
     toast('已 '+value+' 分');
   }catch(e){toast('保存失败');}
@@ -352,13 +349,10 @@ async function deleteEvent(idx){
   if(!confirm('确定删除这条记录吗？'))return;
   const gstr=String(g);
   try{
-    // 先更新本地
     const arr=groups[gstr].scores?.[date]?.[sid]?.[iid];
     if(Array.isArray(arr)&&arr[idx])arr.splice(idx,1);
     groups[gstr].lastModified=Date.now();
-    // 立即更新UI
     renderDaily();updateModalCurrent();renderEventHistory();
-    // 后台保存
     await fetch(SB_URL+'/rest/v1/group_data?group_id=eq.'+g,{method:'PATCH',headers:hdrs(),body:JSON.stringify({data:groups[gstr]})});
     toast('已删除');
   }catch(e){toast('删除失败');}
@@ -447,18 +441,15 @@ function renderAll(){
   else if(view==='base')renderBase();
 }
 function startRT(){
-  for(let g=1;g<=10;g++){
-    const ch=sb.channel('gv2_'+g)
-      .on('postgres_changes',{event:'UPDATE',schema:'public',table:'group_data',filter:'group_id=eq.'+g},(payload)=>{
-        // 直接用payload里的新数据，不要重新fetch
-        if(payload.new&&payload.new.data){
-          groups[String(g)]=payload.new.data;
-          renderAll();
-        }
-      })
-      .subscribe();
-    realtimeCh.push(ch);
-  }
+  // 监听整个表的变化，用一个channel
+  realtimeCh=sb.channel('gv2_all')
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'group_data'},(payload)=>{
+      if(payload.new&&payload.new.group_id&&payload.new.data){
+        groups[String(payload.new.group_id)]=payload.new.data;
+        renderAll();
+      }
+    })
+    .subscribe();
 }
 init();
 </script>
