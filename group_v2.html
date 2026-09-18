@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -11,38 +11,37 @@
   --green:#10b981;--red:#ef4444;--orange:#f59e0b;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html{font-size:16px}
-body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);font-size:14px;padding-bottom:70px;min-height:100vh;overscroll-behavior-y:none}
-
-/* 顶部 */
+body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);font-size:14px;padding-bottom:70px;min-height:100vh}
 .topbar{position:sticky;top:0;z-index:100;background:var(--card);padding:12px 16px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
 .topbar-row{display:flex;align-items:center;justify-content:space-between}
 .topbar-title{font-size:17px;font-weight:700}
 .topbar-badge{font-size:10px;background:var(--accent);color:#fff;padding:2px 6px;border-radius:4px;font-weight:500;margin-left:6px;vertical-align:middle}
 .topbar-user{font-size:12px;color:var(--text-soft)}
-.week-nav{display:flex;align-items:center;gap:8px;margin-top:10px}
-.week-btn{width:36px;height:36px;border-radius:10px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;color:var(--text);flex:none}
-.week-label{flex:1;text-align:center;font-size:13px;font-weight:600;padding:8px;background:var(--bg);border-radius:10px}
+.date-nav{display:flex;align-items:center;gap:8px;margin-top:10px}
+.date-btn{width:36px;height:36px;border-radius:10px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;flex:none}
+.date-current{flex:1;text-align:center;font-size:13px;font-weight:600;padding:8px;background:var(--bg);border-radius:10px}
 .refresh-btn{width:36px;height:36px;border-radius:10px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;flex:none}
-
-/* 内容 */
 .content{padding:12px}
 .view{display:none}
 .view.active{display:block;animation:fadeIn .2s ease}
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
-
-/* 卡片 */
 .card{background:var(--card);border-radius:14px;padding:16px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
 .card-title{font-size:14px;font-weight:700;margin-bottom:12px}
-
-/* 统计概览 */
-.stats-row{display:flex;gap:8px;margin-bottom:12px}
-.stat-item{flex:1;background:var(--card);border-radius:14px;padding:14px 8px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.04)}
-.stat-num{font-size:22px;font-weight:800;line-height:1.2}
-.stat-num.green{color:var(--green)}
-.stat-label{font-size:10px;color:var(--text-soft);margin-top:4px}
-
-/* 排名卡片 */
+.group-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px;-webkit-overflow-scrolling:touch}
+.group-tab{padding:7px 14px;border-radius:18px;background:var(--bg);font-size:12px;white-space:nowrap;cursor:pointer;color:var(--text-soft);flex:none}
+.group-tab.active{background:var(--accent);color:#fff;font-weight:600}
+.stu-card{background:var(--card);border-radius:14px;padding:14px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.stu-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.stu-name{font-size:15px;font-weight:700}
+.stu-day-score{font-size:18px;font-weight:800}
+.stu-day-score.positive{color:var(--green)}
+.stu-day-score.negative{color:var(--red)}
+.stu-items{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.stu-item{padding:8px 10px;background:var(--bg);border-radius:8px;font-size:12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.stu-item-name{color:var(--text)}
+.stu-item-val{font-weight:700}
+.stu-item-val.positive{color:var(--green)}
+.stu-item-val.negative{color:var(--red)}
 .rank-card{background:var(--card);border-radius:14px;padding:16px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.04);cursor:pointer;transition:transform .1s}
 .rank-card:active{transform:scale(.98)}
 .rank-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
@@ -58,45 +57,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 .rank-score.negative{color:var(--red)}
 .rank-members{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
 .rank-member{font-size:11px;background:var(--bg);padding:4px 9px;border-radius:6px;color:var(--text-soft)}
-
-/* 学生列表 */
-.stu-row{display:flex;align-items:center;padding:14px 0;border-bottom:1px solid var(--line)}
-.stu-row:last-child{border-bottom:none}
-.stu-info{flex:1;min-width:0}
-.stu-name{font-size:15px;font-weight:600}
-.stu-meta{font-size:11px;color:var(--text-soft);margin-top:3px}
-.stu-score{font-size:19px;font-weight:700;margin-right:10px;min-width:55px;text-align:right}
-.stu-score.positive{color:var(--green)}
-.stu-score.negative{color:var(--red)}
-.stu-arrow{color:var(--text-soft);font-size:18px}
-
-/* 分类tab */
-.cat-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px;-webkit-overflow-scrolling:touch}
-.cat-tab{padding:7px 14px;border-radius:18px;background:var(--bg);font-size:12px;white-space:nowrap;cursor:pointer;color:var(--text-soft);flex:none}
-.cat-tab.active{background:var(--accent);color:#fff;font-weight:600}
-
-/* 记录项 */
-.rec-item{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--bg);border-radius:12px;margin-bottom:6px}
-.rec-item:last-child{margin-bottom:0}
-.rec-info{flex:1;min-width:0}
-.rec-label{font-size:13px;font-weight:500;display:flex;align-items:center;gap:7px}
-.rec-dot{width:8px;height:8px;border-radius:50%;flex:none}
-.rec-by{font-size:11px;color:var(--text-soft);margin-top:3px}
-.rec-val{font-size:16px;font-weight:700;margin-right:8px}
-.rec-val.positive{color:var(--green)}
-.rec-val.negative{color:var(--red)}
-
-/* 日期分组 */
-.date-group{font-size:12px;color:var(--text-soft);margin:14px 0 8px;font-weight:600;padding-left:2px}
-
-/* 底部tab */
+.stats-row{display:flex;gap:8px;margin-bottom:12px}
+.stat-item{flex:1;background:var(--card);border-radius:14px;padding:14px 8px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.stat-num{font-size:22px;font-weight:800;line-height:1.2}
+.stat-num.green{color:var(--green)}
+.stat-label{font-size:10px;color:var(--text-soft);margin-top:4px}
 .tabbar{position:fixed;bottom:0;left:0;right:0;background:var(--card);display:flex;box-shadow:0 -2px 10px rgba(0,0,0,.06);z-index:100;padding-bottom:env(safe-area-inset-bottom)}
 .tab-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 4px;cursor:pointer;color:var(--text-soft)}
 .tab-item.active{color:var(--accent)}
 .tab-item .ico{font-size:22px;margin-bottom:3px}
 .tab-item .txt{font-size:10px;font-weight:500}
-
-/* 弹窗 */
 .modal-mask{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:200;display:none;align-items:flex-end;justify-content:center}
 .modal-mask.show{display:flex}
 .modal{background:var(--card);width:100%;max-width:500px;border-radius:20px 20px 0 0;padding:20px;max-height:85vh;overflow-y:auto;animation:slideUp .25s ease}
@@ -104,8 +74,26 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 .modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
 .modal-title{font-size:17px;font-weight:700}
 .modal-close{width:32px;height:32px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--text-soft);cursor:pointer}
-
-/* 开关 */
+.modal-current{text-align:center;margin-bottom:16px}
+.modal-current-num{font-size:36px;font-weight:800}
+.modal-current-num.positive{color:var(--green)}
+.modal-current-num.negative{color:var(--red)}
+.modal-current-label{font-size:12px;color:var(--text-soft);margin-top:4px}
+.preset-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.preset-btn{padding:12px;border-radius:10px;border:none;font-size:13px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.preset-btn.pos{background:rgba(16,185,129,.12);color:var(--green)}
+.preset-btn.neg{background:rgba(239,68,68,.12);color:var(--red)}
+.preset-label{font-weight:500}
+.preset-val{font-weight:700}
+.rec-list{border-top:1px solid var(--line);padding-top:12px}
+.rec-title{font-size:12px;font-weight:600;color:var(--text-soft);margin-bottom:8px}
+.rec-item{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--bg);border-radius:8px;margin-bottom:6px}
+.rec-label{font-size:13px}
+.rec-by{font-size:11px;color:var(--text-soft)}
+.rec-val{font-size:14px;font-weight:700}
+.rec-val.positive{color:var(--green)}
+.rec-val.negative{color:var(--red)}
+.rec-del{color:var(--red);font-size:12px;cursor:pointer;padding:4px 6px}
 .switch-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--line)}
 .switch-row:last-child{border-bottom:none}
 .switch-title{font-size:14px;font-weight:500}
@@ -114,14 +102,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 .switch.on{background:var(--green)}
 .switch-knob{width:24px;height:24px;border-radius:50%;background:#fff;position:absolute;top:2px;left:2px;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
 .switch.on .switch-knob{transform:translateX(22px)}
-
-/* Toast */
 .toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.8);color:#fff;padding:12px 24px;border-radius:10px;font-size:14px;z-index:300;opacity:0;transition:opacity .2s;pointer-events:none}
 .toast.show{opacity:1}
 .loading{text-align:center;padding:40px;color:var(--text-soft);font-size:14px}
 .empty{text-align:center;padding:30px;color:var(--text-soft);font-size:13px}
-
-/* 滑块 */
 .weight-slider{width:100%;height:6px;-webkit-appearance:none;background:var(--line);border-radius:3px;outline:none;margin:20px 0 8px}
 .weight-slider::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 2px 8px rgba(99,102,241,.3);border:3px solid #fff}
 .weight-marks{display:flex;justify-content:space-between;font-size:11px;color:var(--text-soft)}
@@ -130,22 +114,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 </style>
 </head>
 <body>
-
 <div class="topbar">
   <div class="topbar-row">
     <div class="topbar-title">小组积分<span class="topbar-badge">V2</span></div>
     <div class="topbar-user" id="userInfo"></div>
   </div>
-  <div class="week-nav">
-    <div class="week-btn" onclick="shiftWeek(-1)">‹</div>
-    <div class="week-label" id="weekLabel">本周</div>
-    <div class="week-btn" onclick="shiftWeek(1)">›</div>
+  <div class="date-nav">
+    <div class="date-btn" onclick="shiftDate(-1)">‹</div>
+    <div class="date-current" id="dateLabel">今天</div>
+    <div class="date-btn" onclick="shiftDate(1)">›</div>
     <div class="refresh-btn" onclick="refresh()">🔄</div>
   </div>
 </div>
-
 <div class="content">
-  <div class="view active" id="view-rank">
+  <div class="view active" id="view-daily">
+    <div class="group-tabs" id="groupTabs"></div>
+    <div id="dailyList"></div>
+  </div>
+  <div class="view" id="view-rank">
     <div class="stats-row">
       <div class="stat-item"><div class="stat-num" id="totalAll">0</div><div class="stat-label">全班总分</div></div>
       <div class="stat-item"><div class="stat-num" id="avgAll">0</div><div class="stat-label">组均</div></div>
@@ -153,12 +139,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
     </div>
     <div id="rankList"></div>
   </div>
-
-  <div class="view" id="view-detail">
-    <div class="cat-tabs" id="groupTabs"></div>
-    <div id="detailList"></div>
-  </div>
-
   <div class="view" id="view-base">
     <div class="card">
       <div class="card-title">📅 每日基础分</div>
@@ -172,7 +152,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
       <button class="btn-primary" onclick="saveWeight()">保存系数</button>
     </div>
   </div>
-
   <div class="view" id="view-me">
     <div class="card">
       <div style="padding:8px 0">
@@ -189,31 +168,30 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
     <div class="card"><button class="btn-secondary" onclick="logout()">退出登录</button></div>
   </div>
 </div>
-
 <div class="tabbar">
-  <div class="tab-item active" data-view="rank" onclick="switchView('rank')"><span class="ico">🏆</span><span class="txt">排名</span></div>
-  <div class="tab-item" data-view="detail" onclick="switchView('detail')"><span class="ico">📋</span><span class="txt">明细</span></div>
-  <div class="tab-item" data-view="base" onclick="switchView('base')"><span class="ico">📅</span><span class="txt">基础分</span></div>
+  <div class="tab-item active" data-view="daily" onclick="switchView('daily')"><span class="ico">📝</span><span class="txt">打分</span></div>
+  <div class="tab-item" data-view="rank" onclick="switchView('rank')"><span class="ico">🏆</span><span class="txt">排名</span></div>
+  <div class="tab-item" data-view="base" onclick="switchView('base')"><span class="ico">📅</span><span class="txt">设置</span></div>
   <div class="tab-item" data-view="me" onclick="switchView('me')"><span class="ico">👤</span><span class="txt">我的</span></div>
 </div>
-
-<div class="modal-mask" id="stuModal" onclick="if(event.target===this)closeStuModal()">
+<div class="modal-mask" id="scoreModal" onclick="if(event.target===this)closeScoreModal()">
   <div class="modal">
     <div class="modal-head">
-      <div class="modal-title" id="stuModalTitle">学生详情</div>
-      <div class="modal-close" onclick="closeStuModal()">✕</div>
+      <div class="modal-title" id="scoreModalTitle">打分</div>
+      <div class="modal-close" onclick="closeScoreModal()">✕</div>
     </div>
-    <div class="stats-row">
-      <div class="stat-item"><div class="stat-num" id="stuWeekScore">0</div><div class="stat-label">本周总分</div></div>
-      <div class="stat-item"><div class="stat-num" id="stuTodayScore">0</div><div class="stat-label">今日</div></div>
+    <div class="modal-current">
+      <div class="modal-current-num" id="scoreModalNum">0</div>
+      <div class="modal-current-label" id="scoreModalLabel">当前分值</div>
     </div>
-    <div class="cat-tabs" id="stuCatTabs"></div>
-    <div id="stuRecordList"></div>
+    <div class="preset-grid" id="presetGrid"></div>
+    <div class="rec-list">
+      <div class="rec-title">历史记录</div>
+      <div id="eventHistory"></div>
+    </div>
   </div>
 </div>
-
 <div class="toast" id="toast"></div>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SB_URL='https://zaeijgfuykhkabteqljw.supabase.co';
@@ -221,20 +199,12 @@ const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZ
 const SESSION_KEY='jfz_session_v1';
 const sb=supabase.createClient(SB_URL,SB_KEY);
 let user=null, accessToken='';
-let view='rank', weekOff=0;
-let groups={}, curGrp=0, curStu=null, curCat='all';
+let view='daily', curDate=new Date(), curGrp=1;
+let groups={}, activeCell=null;
 let realtimeCh=[];
-const CATS=[
-  {id:'all',name:'全部'},{id:'hw',name:'作业'},{id:'class',name:'课堂'},{id:'eye',name:'眼操'},
-  {id:'week',name:'周反馈'},{id:'pass',name:'过关'},{id:'good',name:'好人好事'},{id:'late',name:'迟到'},
-  {id:'notes',name:'笔记'},{id:'study',name:'自习'},{id:'break',name:'课间'},{id:'duty',name:'值日'},
-  {id:'exercise',name:'课间操'},{id:'appearance',name:'仪容'}
-];
-const CAT_C={hw:'#3b82f6',class:'#8b5cf6',eye:'#10b981',week:'#f59e0b',pass:'#ec4899',good:'#14b8a6',late:'#ef4444',notes:'#6366f1',study:'#a855f7',break:'#f97316',duty:'#84cc16',exercise:'#06b6d4',appearance:'#d946ef'};
 function fmt(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function today(){return fmt(new Date());}
 function addD(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r;}
-function getMon(off){const n=new Date();const day=(n.getDay()+6)%7;const m=addD(n,-day+off*7);m.setHours(0,0,0,0);return m;}
 function isWork(d){const w=d.getDay();return w>=1&&w<=5;}
 function esc(s){return String(s).replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800);}
@@ -259,28 +229,134 @@ async function loadAll(){
 async function refresh(){await loadAll();renderAll();toast('已刷新');}
 function gd(g){return groups[String(g)]||{};}
 function stu(g){return gd(g).students||[];}
+function items(g){return gd(g).items||[];}
 function wt(g){return gd(g).weightFactor||1;}
 function isOff(g,d){return !!(gd(g).baseOff&&gd(g).baseOff[d]);}
-function cellV(g,s,cat,d){
-  const dd=gd(g).scores||{};const day=dd[d]||{};const sday=day[s]||{};const ev=sday[cat]||[];
+function cellV(g,sid,cat,date){
+  const dd=gd(g).scores||{};const day=dd[date]||{};const sday=day[sid]||{};const ev=sday[cat]||[];
   return ev.reduce((a,e)=>a+(+e.v||0),0);
 }
-function dayScore(g,s,d){
-  if(!isWork(new Date(d)))return 0;
-  let total=isOff(g,d)?0:10;
-  const items=gd(g).items||[];
-  for(const it of items)total+=cellV(g,s,it.id,d);
+function cellEvents(g,sid,cat,date){
+  const dd=gd(g).scores||{};const day=dd[date]||{};const sday=day[sid]||{};
+  return sday[cat]||[];
+}
+function dayScore(g,sid,date){
+  if(!isWork(new Date(date)))return 0;
+  let total=isOff(g,date)?0:10;
+  for(const it of items(g))total+=cellV(g,sid,it.id,date);
   return Math.round(total*wt(g)*100)/100;
 }
-function weekScore(g,s,mon){
-  let t=0;for(let i=0;i<7;i++){const d=addD(mon,i);if(isWork(d))t+=dayScore(g,s,fmt(d));}
-  return Math.round(t*100)/100;
+function shiftDate(n){curDate=addD(curDate,n);renderAll();}
+function updateDateLabel(){
+  const d=fmt(curDate);const t=today();
+  document.getElementById('dateLabel').textContent=d===t?'今天 '+d:d;
 }
+function renderGrpTabs(){
+  let html='';
+  for(let g=1;g<=10;g++)html+='<div class="group-tab'+(curGrp===g?' active':'')+'" onclick="pickGrp('+g+')">第'+g+'组</div>';
+  document.getElementById('groupTabs').innerHTML=html;
+}
+function pickGrp(g){curGrp=g;renderGrpTabs();renderDaily();}
+function renderDaily(){
+  updateDateLabel();renderGrpTabs();
+  const date=fmt(curDate);const g=curGrp;
+  const sList=stu(g);const itemList=items(g);
+  let html='';
+  for(const s of sList){
+    const ds=dayScore(g,s.id,date);
+    html+='<div class="stu-card"><div class="stu-head">';
+    html+='<div class="stu-name">'+esc(s.name)+'</div>';
+    html+='<div class="stu-day-score '+(ds>=0?'positive':'negative')+'">'+(ds>0?'+':'')+ds+'</div>';
+    html+='</div><div class="stu-items">';
+    for(const it of itemList){
+      const v=cellV(g,s.id,it.id,date);
+      html+='<div class="stu-item" onclick="openScoreModal('+g+',\''+s.id+'\',\''+it.id+'\')">';
+      html+='<span class="stu-item-name">'+esc(it.name)+'</span>';
+      html+='<span class="stu-item-val '+(v>0?'positive':v<0?'negative':'')+'">'+(v>0?'+':'')+v+'</span>';
+      html+='</div>';
+    }
+    html+='</div></div>';
+  }
+  document.getElementById('dailyList').innerHTML=html||'<div class="empty">该组暂无学生</div>';
+}
+function openScoreModal(g,sid,iid){
+  activeCell={g,sid,iid};
+  const date=fmt(curDate);
+  const gData=gd(g);
+  const item=gData.items.find(i=>i.id===iid);
+  const student=gData.students.find(s=>s.id===sid);
+  document.getElementById('scoreModalTitle').textContent=item.name;
+  document.getElementById('scoreModalLabel').textContent=student.name+' · '+date;
+  renderPresets();updateModalCurrent();renderEventHistory();
+  document.getElementById('scoreModal').classList.add('show');
+}
+function closeScoreModal(){document.getElementById('scoreModal').classList.remove('show');activeCell=null;}
+function renderPresets(){
+  const {g,iid}=activeCell;
+  const item=gd(g).items.find(i=>i.id===iid);
+  const grid=document.getElementById('presetGrid');
+  if(!item.presets||!item.presets.length){
+    grid.innerHTML='<div style="grid-column:1/-1;font-size:12px;color:var(--text-soft);text-align:center;padding:8px">暂无预设</div>';return;
+  }
+  grid.innerHTML=item.presets.map(p=>{
+    const cls=p.value>0?'pos':'neg';const sign=p.value>0?'+':'';
+    return '<button class="preset-btn '+cls+'" onclick="applyValue('+p.value+',\''+esc(p.label)+'\')"><span class="preset-label">'+esc(p.label)+'</span><span class="preset-val">'+sign+p.value+'</span></button>';
+  }).join('');
+}
+function updateModalCurrent(){
+  const {g,sid,iid}=activeCell;const date=fmt(curDate);
+  const v=cellV(g,sid,iid,date);
+  const el=document.getElementById('scoreModalNum');
+  el.textContent=v===0?'0':(v>0?'+'+v:v);
+  el.className='modal-current-num '+(v>0?'positive':v<0?'negative':'');
+}
+function renderEventHistory(){
+  const {g,sid,iid}=activeCell;const date=fmt(curDate);
+  const evs=cellEvents(g,sid,iid,date);
+  const el=document.getElementById('eventHistory');
+  if(!evs.length){el.innerHTML='<div style="font-size:12px;color:var(--text-soft);text-align:center;padding:8px">暂无记录</div>';return;}
+  el.innerHTML=evs.map((e,idx)=>{
+    const cls=e.v>0?'positive':'negative';
+    return '<div class="rec-item"><div><div class="rec-label">'+esc(e.label||'记录')+'</div><div class="rec-by">'+esc(e.by||'')+'</div></div><div style="display:flex;align-items:center"><span class="rec-val '+cls+'">'+(e.v>0?'+':'')+e.v+'</span><span class="rec-del" onclick="deleteEvent('+idx+')">✕</span></div></div>';
+  }).join('');
+}
+async function applyValue(value,label){
+  const {g,sid,iid}=activeCell;const date=fmt(curDate);
+  try{
+    const r=await fetch(SB_URL+'/rest/v1/group_data?group_id=eq.'+g+'&select=data',{headers:hdrs()});
+    const rows=await r.json();if(!rows||!rows.length)return;
+    const gd2=rows[0].data;
+    if(!gd2.scores)gd2.scores={};
+    if(!gd2.scores[date])gd2.scores[date]={};
+    if(!gd2.scores[date][sid])gd2.scores[date][sid]={};
+    if(!Array.isArray(gd2.scores[date][sid][iid]))gd2.scores[date][sid][iid]=[];
+    gd2.scores[date][sid][iid].push({v:value,by:user.name||'admin',id:'sm'+Date.now().toString(36),ts:Date.now(),label:label||''});
+    gd2.lastModified=Date.now();
+    await fetch(SB_URL+'/rest/v1/group_data?group_id=eq.'+g,{method:'PATCH',headers:hdrs(),body:JSON.stringify({data:gd2})});
+    await loadAll();renderDaily();updateModalCurrent();renderEventHistory();
+    toast('已 '+value+' 分');
+  }catch(e){toast('保存失败');}
+}
+async function deleteEvent(idx){
+  const {g,sid,iid}=activeCell;const date=fmt(curDate);
+  if(!confirm('确定删除这条记录吗？'))return;
+  try{
+    const r=await fetch(SB_URL+'/rest/v1/group_data?group_id=eq.'+g+'&select=data',{headers:hdrs()});
+    const rows=await r.json();if(!rows||!rows.length)return;
+    const gd2=rows[0].data;
+    const arr=gd2.scores?.[date]?.[sid]?.[iid];
+    if(Array.isArray(arr)&&arr[idx])arr.splice(idx,1);
+    gd2.lastModified=Date.now();
+    await fetch(SB_URL+'/rest/v1/group_data?group_id=eq.'+g,{method:'PATCH',headers:hdrs(),body:JSON.stringify({data:gd2})});
+    await loadAll();renderDaily();updateModalCurrent();renderEventHistory();
+    toast('已删除');
+  }catch(e){toast('删除失败');}
+}
+function getMon(off){const n=new Date();const day=(n.getDay()+6)%7;const m=addD(n,-day+off*7);m.setHours(0,0,0,0);return m;}
+function weekScore(g,sid,mon){let t=0;for(let i=0;i<7;i++){const d=addD(mon,i);if(isWork(d))t+=dayScore(g,sid,fmt(d));}return Math.round(t*100)/100;}
 function grpTotal(g,mon){let t=0;for(const s of stu(g))t+=weekScore(g,s.id,mon);return Math.round(t*100)/100;}
 function renderRank(){
-  const mon=getMon(weekOff);const end=addD(mon,4);
-  document.getElementById('weekLabel').textContent=fmt(mon).slice(5)+' ~ '+fmt(end).slice(5);
-  const arr=[];let all=0;
+  const mon=getMon(0);const arr=[];let all=0;
   for(let g=1;g<=10;g++){const s=grpTotal(g,mon);arr.push({g,s});all+=s;}
   arr.sort((a,b)=>b.s-a.s);
   document.getElementById('totalAll').textContent=Math.round(all);
@@ -290,81 +366,17 @@ function renderRank(){
   for(let i=0;i<arr.length;i++){
     const {g,s}=arr[i];const sList=stu(g);
     const rc=i===0?'r1':i===1?'r2':i===2?'r3':'rn';
-    html+='<div class="rank-card" onclick="openDetail('+g+')">';
-    html+='<div class="rank-top">';
-    html+='<div class="rank-left"><div class="rank-num '+rc+'">'+(i+1)+'</div><div class="rank-name">第'+g+'组</div></div>';
-    html+='<div class="rank-score '+(s>=0?'positive':'negative')+'">'+(s>0?'+':'')+s+'</div>';
-    html+='</div><div class="rank-members">';
+    html+='<div class="rank-card"><div class="rank-top"><div class="rank-left"><div class="rank-num '+rc+'">'+(i+1)+'</div><div class="rank-name">第'+g+'组</div></div>';
+    html+='<div class="rank-score '+(s>=0?'positive':'negative')+'">'+(s>0?'+':'')+s+'</div></div>';
+    html+='<div class="rank-members">';
     for(const s2 of sList.slice(0,5))html+='<span class="rank-member">'+esc(s2.name)+'</span>';
     if(sList.length>5)html+='<span class="rank-member">+'+(sList.length-5)+'</span>';
     html+='</div></div>';
   }
   document.getElementById('rankList').innerHTML=html;
 }
-function shiftWeek(n){weekOff+=n;renderAll();}
-function renderGrpTabs(){
-  let html='<div class="cat-tab'+(curGrp===0?' active':'')+'" onclick="pickGrp(0)">全部</div>';
-  for(let g=1;g<=10;g++)html+='<div class="cat-tab'+(curGrp===g?' active':'')+'" onclick="pickGrp('+g+')">第'+g+'组</div>';
-  document.getElementById('groupTabs').innerHTML=html;
-}
-function pickGrp(g){curGrp=g;renderGrpTabs();renderDetail();}
-function openDetail(g){curGrp=g;switchView('detail');}
-function renderDetail(){
-  const mon=getMon(weekOff);
-  const gs=curGrp===0?Array.from({length:10},(_,i)=>i+1):[curGrp];
-  let html='';
-  for(const g of gs){
-    const sList=stu(g);if(!sList.length)continue;
-    html+='<div class="card"><div class="card-title">第'+g+'组 <span style="font-size:11px;color:var(--text-soft);font-weight:400">'+sList.length+'人</span></div>';
-    for(const s of sList){
-      const ws=weekScore(g,s.id,mon);const ds=dayScore(g,s.id,today());
-      html+='<div class="stu-row" onclick="openStu('+g+',\''+s.id+'\')">';
-      html+='<div class="stu-info"><div class="stu-name">'+esc(s.name)+'</div><div class="stu-meta">今日 '+(ds>0?'+':'')+ds+'</div></div>';
-      html+='<div class="stu-score '+(ws>=0?'positive':'negative')+'">'+(ws>0?'+':'')+ws+'</div>';
-      html+='<div class="stu-arrow">›</div></div>';
-    }
-    html+='</div>';
-  }
-  document.getElementById('detailList').innerHTML=html||'<div class="empty">暂无数据</div>';
-}
-function openStu(g,sid){
-  const mon=getMon(weekOff);const sList=stu(g);const s=sList.find(x=>x.id===sid);
-  if(!s)return;curStu={g,sid,name:s.name};curCat='all';
-  document.getElementById('stuModalTitle').textContent=s.name;
-  document.getElementById('stuWeekScore').textContent=(weekScore(g,sid,mon)>0?'+':'')+weekScore(g,sid,mon);
-  document.getElementById('stuTodayScore').textContent=(dayScore(g,sid,today())>0?'+':'')+dayScore(g,sid,today());
-  renderStuCats();renderStuRecs();
-  document.getElementById('stuModal').classList.add('show');
-}
-function renderStuCats(){
-  let html='';
-  for(const c of CATS)html+='<div class="cat-tab'+(curCat===c.id?' active':'')+'" onclick="pickCat(\''+c.id+'\')">'+c.name+'</div>';
-  document.getElementById('stuCatTabs').innerHTML=html;
-}
-function pickCat(c){curCat=c;renderStuCats();renderStuRecs();}
-function renderStuRecs(){
-  if(!curStu)return;const {g,sid}=curStu;const mon=getMon(weekOff);
-  const cats=curCat==='all'?CATS.filter(c=>c.id!=='all').map(c=>c.id):[curCat];
-  let html='';
-  for(let i=0;i<7;i++){
-    const d=addD(mon,i);if(!isWork(d))continue;const ds=fmt(d);
-    let recs=[];const dd=gd(g).scores||{};const dayD=dd[ds]||{};const sday=dayD[sid]||{};
-    for(const cat of cats)for(const e of (sday[cat]||[]))recs.push({...e,cat});
-    if(!recs.length)continue;
-    html+='<div class="date-group">'+ds.slice(5)+'</div>';
-    for(const r of recs){
-      const ci=CATS.find(c=>c.id===r.cat);const col=CAT_C[r.cat]||'#999';
-      html+='<div class="rec-item"><div class="rec-info">';
-      html+='<div class="rec-label"><span class="rec-dot" style="background:'+col+'"></span>'+esc(r.label||ci?.name||'自定义')+'</div>';
-      html+='<div class="rec-by">'+esc(r.by||'')+' · '+esc(ci?.name||'')+'</div>';
-      html+='</div><div class="rec-val '+(r.v>0?'positive':'negative')+'">'+(r.v>0?'+':'')+r.v+'</div></div>';
-    }
-  }
-  document.getElementById('stuRecordList').innerHTML=html||'<div class="empty">本周暂无记录</div>';
-}
-function closeStuModal(){document.getElementById('stuModal').classList.remove('show');curStu=null;}
 function renderBase(){
-  const mon=getMon(weekOff);let html='';const names=['周一','周二','周三','周四','周五'];
+  const mon=getMon(0);let html='';const names=['周一','周二','周三','周四','周五'];
   for(let i=0;i<5;i++){
     const d=addD(mon,i);const ds=fmt(d);
     let allOff=true,anyOff=false;
@@ -387,7 +399,7 @@ async function toggleBase(date,currentlyOff){
       if(currentlyOff)delete gd2.baseOff[date];else gd2.baseOff[date]=true;
       gd2.lastModified=Date.now();
       await fetch(SB_URL+'/rest/v1/group_data?group_id=eq.'+g,{method:'PATCH',headers:hdrs(),body:JSON.stringify({data:gd2})});
-    }catch(e){console.log(e);}
+    }catch(e){}
   }
   await loadAll();renderBase();toast(currentlyOff?'已开启基础分':'已关闭基础分');
 }
@@ -400,7 +412,7 @@ async function saveWeight(){
       const rows=await r.json();if(!rows||!rows.length)continue;
       const gd2=rows[0].data;gd2.weightFactor=w;gd2.lastModified=Date.now();
       await fetch(SB_URL+'/rest/v1/group_data?group_id=eq.'+g,{method:'PATCH',headers:hdrs(),body:JSON.stringify({data:gd2})});
-    }catch(e){console.log(e);}
+    }catch(e){}
   }
   await loadAll();renderAll();toast('已保存系数 ×'+w.toFixed(2));
 }
@@ -419,8 +431,9 @@ function switchView(v){
   renderAll();
 }
 function renderAll(){
-  if(view==='rank')renderRank();
-  else if(view==='detail'){renderGrpTabs();renderDetail();}
+  updateDateLabel();
+  if(view==='daily')renderDaily();
+  else if(view==='rank')renderRank();
   else if(view==='base')renderBase();
 }
 function startRT(){
