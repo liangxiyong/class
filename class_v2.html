@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -108,6 +108,28 @@ body.theme-dis .card{border-left:3px solid var(--accent)}
 .toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.8);color:#fff;padding:12px 20px;border-radius:8px;font-size:14px;z-index:300;opacity:0;transition:opacity .2s;pointer-events:none}
 .toast.show{opacity:1}
 .loading{text-align:center;padding:40px;color:var(--text-soft);font-size:14px}
+/* AI智能体 */
+.ai-fab{position:fixed;bottom:80px;right:16px;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 4px 16px rgba(99,102,241,.4);cursor:pointer;z-index:150;transition:transform .2s}
+.ai-fab:active{transform:scale(.9)}
+.ai-panel{position:fixed;bottom:0;right:0;width:100%;max-width:400px;height:80vh;background:var(--card);border-radius:20px 0 0 0;box-shadow:-4px 0 20px rgba(0,0,0,.1);z-index:160;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .3s ease}
+.ai-panel.show{transform:translateX(0)}
+.ai-header{padding:16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+.ai-title{font-size:16px;font-weight:700;display:flex;align-items:center;gap:8px}
+.ai-close{width:32px;height:32px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px}
+.ai-messages{flex:1;overflow-y:auto;padding:16px;background:var(--bg)}
+.ai-msg{margin-bottom:12px;max-width:85%}
+.ai-msg.user{margin-left:auto}
+.ai-msg.user .bubble{background:var(--accent);color:#fff;border-radius:16px 16px 4px 16px}
+.ai-msg.assistant .bubble{background:var(--card);border-radius:16px 16px 16px 4px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.ai-bubble{padding:10px 14px;font-size:14px;line-height:1.5;word-break:break-word}
+.ai-input-bar{padding:12px;border-top:1px solid var(--line);display:flex;gap:8px;align-items:center;background:var(--card)}
+.ai-input{flex:1;padding:10px 14px;border:1px solid var(--line);border-radius:20px;font-size:14px;outline:none}
+.ai-input:focus{border-color:var(--accent)}
+.ai-send-btn{width:40px;height:40px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;flex:none}
+.ai-voice-btn{width:40px;height:40px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;flex:none}
+.ai-voice-btn.recording{background:var(--red);color:#fff;animation:aiPulse 1s infinite}
+@keyframes aiPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+.ai-typing{padding:10px 14px;font-size:13px;color:var(--text-soft);font-style:italic}
 </style>
 </head>
 <body>
@@ -866,6 +888,218 @@ function renderAll(){
 // ================= 启动 =================
 setupLongPress();
 init();
+// ================= AI智能体 =================
+const DASHSCOPE_API_KEY = 'sk-ws-H.PIHIIHM.GfnT.MEUCICjlEnrk_S73O4OOPa8eIIPFLM81FNVf0Sd_athDqQRcAiEAuGN0T3MASXJz8KuIfyU3yQPrPccX29GtBm6SvBUHgAY';
+const DASHSCOPE_URL = 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions';
+let recognition = null;
+let isRecording = false;
+
+function toggleAI(){
+  const panel = document.getElementById('aiPanel');
+  panel.classList.toggle('show');
+  if(panel.classList.contains('show')){
+    document.getElementById('aiInput').focus();
+  }
+}
+
+function addAIMsg(text, isUser){
+  const msgs = document.getElementById('aiMessages');
+  const div = document.createElement('div');
+  div.className = 'ai-msg ' + (isUser ? 'user' : 'assistant');
+  div.innerHTML = '<div class="bubble"><div class="ai-bubble">' + text + '</div></div>';
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function addTyping(){
+  const msgs = document.getElementById('aiMessages');
+  const div = document.createElement('div');
+  div.className = 'ai-msg assistant';
+  div.id = 'aiTyping';
+  div.innerHTML = '<div class="bubble"><div class="ai-typing">正在思考...</div></div>';
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function removeTyping(){
+  const t = document.getElementById('aiTyping');
+  if(t) t.remove();
+}
+
+function toggleVoice(){
+  if(!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)){
+    toast('浏览器不支持语音输入');
+    return;
+  }
+  if(isRecording){
+    recognition.stop();
+    return;
+  }
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SR();
+  recognition.lang = 'zh-CN';
+  recognition.continuous = false;
+  recognition.interimResults = false;
+  recognition.onstart = function(){
+    isRecording = true;
+    document.getElementById('aiVoiceBtn').classList.add('recording');
+  };
+  recognition.onresult = function(e){
+    const text = e.results[0][0].transcript;
+    document.getElementById('aiInput').value = text;
+    sendAI();
+  };
+  recognition.onerror = function(e){
+    toast('语音识别失败');
+  };
+  recognition.onend = function(){
+    isRecording = false;
+    document.getElementById('aiVoiceBtn').classList.remove('recording');
+  };
+  recognition.start();
+}
+
+function buildSystemPrompt(){
+  const students = state.students.map(s => s.name + '(第' + s.group + '组)').join('、');
+  const today = curDateStr();
+  return '你是班级管理助手，帮老师快速录入分数和查数据。' +
+    '当前日期：' + today + '。' +
+    '学生名单：' + students + '。' +
+    '你需要把用户的指令转换成JSON格式返回，不要返回其他内容。' +
+    '支持的操作：' +
+    '1. 加扣分：{"action":"add","student":"姓名","value":2,"label":"表现好"}' +
+    '2. 查数据：{"action":"query","question":"问题"}' +
+    '3. 删除记录：{"action":"delete","student":"姓名"}' +
+    '只返回JSON，不要解释。';
+}
+
+async function sendAI(){
+  const input = document.getElementById('aiInput');
+  const text = input.value.trim();
+  if(!text) return;
+  input.value = '';
+  addAIMsg(text, true);
+  addTyping();
+
+  try{
+    const resp = await fetch(DASHSCOPE_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + DASHSCOPE_API_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'qwen-turbo',
+        messages: [
+          {role: 'system', content: buildSystemPrompt()},
+          {role: 'user', content: text}
+        ],
+        temperature: 0.3
+      })
+    });
+    const data = await resp.json();
+    const aiText = data.choices[0].message.content.trim();
+    removeTyping();
+
+    try{
+      const action = JSON.parse(aiText);
+      executeAIAction(action, text);
+    }catch(e){
+      addAIMsg(aiText, false);
+    }
+  }catch(e){
+    removeTyping();
+    addAIMsg('出错了：' + e.message, false);
+  }
+}
+
+async function executeAIAction(action, originalText){
+  if(action.action === 'add'){
+    const student = state.students.find(s => s.name === action.student);
+    if(!student){
+      addAIMsg('没找到学生：' + action.student, false);
+      return;
+    }
+    await addScore(student.id, action.value, action.label || 'AI录入');
+    addAIMsg('已完成：' + action.student + ' ' + (action.value > 0 ? '+' : '') + action.value + '分', false);
+  }else if(action.action === 'query'){
+    addAIMsg('查询：' + action.question, false);
+    const result = queryLocalData(action.question);
+    addAIMsg(result, false);
+  }else if(action.action === 'delete'){
+    const student = state.students.find(s => s.name === action.student);
+    if(!student){
+      addAIMsg('没找到学生：' + action.student, false);
+      return;
+    }
+    if(disDay[student.id]){
+      disDay[student.id] = [];
+      await saveDisToGroup(student.id, []);
+      await loadDayData(curDateStr());
+      renderDis();
+      addAIMsg('已删除：' + action.student + ' 今天的所有记录', false);
+    }else{
+      addAIMsg(action.student + ' 今天没有记录', false);
+    }
+  }else{
+    addAIMsg(originalText, false);
+  }
+}
+
+function queryLocalData(question){
+  const q = question.toLowerCase();
+  if(q.includes('扣分') || q.includes('减分') || q.includes('表现不好')){
+    let result = '今天扣分情况：\n';
+    let has = false;
+    for(const sid in disDay){
+      const recs = disDay[sid];
+      const neg = recs.filter(r => r.value < 0);
+      if(neg.length > 0){
+        const student = state.students.find(s => s.id === sid);
+        if(student){
+          result += student.name + '：' + neg.map(r => r.label + ' ' + r.value + '分').join('、') + '\n';
+          has = true;
+        }
+      }
+    }
+    return has ? result : '今天没有人扣分';
+  }
+  if(q.includes('加分') || q.includes('表扬') || q.includes('表现好')){
+    let result = '今天加分情况：\n';
+    let has = false;
+    for(const sid in disDay){
+      const recs = disDay[sid];
+      const pos = recs.filter(r => r.value > 0);
+      if(pos.length > 0){
+        const student = state.students.find(s => s.id === sid);
+        if(student){
+          result += student.name + '：' + pos.map(r => r.label + ' +' + r.value + '分').join('、') + '\n';
+          has = true;
+        }
+      }
+    }
+    return has ? result : '今天没有人加分';
+  }
+  if(q.includes('总结') || q.includes('汇总') || q.includes('情况')){
+    let result = '今日纪律汇总：\n';
+    let total = 0;
+    for(const sid in disDay){
+      const recs = disDay[sid];
+      const sum = recs.reduce((a, r) => a + r.value, 0);
+      if(sum !== 0){
+        const student = state.students.find(s => s.id === sid);
+        if(student){
+          result += student.name + '：' + (sum > 0 ? '+' : '') + sum + '分\n';
+          total += sum;
+        }
+      }
+    }
+    result += '全班合计：' + (total > 0 ? '+' : '') + total + '分';
+    return result;
+  }
+  return '我理解的问题是：' + question + '\n你可以试试问"今天谁扣分了"或"今天谁加分了"';
+}
+
 </script>
 </body>
 </html>
