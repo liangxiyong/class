@@ -1045,9 +1045,8 @@ async function executeAIAction(action, originalText){
     await addScore(student.id, action.value, action.label || 'AI录入');
     addAIMsg('已完成：' + action.student + ' ' + (action.value > 0 ? '+' : '') + action.value + '分', false);
   }else if(action.action === 'query'){
-    addAIMsg('查询：' + action.question, false);
-    const result = queryLocalData(action.question);
-    addAIMsg(result, false);
+    // 真正的AI查询：把当天数据传给AI，让AI分析回答
+    await askAIWithData(action.question);
   }else if(action.action === 'delete'){
     const student = state.students.find(s => s.name === action.student);
     if(!student){
@@ -1068,58 +1067,42 @@ async function executeAIAction(action, originalText){
   }
 }
 
-function queryLocalData(question){
-  const q = question.toLowerCase();
-  if(q.includes('扣分') || q.includes('减分') || q.includes('表现不好')){
-    let result = '今天扣分情况：\n';
-    let has = false;
-    for(const sid in disDay){
-      const recs = disDay[sid];
-      const neg = recs.filter(r => r.value < 0);
-      if(neg.length > 0){
-        const student = state.students.find(s => s.id === sid);
-        if(student){
-          result += student.name + '：' + neg.map(r => r.label + ' ' + r.value + '分').join('、') + '\n';
-          has = true;
-        }
-      }
+async function askAIWithData(question){
+  // 收集当天所有纪律数据
+  let dataLines = [];
+  for(const sid in disDay){
+    const recs = disDay[sid];
+    const student = state.students.find(s => s.id === sid);
+    if(student && recs.length > 0){
+      const parts = recs.map(r => r.label + ':' + r.value + '分');
+      dataLines.push(student.name + ': ' + parts.join(', '));
     }
-    return has ? result : '今天没有人扣分';
   }
-  if(q.includes('加分') || q.includes('表扬') || q.includes('表现好')){
-    let result = '今天加分情况：\n';
-    let has = false;
-    for(const sid in disDay){
-      const recs = disDay[sid];
-      const pos = recs.filter(r => r.value > 0);
-      if(pos.length > 0){
-        const student = state.students.find(s => s.id === sid);
-        if(student){
-          result += student.name + '：' + pos.map(r => r.label + ' +' + r.value + '分').join('、') + '\n';
-          has = true;
-        }
-      }
-    }
-    return has ? result : '今天没有人加分';
+  const dataStr = dataLines.length > 0 ? dataLines.join('\n') : '今天没有任何纪律记录';
+  const today = curDateStr();
+
+  try{
+    const resp = await fetch(DASHSCOPE_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + DASHSCOPE_API_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'qwen-turbo',
+        messages: [
+          {role: 'system', content: '你是班级纪律助手。当前日期：' + today + '。当天纪律数据：\n' + dataStr + '\n\n请根据以上数据回答老师的问题。回答要简洁明了，直接给结论，不要废话。如果数据里没有相关信息，就说没有相关数据。'},
+          {role: 'user', content: question}
+        ],
+        temperature: 0.3
+      })
+    });
+    const data = await resp.json();
+    const aiText = data.choices[0].message.content.trim();
+    addAIMsg(aiText, false);
+  }catch(e){
+    addAIMsg('查询出错了：' + e.message, false);
   }
-  if(q.includes('总结') || q.includes('汇总') || q.includes('情况')){
-    let result = '今日纪律汇总：\n';
-    let total = 0;
-    for(const sid in disDay){
-      const recs = disDay[sid];
-      const sum = recs.reduce((a, r) => a + r.value, 0);
-      if(sum !== 0){
-        const student = state.students.find(s => s.id === sid);
-        if(student){
-          result += student.name + '：' + (sum > 0 ? '+' : '') + sum + '分\n';
-          total += sum;
-        }
-      }
-    }
-    result += '全班合计：' + (total > 0 ? '+' : '') + total + '分';
-    return result;
-  }
-  return '我理解的问题是：' + question + '\n你可以试试问"今天谁扣分了"或"今天谁加分了"';
 }
 
 </script>

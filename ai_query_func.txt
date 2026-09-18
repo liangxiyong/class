@@ -1,0 +1,37 @@
+async function askAIWithData(question){
+  // 收集当天所有纪律数据
+  let dataLines = [];
+  for(const sid in disDay){
+    const recs = disDay[sid];
+    const student = state.students.find(s => s.id === sid);
+    if(student && recs.length > 0){
+      const parts = recs.map(r => r.label + ':' + r.value + '分');
+      dataLines.push(student.name + ': ' + parts.join(', '));
+    }
+  }
+  const dataStr = dataLines.length > 0 ? dataLines.join('\n') : '今天没有任何纪律记录';
+  const today = curDateStr();
+
+  try{
+    const resp = await fetch(DASHSCOPE_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + DASHSCOPE_API_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'qwen-turbo',
+        messages: [
+          {role: 'system', content: '你是班级纪律助手。当前日期：' + today + '。当天纪律数据：\n' + dataStr + '\n\n请根据以上数据回答老师的问题。回答要简洁明了，直接给结论，不要废话。如果数据里没有相关信息，就说没有相关数据。'},
+          {role: 'user', content: question}
+        ],
+        temperature: 0.3
+      })
+    });
+    const data = await resp.json();
+    const aiText = data.choices[0].message.content.trim();
+    addAIMsg(aiText, false);
+  }catch(e){
+    addAIMsg('查询出错了：' + e.message, false);
+  }
+}
