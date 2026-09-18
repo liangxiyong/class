@@ -1,250 +1,214 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <title>小组积分 V2</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
 <style>
 :root{
   --bg:#f5f6fa;--card:#fff;--text:#1a1a2e;--text-soft:#8b8b9e;
-  --line:#e8e8f0;--accent:#6366f1;--accent-soft:#eef2ff;
-  --green:#10b981;--red:#ef4444;--orange:#f59e0b;--blue:#3b82f6;
-  --purple:#8b5cf6;--pink:#ec4899;
+  --line:#e8e8f0;--accent:#6366f1;--accent-light:#eef2ff;
+  --green:#10b981;--red:#ef4444;--orange:#f59e0b;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{height:100%}
-body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);font-size:14px;overscroll-behavior:none}
-button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
-input,select{font-family:inherit;color:inherit;outline:none}
+html{font-size:16px}
+body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);font-size:14px;padding-bottom:70px;min-height:100vh;overscroll-behavior-y:none}
 
 /* 顶部 */
 .topbar{position:sticky;top:0;z-index:100;background:var(--card);padding:12px 16px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
 .topbar-row{display:flex;align-items:center;justify-content:space-between}
-.topbar-title{font-size:17px;font-weight:700;display:flex;align-items:center;gap:8px}
-.topbar-title .badge{font-size:10px;background:var(--accent);color:#fff;padding:2px 6px;border-radius:4px;font-weight:500}
+.topbar-title{font-size:17px;font-weight:700}
+.topbar-badge{font-size:10px;background:var(--accent);color:#fff;padding:2px 6px;border-radius:4px;font-weight:500;margin-left:6px;vertical-align:middle}
 .topbar-user{font-size:12px;color:var(--text-soft)}
-.date-nav{display:flex;align-items:center;gap:8px;margin-top:10px}
-.date-btn{width:32px;height:32px;border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer}
-.date-current{flex:1;text-align:center;font-size:14px;font-weight:600;padding:6px;background:var(--bg);border-radius:8px}
-.sync-btn{padding:6px 10px;border-radius:8px;background:var(--bg);font-size:11px;color:var(--text-soft);cursor:pointer}
+.week-nav{display:flex;align-items:center;gap:8px;margin-top:10px}
+.week-btn{width:36px;height:36px;border-radius:10px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;color:var(--text);flex:none}
+.week-label{flex:1;text-align:center;font-size:13px;font-weight:600;padding:8px;background:var(--bg);border-radius:10px}
+.refresh-btn{width:36px;height:36px;border-radius:10px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;flex:none}
 
 /* 内容 */
-.content{padding:12px 16px 80px}
+.content{padding:12px}
 .view{display:none}
 .view.active{display:block;animation:fadeIn .2s ease}
-@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 
 /* 卡片 */
-.card{background:var(--card);border-radius:14px;padding:14px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
-.card-title{font-size:14px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+.card{background:var(--card);border-radius:14px;padding:16px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.card-title{font-size:14px;font-weight:700;margin-bottom:12px}
 
-/* 小组排名卡片 */
-.group-rank-card{background:var(--card);border-radius:14px;padding:14px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.04);cursor:pointer;transition:transform .1s}
-.group-rank-card:active{transform:scale(.98)}
-.rank-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.rank-num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff}
+/* 统计概览 */
+.stats-row{display:flex;gap:8px;margin-bottom:12px}
+.stat-item{flex:1;background:var(--card);border-radius:14px;padding:14px 8px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.stat-num{font-size:22px;font-weight:800;line-height:1.2}
+.stat-num.green{color:var(--green)}
+.stat-label{font-size:10px;color:var(--text-soft);margin-top:4px}
+
+/* 排名卡片 */
+.rank-card{background:var(--card);border-radius:14px;padding:16px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.04);cursor:pointer;transition:transform .1s}
+.rank-card:active{transform:scale(.98)}
+.rank-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.rank-left{display:flex;align-items:center;flex:1;min-width:0}
+.rank-num{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff;flex:none}
 .rank-num.r1{background:linear-gradient(135deg,#fbbf24,#f59e0b)}
 .rank-num.r2{background:linear-gradient(135deg,#94a3b8,#64748b)}
 .rank-num.r3{background:linear-gradient(135deg,#fb923c,#ea580c)}
 .rank-num.rn{background:var(--line);color:var(--text-soft)}
-.rank-name{font-size:16px;font-weight:700;flex:1;margin-left:10px}
+.rank-name{font-size:17px;font-weight:700;margin-left:12px}
 .rank-score{font-size:22px;font-weight:800}
 .rank-score.positive{color:var(--green)}
-.rank-members{display:flex;gap:4px;flex-wrap:wrap}
-.rank-member{font-size:11px;background:var(--bg);padding:3px 8px;border-radius:6px;color:var(--text-soft)}
+.rank-score.negative{color:var(--red)}
+.rank-members{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
+.rank-member{font-size:11px;background:var(--bg);padding:4px 9px;border-radius:6px;color:var(--text-soft)}
 
 /* 学生列表 */
-.student-item{display:flex;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
-.student-item:last-child{border-bottom:none}
-.student-info{flex:1;min-width:0}
-.student-name{font-size:14px;font-weight:600}
-.student-meta{font-size:11px;color:var(--text-soft);margin-top:2px}
-.student-score{font-size:18px;font-weight:700;margin-right:10px;min-width:50px;text-align:right}
-.student-score.positive{color:var(--green)}
-.student-score.negative{color:var(--red)}
-.student-arrow{color:var(--text-soft);font-size:14px}
+.stu-row{display:flex;align-items:center;padding:14px 0;border-bottom:1px solid var(--line)}
+.stu-row:last-child{border-bottom:none}
+.stu-info{flex:1;min-width:0}
+.stu-name{font-size:15px;font-weight:600}
+.stu-meta{font-size:11px;color:var(--text-soft);margin-top:3px}
+.stu-score{font-size:19px;font-weight:700;margin-right:10px;min-width:55px;text-align:right}
+.stu-score.positive{color:var(--green)}
+.stu-score.negative{color:var(--red)}
+.stu-arrow{color:var(--text-soft);font-size:18px}
 
-/* 分类标签 */
-.cat-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:10px;-webkit-overflow-scrolling:touch}
-.cat-tab{padding:6px 12px;border-radius:16px;background:var(--bg);font-size:12px;white-space:nowrap;cursor:pointer;color:var(--text-soft)}
+/* 分类tab */
+.cat-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px;-webkit-overflow-scrolling:touch}
+.cat-tab{padding:7px 14px;border-radius:18px;background:var(--bg);font-size:12px;white-space:nowrap;cursor:pointer;color:var(--text-soft);flex:none}
 .cat-tab.active{background:var(--accent);color:#fff;font-weight:600}
 
 /* 记录项 */
-.record-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg);border-radius:10px;margin-bottom:6px}
-.record-item:last-child{margin-bottom:0}
-.record-info{flex:1;min-width:0}
-.record-label{font-size:13px;font-weight:500}
-.record-by{font-size:11px;color:var(--text-soft);margin-top:2px}
-.record-val{font-size:15px;font-weight:700;margin-right:10px}
-.record-val.positive{color:var(--green)}
-.record-val.negative{color:var(--red)}
-.record-del{color:var(--red);font-size:12px;cursor:pointer;padding:4px 8px;border-radius:6px}
+.rec-item{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--bg);border-radius:12px;margin-bottom:6px}
+.rec-item:last-child{margin-bottom:0}
+.rec-info{flex:1;min-width:0}
+.rec-label{font-size:13px;font-weight:500;display:flex;align-items:center;gap:7px}
+.rec-dot{width:8px;height:8px;border-radius:50%;flex:none}
+.rec-by{font-size:11px;color:var(--text-soft);margin-top:3px}
+.rec-val{font-size:16px;font-weight:700;margin-right:8px}
+.rec-val.positive{color:var(--green)}
+.rec-val.negative{color:var(--red)}
+
+/* 日期分组 */
+.date-group{font-size:12px;color:var(--text-soft);margin:14px 0 8px;font-weight:600;padding-left:2px}
 
 /* 底部tab */
 .tabbar{position:fixed;bottom:0;left:0;right:0;background:var(--card);display:flex;box-shadow:0 -2px 10px rgba(0,0,0,.06);z-index:100;padding-bottom:env(safe-area-inset-bottom)}
-.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 4px;cursor:pointer;color:var(--text-soft);transition:color .15s}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 4px;cursor:pointer;color:var(--text-soft)}
 .tab-item.active{color:var(--accent)}
-.tab-item .ico{font-size:20px;margin-bottom:2px}
+.tab-item .ico{font-size:22px;margin-bottom:3px}
 .tab-item .txt{font-size:10px;font-weight:500}
 
 /* 弹窗 */
-.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:200;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(2px)}
-.modal-overlay.show{display:flex}
-.modal{background:var(--card);width:100%;max-width:380px;border-radius:20px;padding:24px;max-height:85vh;overflow-y:auto;animation:modalIn .25s ease;box-shadow:0 20px 60px rgba(0,0,0,.15)}
-@keyframes modalIn{from{opacity:0;transform:scale(.92) translateY(10px)}to{opacity:1;transform:none}}
-.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
-.modal-title{font-size:18px;font-weight:700}
-.modal-close{width:32px;height:32px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--text-soft);cursor:pointer}
-.modal-actions{display:flex;gap:10px;margin-top:16px}
-.modal-btn{flex:1;padding:14px;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;transition:all .15s}
-.modal-btn:active{transform:scale(.97)}
-.modal-btn.primary{background:var(--accent);color:#fff}
-.modal-btn.secondary{background:var(--bg);color:var(--text)}
+.modal-mask{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:200;display:none;align-items:flex-end;justify-content:center}
+.modal-mask.show{display:flex}
+.modal{background:var(--card);width:100%;max-width:500px;border-radius:20px 20px 0 0;padding:20px;max-height:85vh;overflow-y:auto;animation:slideUp .25s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:none}}
+.modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.modal-title{font-size:17px;font-weight:700}
+.modal-close{width:32px;height:32px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--text-soft);cursor:pointer}
 
 /* 开关 */
-.switch-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--line)}
+.switch-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--line)}
 .switch-row:last-child{border-bottom:none}
-.switch-info{flex:1}
 .switch-title{font-size:14px;font-weight:500}
-.switch-sub{font-size:11px;color:var(--text-soft);margin-top:2px}
-.switch{width:48px;height:28px;border-radius:14px;background:var(--line);position:relative;cursor:pointer;transition:background .2s}
-.switch.on{background:var(--accent)}
+.switch-sub{font-size:11px;color:var(--text-soft);margin-top:3px}
+.switch{width:50px;height:28px;border-radius:14px;background:var(--line);position:relative;cursor:pointer;transition:background .2s;flex:none}
+.switch.on{background:var(--green)}
 .switch-knob{width:24px;height:24px;border-radius:50%;background:#fff;position:absolute;top:2px;left:2px;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
-.switch.on .switch-knob{transform:translateX(20px)}
+.switch.on .switch-knob{transform:translateX(22px)}
 
 /* Toast */
-.toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.8);color:#fff;padding:12px 20px;border-radius:8px;font-size:14px;z-index:300;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.8);color:#fff;padding:12px 24px;border-radius:10px;font-size:14px;z-index:300;opacity:0;transition:opacity .2s;pointer-events:none}
 .toast.show{opacity:1}
 .loading{text-align:center;padding:40px;color:var(--text-soft);font-size:14px}
 .empty{text-align:center;padding:30px;color:var(--text-soft);font-size:13px}
 
-/* 分数汇总条 */
-.score-summary{display:flex;gap:8px;margin-bottom:12px}
-.score-summary-item{flex:1;background:var(--bg);border-radius:10px;padding:10px;text-align:center}
-.score-summary-num{font-size:20px;font-weight:800}
-.score-summary-label{font-size:10px;color:var(--text-soft);margin-top:2px}
+/* 滑块 */
+.weight-slider{width:100%;height:6px;-webkit-appearance:none;background:var(--line);border-radius:3px;outline:none;margin:20px 0 8px}
+.weight-slider::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 2px 8px rgba(99,102,241,.3);border:3px solid #fff}
+.weight-marks{display:flex;justify-content:space-between;font-size:11px;color:var(--text-soft)}
+.btn-primary{width:100%;padding:15px;background:var(--accent);color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer;margin-top:16px}
+.btn-secondary{width:100%;padding:15px;background:var(--bg);color:var(--text);border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer;margin-top:10px}
 </style>
 </head>
 <body>
 
 <div class="topbar">
   <div class="topbar-row">
-    <div class="topbar-title">📊 小组积分 <span class="badge">V2</span></div>
+    <div class="topbar-title">小组积分<span class="topbar-badge">V2</span></div>
     <div class="topbar-user" id="userInfo"></div>
   </div>
-  <div class="date-nav">
-    <div class="date-btn" onclick="shiftWeek(-1)">‹</div>
-    <div class="date-current" id="weekLabel">本周</div>
-    <div class="date-btn" onclick="shiftWeek(1)">›</div>
-    <div class="sync-btn" onclick="forceRefresh()">🔄</div>
+  <div class="week-nav">
+    <div class="week-btn" onclick="shiftWeek(-1)">‹</div>
+    <div class="week-label" id="weekLabel">本周</div>
+    <div class="week-btn" onclick="shiftWeek(1)">›</div>
+    <div class="refresh-btn" onclick="refresh()">🔄</div>
   </div>
 </div>
 
 <div class="content">
-  <!-- 排名页 -->
   <div class="view active" id="view-rank">
-    <div class="score-summary">
-      <div class="score-summary-item">
-        <div class="score-summary-num" id="totalScore">0</div>
-        <div class="score-summary-label">全班总分</div>
-      </div>
-      <div class="score-summary-item">
-        <div class="score-summary-num" id="avgScore">0</div>
-        <div class="score-summary-label">组均</div>
-      </div>
-      <div class="score-summary-item">
-        <div class="score-summary-num" id="topGroup">-</div>
-        <div class="score-summary-label">第一</div>
-      </div>
+    <div class="stats-row">
+      <div class="stat-item"><div class="stat-num" id="totalAll">0</div><div class="stat-label">全班总分</div></div>
+      <div class="stat-item"><div class="stat-num" id="avgAll">0</div><div class="stat-label">组均</div></div>
+      <div class="stat-item"><div class="stat-num green" id="topGrp">-</div><div class="stat-label">第一名</div></div>
     </div>
     <div id="rankList"></div>
   </div>
 
-  <!-- 明细页 -->
   <div class="view" id="view-detail">
-    <div class="card">
-      <div class="card-title">选择小组</div>
-      <div class="cat-tabs" id="groupTabs"></div>
-    </div>
+    <div class="cat-tabs" id="groupTabs"></div>
     <div id="detailList"></div>
   </div>
 
-  <!-- 基础分页 -->
   <div class="view" id="view-base">
     <div class="card">
-      <div class="card-title">基础分设置（本周）</div>
+      <div class="card-title">📅 每日基础分</div>
       <div id="baseList"></div>
     </div>
     <div class="card">
-      <div class="card-title">加权系数</div>
-      <div style="display:flex;align-items:center;gap:12px">
-        <span style="font-size:14px">当前系数：</span>
-        <span id="weightNow" style="font-size:20px;font-weight:800;color:var(--accent)">×1</span>
-      </div>
-      <div style="margin-top:12px">
-        <input type="range" id="weightSlider" min="1" max="2" step="0.1" value="1" style="width:100%"
-          oninput="document.getElementById('weightNow').textContent='×'+this.value">
-        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-soft);margin-top:4px">
-          <span>×1</span><span>×1.5</span><span>×2</span>
-        </div>
-      </div>
-      <button class="modal-btn primary" style="width:100%;margin-top:12px" onclick="saveWeight()">保存系数</button>
+      <div class="card-title">⚖️ 加权系数（全班统一）</div>
+      <div style="text-align:center;font-size:32px;font-weight:800;color:var(--accent)" id="weightShow">×1.00</div>
+      <input type="range" class="weight-slider" id="weightSlider" min="1" max="1.12" step="0.01" value="1">
+      <div class="weight-marks"><span>×1.00</span><span>×1.06</span><span>×1.12</span></div>
+      <button class="btn-primary" onclick="saveWeight()">保存系数</button>
     </div>
   </div>
 
-  <!-- 设置页 -->
-  <div class="view" id="view-setting">
+  <div class="view" id="view-me">
     <div class="card">
-      <div class="card-title">账号</div>
       <div style="padding:8px 0">
-        <div style="font-size:14px;font-weight:500" id="settingName"></div>
-        <div style="font-size:12px;color:var(--text-soft);margin-top:2px" id="settingRole"></div>
+        <div style="font-size:17px;font-weight:700" id="meName"></div>
+        <div style="font-size:12px;color:var(--text-soft);margin-top:4px" id="meRole"></div>
       </div>
     </div>
     <div class="card">
-      <div class="card-title">数据</div>
-      <div class="switch-row" onclick="exportAllData()">
-        <div class="switch-info">
-          <div class="switch-title">📤 导出全部数据</div>
-          <div class="switch-sub">导出所有小组的JSON数据</div>
-        </div>
+      <div class="switch-row" onclick="exportData()" style="cursor:pointer">
+        <div><div class="switch-title">📤 导出全部数据</div><div class="switch-sub">下载所有小组JSON备份</div></div>
         <div style="color:var(--text-soft)">›</div>
       </div>
     </div>
-    <div class="card">
-      <button class="modal-btn secondary" style="width:100%" onclick="logout()">退出登录</button>
-    </div>
+    <div class="card"><button class="btn-secondary" onclick="logout()">退出登录</button></div>
   </div>
 </div>
 
-<!-- 底部tab -->
 <div class="tabbar">
   <div class="tab-item active" data-view="rank" onclick="switchView('rank')"><span class="ico">🏆</span><span class="txt">排名</span></div>
   <div class="tab-item" data-view="detail" onclick="switchView('detail')"><span class="ico">📋</span><span class="txt">明细</span></div>
-  <div class="tab-item" data-view="base" onclick="switchView('base')"><span class="ico">⚙️</span><span class="txt">基础分</span></div>
-  <div class="tab-item" data-view="setting" onclick="switchView('setting')"><span class="ico">👤</span><span class="txt">我的</span></div>
+  <div class="tab-item" data-view="base" onclick="switchView('base')"><span class="ico">📅</span><span class="txt">基础分</span></div>
+  <div class="tab-item" data-view="me" onclick="switchView('me')"><span class="ico">👤</span><span class="txt">我的</span></div>
 </div>
 
-<!-- 学生详情弹窗 -->
-<div class="modal-overlay" id="studentModal" onclick="if(event.target===this)closeStudentModal()">
+<div class="modal-mask" id="stuModal" onclick="if(event.target===this)closeStuModal()">
   <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title" id="studentModalTitle">学生详情</div>
-      <div class="modal-close" onclick="closeStudentModal()">✕</div>
+    <div class="modal-head">
+      <div class="modal-title" id="stuModalTitle">学生详情</div>
+      <div class="modal-close" onclick="closeStuModal()">✕</div>
     </div>
-    <div class="score-summary">
-      <div class="score-summary-item">
-        <div class="score-summary-num" id="studentWeekScore">0</div>
-        <div class="score-summary-label">本周总分</div>
-      </div>
-      <div class="score-summary-item">
-        <div class="score-summary-num" id="studentDayScore">0</div>
-        <div class="score-summary-label">今日</div>
-      </div>
+    <div class="stats-row">
+      <div class="stat-item"><div class="stat-num" id="stuWeekScore">0</div><div class="stat-label">本周总分</div></div>
+      <div class="stat-item"><div class="stat-num" id="stuTodayScore">0</div><div class="stat-label">今日</div></div>
     </div>
-    <div class="cat-tabs" id="studentCatTabs"></div>
-    <div id="studentRecordList"></div>
+    <div class="cat-tabs" id="stuCatTabs"></div>
+    <div id="stuRecordList"></div>
   </div>
 </div>
 
@@ -252,431 +216,224 @@ input,select{font-family:inherit;color:inherit;outline:none}
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-// ================= 配置 =================
-const SUPABASE_URL='https://zaeijgfuykhkabteqljw.supabase.co';
-const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InphZWlqZ2Z1eWtoa2FidGVxbGp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1ODA5MzgsImV4cCI6MjEwNDE1NjkzOH0.CQ-jqsslzaWpeeXg0OJnQsaW-iMNoCKbJGW_-p1F3D8';
+const SB_URL='https://zaeijgfuykhkabteqljw.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InphZWlqZ2Z1eWtoa2FidGVxbGp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1ODA5MzgsImV4cCI6MjEwNDE1NjkzOH0.CQ-jqsslzaWpeeXg0OJnQsaW-iMNoCKbJGW_-p1F3D8';
 const SESSION_KEY='jfz_session_v1';
-const SB=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
-
-// ================= 状态 =================
-let currentUser=null;
-let currentView='rank';
-let weekOffset=0; // 0=本周, -1=上周, 1=下周
-let groupsData={}; // group_id -> data
-let currentGroup=1;
-let currentStudent=null;
-let currentCat='all';
-let sbAccessToken='';
-let realtimeSubs={};
-
-// 分类配置
-const CATEGORIES=[
-  {id:'all',name:'全部'},
-  {id:'hw',name:'作业'},
-  {id:'class',name:'课堂表现'},
-  {id:'eye',name:'眼操'},
-  {id:'week',name:'周反馈'},
-  {id:'pass',name:'过关练习'},
-  {id:'good',name:'好人好事'},
-  {id:'late',name:'迟到'},
-  {id:'notes',name:'笔记'},
-  {id:'study',name:'自习'},
-  {id:'break',name:'课间纪律'},
-  {id:'duty',name:'值日'},
-  {id:'exercise',name:'课间操'},
-  {id:'appearance',name:'仪容仪表'}
+const sb=supabase.createClient(SB_URL,SB_KEY);
+let user=null, accessToken='';
+let view='rank', weekOff=0;
+let groups={}, curGrp=0, curStu=null, curCat='all';
+let realtimeCh=[];
+const CATS=[
+  {id:'all',name:'全部'},{id:'hw',name:'作业'},{id:'class',name:'课堂'},{id:'eye',name:'眼操'},
+  {id:'week',name:'周反馈'},{id:'pass',name:'过关'},{id:'good',name:'好人好事'},{id:'late',name:'迟到'},
+  {id:'notes',name:'笔记'},{id:'study',name:'自习'},{id:'break',name:'课间'},{id:'duty',name:'值日'},
+  {id:'exercise',name:'课间操'},{id:'appearance',name:'仪容'}
 ];
-const CAT_COLORS={hw:'#3b82f6',class:'#8b5cf6',eye:'#10b981',week:'#f59e0b',pass:'#ec4899',good:'#14b8a6',late:'#ef4444',notes:'#6366f1',study:'#a855f7',break:'#f97316',duty:'#84cc16',exercise:'#06b6d4',appearance:'#d946ef'};
-
-// ================= 工具 =================
+const CAT_C={hw:'#3b82f6',class:'#8b5cf6',eye:'#10b981',week:'#f59e0b',pass:'#ec4899',good:'#14b8a6',late:'#ef4444',notes:'#6366f1',study:'#a855f7',break:'#f97316',duty:'#84cc16',exercise:'#06b6d4',appearance:'#d946ef'};
 function fmt(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
-function todayStr(){return fmt(new Date());}
-function addDays(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r;}
-function getMonday(offset){
-  const now=new Date();
-  const day=(now.getDay()+6)%7;
-  const monday=addDays(now,-day+offset*7);
-  monday.setHours(0,0,0,0);
-  return monday;
-}
-function isSchoolDay(d){const wd=d.getDay();return wd>=1&&wd<=5;}
-function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
+function today(){return fmt(new Date());}
+function addD(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r;}
+function getMon(off){const n=new Date();const day=(n.getDay()+6)%7;const m=addD(n,-day+off*7);m.setHours(0,0,0,0);return m;}
+function isWork(d){const w=d.getDay();return w>=1&&w<=5;}
 function esc(s){return String(s).replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function sbHeaders(){return {'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken,'Content-Type':'application/json'};}
-
-// ================= 认证 =================
-function loadSession(){try{const r=localStorage.getItem(SESSION_KEY);return r?JSON.parse(r):null;}catch(e){return null;}}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800);}
+function hdrs(){return {'apikey':SB_KEY,'Authorization':'Bearer '+accessToken,'Content-Type':'application/json'};}
 async function init(){
-  currentUser=loadSession();
-  if(!currentUser){location.href='index.html';return;}
-  if(currentUser.role!=='admin'){location.href='index.html';return;}
-  document.getElementById('userInfo').textContent=currentUser.name||'';
-  document.getElementById('settingName').textContent=currentUser.name||'';
-  document.getElementById('settingRole').textContent='管理员';
-  if(!SB){toast('Supabase加载失败');return;}
-  const {data:sd}=await SB.auth.getSession();
+  try{user=JSON.parse(localStorage.getItem(SESSION_KEY)||'null');}catch(e){user=null;}
+  if(!user||user.role!=='admin'){location.href='index.html';return;}
+  document.getElementById('userInfo').textContent=user.name||'';
+  document.getElementById('meName').textContent=user.name||'';
+  document.getElementById('meRole').textContent='管理员';
+  const {data:sd}=await sb.auth.getSession();
   if(!sd||!sd.session){location.href='index.html';return;}
-  sbAccessToken=sd.session.access_token;
-  await loadAllGroups();
-  renderAll();
-  startRealtime();
+  accessToken=sd.session.access_token;
+  await loadAll();renderAll();startRT();
 }
-
-// ================= 数据加载 =================
-async function loadAllGroups(){
-  try{
-    const resp=await fetch(SUPABASE_URL+'/rest/v1/group_data?select=*&order=group_id',{headers:sbHeaders()});
-    const rows=await resp.json();
-    groupsData={};
-    for(const row of rows){
-      groupsData[String(row.group_id)]=row.data||{};
-    }
-  }catch(e){console.log('加载数据失败:',e);toast('加载失败');}
+async function loadAll(){
+  const r=await fetch(SB_URL+'/rest/v1/group_data?select=*&order=group_id',{headers:hdrs()});
+  const rows=await r.json();
+  groups={};
+  for(const row of rows)groups[String(row.group_id)]=row.data||{};
 }
-
-async function forceRefresh(){
-  await loadAllGroups();
-  renderAll();
-  toast('已刷新');
+async function refresh(){await loadAll();renderAll();toast('已刷新');}
+function gd(g){return groups[String(g)]||{};}
+function stu(g){return gd(g).students||[];}
+function wt(g){return gd(g).weightFactor||1;}
+function isOff(g,d){return !!(gd(g).baseOff&&gd(g).baseOff[d]);}
+function cellV(g,s,cat,d){
+  const dd=gd(g).scores||{};const day=dd[d]||{};const sday=day[s]||{};const ev=sday[cat]||[];
+  return ev.reduce((a,e)=>a+(+e.v||0),0);
 }
-
-// ================= 分数计算（与V1一致） =================
-function getGroupData(gid){return groupsData[String(gid)]||{};}
-function getStudents(gid){const d=getGroupData(gid);return d.students||[];}
-function getWeight(gid){const d=getGroupData(gid);return (d.weightFactor&&d.weightFactor>0)?d.weightFactor:1;}
-function isBaseOff(gid,date){const d=getGroupData(gid);return !!(d.baseOff&&d.baseOff[date]);}
-function getCellVal(gid,sid,cat,date){
-  const d=getGroupData(gid);
-  const dayData=(d.scores&&d.scores[date]&&d.scores[date][sid])||{};
-  const events=dayData[cat]||[];
-  return events.reduce((a,e)=>a+(Number(e.v)||0),0);
+function dayScore(g,s,d){
+  if(!isWork(new Date(d)))return 0;
+  let total=isOff(g,d)?0:10;
+  const items=gd(g).items||[];
+  for(const it of items)total+=cellV(g,s,it.id,d);
+  return Math.round(total*wt(g)*100)/100;
 }
-function getDayScore(gid,sid,date){
-  if(!isSchoolDay(new Date(date)))return 0;
-  const d=getGroupData(gid);
-  const items=d.items||[];
-  let total=isBaseOff(gid,date)?0:10;
-  for(const it of items){
-    total+=getCellVal(gid,sid,it.id,date);
-  }
-  return Math.round(total*getWeight(gid)*100)/100;
+function weekScore(g,s,mon){
+  let t=0;for(let i=0;i<7;i++){const d=addD(mon,i);if(isWork(d))t+=dayScore(g,s,fmt(d));}
+  return Math.round(t*100)/100;
 }
-function getWeekScore(gid,sid,monday){
-  let total=0;
-  for(let i=0;i<7;i++){
-    const d=addDays(monday,i);
-    if(isSchoolDay(d))total+=getDayScore(gid,sid,fmt(d));
-  }
-  return Math.round(total*100)/100;
-}
-function getGroupWeekTotal(gid,monday){
-  const students=getStudents(gid);
-  let total=0;
-  for(const s of students){
-    total+=getWeekScore(gid,s.id,monday);
-  }
-  return Math.round(total*100)/100;
-}
-
-// ================= 排名页 =================
+function grpTotal(g,mon){let t=0;for(const s of stu(g))t+=weekScore(g,s.id,mon);return Math.round(t*100)/100;}
 function renderRank(){
-  const monday=getMonday(weekOffset);
-  const weekEnd=addDays(monday,4);
-  document.getElementById('weekLabel').textContent=fmt(monday)+' ~ '+fmt(weekEnd);
-
-  // 计算所有组的本周总分
-  const groupScores=[];
-  let totalAll=0;
-  for(let g=1;g<=10;g++){
-    const score=getGroupWeekTotal(g,monday);
-    groupScores.push({gid:g,score});
-    totalAll+=score;
-  }
-  groupScores.sort((a,b)=>b.score-a.score);
-
-  document.getElementById('totalScore').textContent=totalAll;
-  document.getElementById('avgScore').textContent=(totalAll/10).toFixed(1);
-  document.getElementById('topGroup').textContent=groupScores[0]?('第'+groupScores[0].gid+'组'):'-';
-
+  const mon=getMon(weekOff);const end=addD(mon,4);
+  document.getElementById('weekLabel').textContent=fmt(mon).slice(5)+' ~ '+fmt(end).slice(5);
+  const arr=[];let all=0;
+  for(let g=1;g<=10;g++){const s=grpTotal(g,mon);arr.push({g,s});all+=s;}
+  arr.sort((a,b)=>b.s-a.s);
+  document.getElementById('totalAll').textContent=Math.round(all);
+  document.getElementById('avgAll').textContent=(all/10).toFixed(1);
+  document.getElementById('topGrp').textContent=arr[0]?('第'+arr[0].g+'组'):'-';
   let html='';
-  for(let i=0;i<groupScores.length;i++){
-    const gs=groupScores[i];
-    const students=getStudents(gs.gid);
-    const rankClass=i===0?'r1':i===1?'r2':i===2?'r3':'rn';
-    html+='<div class="group-rank-card" onclick="openGroupDetail('+gs.gid+')">';
-    html+='<div class="rank-header">';
-    html+='<div class="rank-num '+rankClass+'">'+(i+1)+'</div>';
-    html+='<div class="rank-name">第'+gs.gid+'组</div>';
-    html+='<div class="rank-score '+(gs.score>=0?'positive':'negative')+'">'+(gs.score>0?'+':'')+gs.score+'</div>';
-    html+='</div>';
-    html+='<div class="rank-members">';
-    for(const s of students.slice(0,5)){
-      html+='<span class="rank-member">'+esc(s.name)+'</span>';
-    }
-    if(students.length>5)html+='<span class="rank-member">+'+(students.length-5)+'</span>';
+  for(let i=0;i<arr.length;i++){
+    const {g,s}=arr[i];const sList=stu(g);
+    const rc=i===0?'r1':i===1?'r2':i===2?'r3':'rn';
+    html+='<div class="rank-card" onclick="openDetail('+g+')">';
+    html+='<div class="rank-top">';
+    html+='<div class="rank-left"><div class="rank-num '+rc+'">'+(i+1)+'</div><div class="rank-name">第'+g+'组</div></div>';
+    html+='<div class="rank-score '+(s>=0?'positive':'negative')+'">'+(s>0?'+':'')+s+'</div>';
+    html+='</div><div class="rank-members">';
+    for(const s2 of sList.slice(0,5))html+='<span class="rank-member">'+esc(s2.name)+'</span>';
+    if(sList.length>5)html+='<span class="rank-member">+'+(sList.length-5)+'</span>';
     html+='</div></div>';
   }
   document.getElementById('rankList').innerHTML=html;
 }
-
-function shiftWeek(n){
-  weekOffset+=n;
-  renderAll();
-}
-
-// ================= 明细页 =================
-function renderGroupTabs(){
-  let html='<div class="cat-tab'+(currentGroup===0?' active':'')+'" onclick="selectGroup(0)">全部</div>';
-  for(let g=1;g<=10;g++){
-    html+='<div class="cat-tab'+(currentGroup===g?' active':'')+'" onclick="selectGroup('+g+')">第'+g+'组</div>';
-  }
+function shiftWeek(n){weekOff+=n;renderAll();}
+function renderGrpTabs(){
+  let html='<div class="cat-tab'+(curGrp===0?' active':'')+'" onclick="pickGrp(0)">全部</div>';
+  for(let g=1;g<=10;g++)html+='<div class="cat-tab'+(curGrp===g?' active':'')+'" onclick="pickGrp('+g+')">第'+g+'组</div>';
   document.getElementById('groupTabs').innerHTML=html;
 }
-
-function selectGroup(g){
-  currentGroup=g;
-  renderGroupTabs();
-  renderDetail();
-}
-
+function pickGrp(g){curGrp=g;renderGrpTabs();renderDetail();}
+function openDetail(g){curGrp=g;switchView('detail');}
 function renderDetail(){
-  const monday=getMonday(weekOffset);
-  let groups=currentGroup===0?[]:[currentGroup];
-  if(currentGroup===0)for(let g=1;g<=10;g++)groups.push(g);
-
+  const mon=getMon(weekOff);
+  const gs=curGrp===0?Array.from({length:10},(_,i)=>i+1):[curGrp];
   let html='';
-  for(const gid of groups){
-    const students=getStudents(gid);
-    if(students.length===0)continue;
-    html+='<div class="card">';
-    html+='<div class="card-title">第'+gid+'组 <span style="font-size:12px;color:var(--text-soft);font-weight:400">'+students.length+'人</span></div>';
-    for(const s of students){
-      const weekScore=getWeekScore(gid,s.id,monday);
-      const dayScore=getDayScore(gid,s.id,todayStr());
-      html+='<div class="student-item" onclick="openStudentModal('+gid+',\''+s.id+'\')">';
-      html+='<div class="student-info">';
-      html+='<div class="student-name">'+esc(s.name)+'</div>';
-      html+='<div class="student-meta">今日 '+(dayScore>0?'+':'')+dayScore+'</div>';
-      html+='</div>';
-      html+='<div class="student-score '+(weekScore>=0?'positive':'negative')+'">'+(weekScore>0?'+':'')+weekScore+'</div>';
-      html+='<div class="student-arrow">›</div>';
-      html+='</div>';
+  for(const g of gs){
+    const sList=stu(g);if(!sList.length)continue;
+    html+='<div class="card"><div class="card-title">第'+g+'组 <span style="font-size:11px;color:var(--text-soft);font-weight:400">'+sList.length+'人</span></div>';
+    for(const s of sList){
+      const ws=weekScore(g,s.id,mon);const ds=dayScore(g,s.id,today());
+      html+='<div class="stu-row" onclick="openStu('+g+',\''+s.id+'\')">';
+      html+='<div class="stu-info"><div class="stu-name">'+esc(s.name)+'</div><div class="stu-meta">今日 '+(ds>0?'+':'')+ds+'</div></div>';
+      html+='<div class="stu-score '+(ws>=0?'positive':'negative')+'">'+(ws>0?'+':'')+ws+'</div>';
+      html+='<div class="stu-arrow">›</div></div>';
     }
     html+='</div>';
   }
-  if(html==='')html='<div class="empty">暂无数据</div>';
-  document.getElementById('detailList').innerHTML=html;
+  document.getElementById('detailList').innerHTML=html||'<div class="empty">暂无数据</div>';
 }
-
-function openGroupDetail(gid){
-  currentGroup=gid;
-  switchView('detail');
+function openStu(g,sid){
+  const mon=getMon(weekOff);const sList=stu(g);const s=sList.find(x=>x.id===sid);
+  if(!s)return;curStu={g,sid,name:s.name};curCat='all';
+  document.getElementById('stuModalTitle').textContent=s.name;
+  document.getElementById('stuWeekScore').textContent=(weekScore(g,sid,mon)>0?'+':'')+weekScore(g,sid,mon);
+  document.getElementById('stuTodayScore').textContent=(dayScore(g,sid,today())>0?'+':'')+dayScore(g,sid,today());
+  renderStuCats();renderStuRecs();
+  document.getElementById('stuModal').classList.add('show');
 }
-
-// ================= 学生详情弹窗 =================
-function openStudentModal(gid,sid){
-  const monday=getMonday(weekOffset);
-  const students=getStudents(gid);
-  const student=students.find(s=>s.id===sid);
-  if(!student)return;
-  currentStudent={gid,sid,name:student.name};
-  currentCat='all';
-
-  document.getElementById('studentModalTitle').textContent=student.name;
-  document.getElementById('studentWeekScore').textContent=(getWeekScore(gid,sid,monday)>0?'+':'')+getWeekScore(gid,sid,monday);
-  document.getElementById('studentDayScore').textContent=(getDayScore(gid,sid,todayStr())>0?'+':'')+getDayScore(gid,sid,todayStr());
-
-  renderStudentCatTabs();
-  renderStudentRecords();
-  document.getElementById('studentModal').classList.add('show');
-}
-
-function renderStudentCatTabs(){
+function renderStuCats(){
   let html='';
-  for(const cat of CATEGORIES){
-    html+='<div class="cat-tab'+(currentCat===cat.id?' active':'')+'" onclick="selectStudentCat(\''+cat.id+'\')">'+cat.name+'</div>';
-  }
-  document.getElementById('studentCatTabs').innerHTML=html;
+  for(const c of CATS)html+='<div class="cat-tab'+(curCat===c.id?' active':'')+'" onclick="pickCat(\''+c.id+'\')">'+c.name+'</div>';
+  document.getElementById('stuCatTabs').innerHTML=html;
 }
-
-function selectStudentCat(cat){
-  currentCat=cat;
-  renderStudentCatTabs();
-  renderStudentRecords();
-}
-
-function renderStudentRecords(){
-  if(!currentStudent)return;
-  const {gid,sid}=currentStudent;
-  const monday=getMonday(weekOffset);
-  const cats=currentCat==='all'?CATEGORIES.filter(c=>c.id!=='all').map(c=>c.id):[currentCat];
-
+function pickCat(c){curCat=c;renderStuCats();renderStuRecs();}
+function renderStuRecs(){
+  if(!curStu)return;const {g,sid}=curStu;const mon=getMon(weekOff);
+  const cats=curCat==='all'?CATS.filter(c=>c.id!=='all').map(c=>c.id):[curCat];
   let html='';
   for(let i=0;i<7;i++){
-    const d=addDays(monday,i);
-    if(!isSchoolDay(d))continue;
-    const date=fmt(d);
-    let dayRecords=[];
-    for(const cat of cats){
-      const d2=getGroupData(gid);
-      const dayData=(d2.scores&&d2.scores[date]&&d2.scores[date][sid])||{};
-      const events=dayData[cat]||[];
-      for(const e of events){
-        dayRecords.push({...e,cat});
-      }
-    }
-    if(dayRecords.length===0)continue;
-    html+='<div style="font-size:12px;color:var(--text-soft);margin:10px 0 6px;font-weight:600">'+date+'</div>';
-    for(const r of dayRecords){
-      const catInfo=CATEGORIES.find(c=>c.id===r.cat);
-      const color=CAT_COLORS[r.cat]||'var(--text-soft)';
-      html+='<div class="record-item">';
-      html+='<div class="record-info">';
-      html+='<div class="record-label"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:'+color+';margin-right:6px"></span>'+(r.label||catInfo?.name||'自定义')+'</div>';
-      html+='<div class="record-by">'+(r.by||'')+(r.cat!=='all'?' · '+catInfo?.name:'')+'</div>';
-      html+='</div>';
-      html+='<div class="record-val '+(r.v>0?'positive':'negative')+'">'+(r.v>0?'+':'')+r.v+'</div>';
-      html+='</div>';
+    const d=addD(mon,i);if(!isWork(d))continue;const ds=fmt(d);
+    let recs=[];const dd=gd(g).scores||{};const dayD=dd[ds]||{};const sday=dayD[sid]||{};
+    for(const cat of cats)for(const e of (sday[cat]||[]))recs.push({...e,cat});
+    if(!recs.length)continue;
+    html+='<div class="date-group">'+ds.slice(5)+'</div>';
+    for(const r of recs){
+      const ci=CATS.find(c=>c.id===r.cat);const col=CAT_C[r.cat]||'#999';
+      html+='<div class="rec-item"><div class="rec-info">';
+      html+='<div class="rec-label"><span class="rec-dot" style="background:'+col+'"></span>'+esc(r.label||ci?.name||'自定义')+'</div>';
+      html+='<div class="rec-by">'+esc(r.by||'')+' · '+esc(ci?.name||'')+'</div>';
+      html+='</div><div class="rec-val '+(r.v>0?'positive':'negative')+'">'+(r.v>0?'+':'')+r.v+'</div></div>';
     }
   }
-  if(html==='')html='<div class="empty">本周暂无记录</div>';
-  document.getElementById('studentRecordList').innerHTML=html;
+  document.getElementById('stuRecordList').innerHTML=html||'<div class="empty">本周暂无记录</div>';
 }
-
-function closeStudentModal(){
-  document.getElementById('studentModal').classList.remove('show');
-  currentStudent=null;
-}
-
-// ================= 基础分页 =================
+function closeStuModal(){document.getElementById('stuModal').classList.remove('show');curStu=null;}
 function renderBase(){
-  const monday=getMonday(weekOffset);
-  let html='';
+  const mon=getMon(weekOff);let html='';const names=['周一','周二','周三','周四','周五'];
   for(let i=0;i<5;i++){
-    const d=addDays(monday,i);
-    const date=fmt(d);
-    const dayName=['周一','周二','周三','周四','周五'][i];
-    // 检查是否所有组都关闭了基础分
-    let allOff=true;
-    let anyOff=false;
-    for(let g=1;g<=10;g++){
-      if(isBaseOff(g,date))anyOff=true;else allOff=false;
-    }
-    html+='<div class="switch-row">';
-    html+='<div class="switch-info">';
-    html+='<div class="switch-title">'+date+' '+dayName+'</div>';
-    html+='<div class="switch-sub">'+(allOff?'已关闭基础分':anyOff?'部分组已关闭':'基础分+10')+'</div>';
-    html+='</div>';
-    html+='<div class="switch '+(allOff?'on':'')+'" onclick="toggleBaseAll(\''+date+'\','+allOff+')"><div class="switch-knob"></div></div>';
-    html+='</div>';
+    const d=addD(mon,i);const ds=fmt(d);
+    let allOff=true,anyOff=false;
+    for(let g=1;g<=10;g++){if(isOff(g,ds))anyOff=true;else allOff=false;}
+    html+='<div class="switch-row"><div><div class="switch-title">'+ds.slice(5)+' '+names[i]+'</div>';
+    html+='<div class="switch-sub">'+(allOff?'已关闭':anyOff?'部分关闭':'基础分+10')+'</div></div>';
+    html+='<div class="switch '+(allOff?'on':'')+'" onclick="toggleBase(\''+ds+'\','+allOff+')"><div class="switch-knob"></div></div></div>';
   }
   document.getElementById('baseList').innerHTML=html;
-
-  // 加权系数
-  const w=getWeight(1); // 用第一组的系数作为代表
-  document.getElementById('weightNow').textContent='×'+w;
+  const w=wt(1);
+  document.getElementById('weightShow').textContent='×'+w.toFixed(2);
   document.getElementById('weightSlider').value=w;
 }
-
-async function toggleBaseAll(date,currentlyOff){
-  // 切换所有组的基础分
+async function toggleBase(date,currentlyOff){
   for(let g=1;g<=10;g++){
     try{
-      const resp=await fetch(SUPABASE_URL+'/rest/v1/group_data?group_id=eq.'+g+'&select=data',{headers:sbHeaders()});
-      const rows=await resp.json();
-      if(!rows||!rows.length)continue;
-      const gd=rows[0].data;
-      if(!gd.baseOff)gd.baseOff={};
-      if(currentlyOff){
-        delete gd.baseOff[date];
-      }else{
-        gd.baseOff[date]=true;
-      }
-      gd.lastModified=Date.now();
-      await fetch(SUPABASE_URL+'/rest/v1/group_data?group_id=eq.'+g,{
-        method:'PATCH',headers:sbHeaders(),body:JSON.stringify({data:gd})
-      });
-    }catch(e){console.log('切换基础分失败:',e);}
+      const r=await fetch(SB_URL+'/rest/v1/group_data?group_id=eq.'+g+'&select=data',{headers:hdrs()});
+      const rows=await r.json();if(!rows||!rows.length)continue;
+      const gd2=rows[0].data;if(!gd2.baseOff)gd2.baseOff={};
+      if(currentlyOff)delete gd2.baseOff[date];else gd2.baseOff[date]=true;
+      gd2.lastModified=Date.now();
+      await fetch(SB_URL+'/rest/v1/group_data?group_id=eq.'+g,{method:'PATCH',headers:hdrs(),body:JSON.stringify({data:gd2})});
+    }catch(e){console.log(e);}
   }
-  await loadAllGroups();
-  renderBase();
-  toast(currentlyOff?'已开启基础分':'已关闭基础分');
+  await loadAll();renderBase();toast(currentlyOff?'已开启基础分':'已关闭基础分');
 }
-
 async function saveWeight(){
   const w=parseFloat(document.getElementById('weightSlider').value);
+  document.getElementById('weightShow').textContent='×'+w.toFixed(2);
   for(let g=1;g<=10;g++){
     try{
-      const resp=await fetch(SUPABASE_URL+'/rest/v1/group_data?group_id=eq.'+g+'&select=data',{headers:sbHeaders()});
-      const rows=await resp.json();
-      if(!rows||!rows.length)continue;
-      const gd=rows[0].data;
-      gd.weightFactor=w;
-      gd.lastModified=Date.now();
-      await fetch(SUPABASE_URL+'/rest/v1/group_data?group_id=eq.'+g,{
-        method:'PATCH',headers:sbHeaders(),body:JSON.stringify({data:gd})
-      });
-    }catch(e){console.log('保存系数失败:',e);}
+      const r=await fetch(SB_URL+'/rest/v1/group_data?group_id=eq.'+g+'&select=data',{headers:hdrs()});
+      const rows=await r.json();if(!rows||!rows.length)continue;
+      const gd2=rows[0].data;gd2.weightFactor=w;gd2.lastModified=Date.now();
+      await fetch(SB_URL+'/rest/v1/group_data?group_id=eq.'+g,{method:'PATCH',headers:hdrs(),body:JSON.stringify({data:gd2})});
+    }catch(e){console.log(e);}
   }
-  await loadAllGroups();
-  renderAll();
-  toast('已保存加权系数 ×'+w);
+  await loadAll();renderAll();toast('已保存系数 ×'+w.toFixed(2));
 }
-
-// ================= 设置页 =================
-function exportAllData(){
-  const data={exportTime:new Date().toISOString(),groups:groupsData};
+function exportData(){
+  const data={exportTime:new Date().toISOString(),groups};
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download='小组积分V2备份_'+todayStr()+'.json';
-  a.click();
-  toast('已导出数据');
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='积分V2备份_'+today()+'.json';a.click();toast('已导出');
 }
-
-function logout(){
-  SB.auth.signOut();
-  localStorage.removeItem(SESSION_KEY);
-  location.href='index.html';
-}
-
-// ================= 视图切换 =================
+function logout(){sb.auth.signOut();localStorage.removeItem(SESSION_KEY);location.href='index.html';}
 function switchView(v){
-  currentView=v;
-  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+  view=v;document.querySelectorAll('.view').forEach(e=>e.classList.remove('active'));
   document.getElementById('view-'+v).classList.add('active');
-  document.querySelectorAll('.tab-item').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.tab-item').forEach(e=>e.classList.remove('active'));
   document.querySelector('.tab-item[data-view="'+v+'"]').classList.add('active');
   renderAll();
 }
-
 function renderAll(){
-  if(currentView==='rank')renderRank();
-  else if(currentView==='detail'){renderGroupTabs();renderDetail();}
-  else if(currentView==='base')renderBase();
+  if(view==='rank')renderRank();
+  else if(view==='detail'){renderGrpTabs();renderDetail();}
+  else if(view==='base')renderBase();
 }
-
-// ================= 实时同步 =================
-function startRealtime(){
-  if(!SB)return;
+function startRT(){
   for(let g=1;g<=10;g++){
-    const ch=SB.channel('gv2_group_'+g)
-      .on('postgres_changes',{
-        event:'UPDATE',schema:'public',table:'group_data',
-        filter:'group_id=eq.'+g
-      },()=>{
-        clearTimeout(window._gv2_rt);
-        window._gv2_rt=setTimeout(async()=>{
-          await loadAllGroups();
-          renderAll();
-        },500);
+    const ch=sb.channel('gv2_'+g)
+      .on('postgres_changes',{event:'UPDATE',schema:'public',table:'group_data',filter:'group_id=eq.'+g},()=>{
+        clearTimeout(window._gv2rt);
+        window._gv2rt=setTimeout(async()=>{await loadAll();renderAll();},400);
       })
       .subscribe();
-    realtimeSubs[g]=ch;
+    realtimeCh.push(ch);
   }
 }
-
-// ================= 启动 =================
 init();
 </script>
 </body>
