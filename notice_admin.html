@@ -89,6 +89,16 @@ body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:var(--pap
             <span class="desc">只有选中的组可见</span>
           </label>
         </div>
+        <div class="scope-opt">
+          <input type="radio" name="scope" id="scopeUsers" value="users">
+          <label for="scopeUsers">
+            指定用户
+            <span class="desc">只有选中的用户可见</span>
+          </label>
+        </div>
+      </div>
+      <div class="users-select hidden" id="usersSelect" style="max-height:200px;overflow-y:auto">
+      </div>
       </div>
       <div class="groups-select hidden" id="groupsSelect">
         <label class="group-check"><input type="checkbox" value="1"> 第一组</label>
@@ -126,13 +136,28 @@ function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').repl
 // 切换组别选择显示
 document.querySelectorAll('input[name="scope"]').forEach(function(radio){
   radio.addEventListener('change',function(){
-    document.getElementById('groupsSelect').classList.toggle('hidden',this.value!=='groups');
+document.getElementById('groupsSelect').classList.toggle('hidden',this.value!=='groups');document.getElementById('usersSelect').classList.toggle('hidden',this.value!=='users');
   });
 });
 
 async function init(){
-  const {data:sd}=await sb.auth.getSession();
+  await loadUsers();
+  await loadNotice();
   if(!sd||!sd.session){location.href='index.html';return;}
+async function loadUsers(){
+  try{
+    const r=await fetch(SB_URL+'/rest/v1/users?select=username,role,group_id',{headers:hdrs()});
+    const users=await r.json();
+    const box=document.getElementById('usersSelect');
+    box.innerHTML='';
+    users.forEach(function(u){
+      const label=u.username+(u.role==='admin'?'(管理员)':(u.role==='admin2'?'(管理员2)':(u.role==='teacher'?'(教师)':(u.group_id?'(第'+u.group_id+'组)':''))));
+      box.innerHTML+='<label class="group-check"><input type="checkbox" value="'+esc(u.username)+'"> '+esc(label)+'</label>';
+    });
+  }catch(e){
+    console.log('用户列表加载失败',e);
+  }
+}
   accessToken=sd.session.access_token;
   const user=JSON.parse(localStorage.getItem('jfz_session_v1')||'null');
   if(!user||user.role!=='admin'){location.href='index.html';return;}
@@ -151,11 +176,17 @@ async function loadNotice(){
       // 还原scope选择
       const scope=d.scope||'all';
       document.querySelector('input[name="scope"][value="'+scope+'"]').checked=true;
-      document.getElementById('groupsSelect').classList.toggle('hidden',scope!=='groups');
+document.getElementById('groupsSelect').classList.toggle('hidden',scope!=='groups');
+      document.getElementById('usersSelect').classList.toggle('hidden',scope!=='users');
       if(scope==='groups'&&d.groups){
         document.querySelectorAll('#groupsSelect input[type="checkbox"]').forEach(function(cb){
           cb.checked=d.groups.indexOf(cb.value)>=0;
         });
+      if(scope==='users'&&d.users){
+        document.querySelectorAll('#usersSelect input[type=checkbox]').forEach(function(cb){
+          cb.checked=d.users.indexOf(cb.value)>=0;
+        });
+      }
       }
     }else{
       document.getElementById('currentNotice').innerHTML='<div style="color:var(--ink-soft);text-align:center;padding:20px">暂无公告</div>';
@@ -171,19 +202,24 @@ function scopeText(d){
   if(s==='teacher')return '管理员+教师';
   if(s==='leader')return '管理组+组长';
   if(s==='groups')return '仅：'+(d.groups||[]).map(function(g){return '第'+g+'组';}).join('、');
+  if(s==='users')return '仅：'+(d.users||[]).join('、');
   return '未知';
 }
 async function publishNotice(){
   const msg=document.getElementById('noticeInput').value.trim();
   if(!msg){toast('请输入公告内容');return;}
   const scope=document.querySelector('input[name="scope"]:checked').value;
-  let groups=[];
+let groups=[];let users=[];
   if(scope==='groups'){
     groups=Array.from(document.querySelectorAll('#groupsSelect input:checked')).map(function(cb){return cb.value;});
     if(groups.length===0){toast('请至少选择一个组');return;}
   }
+  if(scope==='users'){
+    users=Array.from(document.querySelectorAll('#usersSelect input:checked')).map(function(cb){return cb.value;});
+    if(users.length===0){toast('请至少选择一个用户');return;}
+  }
   try{
-    const data={message:msg,updatedAt:new Date().toISOString(),scope:scope,groups:groups};
+const data={message:msg,updatedAt:new Date().toISOString(),scope:scope,groups:groups,users:users};
     const r=await fetch(SB_URL+'/rest/v1/group_data',{
       method:'POST',
       headers:{...hdrs(),'Prefer':'resolution=merge-duplicates'},
@@ -212,3 +248,4 @@ init();
 </script>
 </body>
 </html>
+
