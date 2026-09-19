@@ -2497,7 +2497,25 @@ function renderCloudSettings(){
 function fmt(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function parseDate(s){const p=s.split('-').map(Number);return new Date(p[0],p[1]-1,p[2]);}
 function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x;}
-function startOfWeek(d){const x=new Date(d);const dow=d.getDay();if(dow===0){x.setDate(d.getDate()+1);}else{x.setDate(d.getDate()-(dow-1));}return x;}
+function startOfWeek(d){
+  const x=new Date(d);
+  const dow=d.getDay();
+  // 周日：看周六是不是上课日
+  if(dow===0){
+    const saturday=new Date(d);
+    saturday.setDate(d.getDate()-1);
+    if(isSchoolDay(saturday,fmt(saturday))){
+      // 周六也上课，周日属于本周，回到本周一
+      x.setDate(d.getDate()-(dow-1));
+    }else{
+      // 周六不上课，周日属于下周，到下周一
+      x.setDate(d.getDate()+1);
+    }
+  }else{
+    x.setDate(d.getDate()-(dow-1));
+  }
+  return x;
+}
 function formatCN(d){return d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日';}
 function weekdayCN(d){return ['周日','周一','周二','周三','周四','周五','周六'][d.getDay()];}
 function monthDays(y,m){return new Date(y,m+1,0).getDate();}
@@ -2952,7 +2970,7 @@ function applyFormula(){
 /* ================= 周统计 ================= */
 function weekDates(monday){
   const dates=[];
-  for(let i=0;i<6;i++){
+  for(let i=0;i<7;i++){
     const d=addDays(monday,i);
     if(isSchoolDay(d,fmt(d)))dates.push(d);
   }
