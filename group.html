@@ -2532,11 +2532,11 @@ function dayScore(sid,dk){
   return Math.round((base+state.items.reduce((a,it)=>a+cellVal(sid,it.id,dk),0))*weightF()*100)/100;
 }
 function dayGroupTotal(dk){return Math.round(state.students.reduce((a,st)=>a+dayScore(st.id,dk),0)*100)/100;}
-function weekTotal(sid,monday){let t=0;for(let i=0;i<7;i++){const d=addDays(monday,i);const dk=fmt(d);if(isSchoolDay(d,dk))t+=dayScore(sid,dk);}return Math.round(t*100)/100;}
+function weekTotal(sid,monday){let t=0;for(let i=0;i<6;i++){const d=addDays(monday,i);const dk=fmt(d);if(isSchoolDay(d,dk))t+=dayScore(sid,dk);}return Math.round(t*100)/100;}
 function monthTotal(sid,y,m){let t=0;const n=monthDays(y,m);for(let d=1;d<=n;d++){const dt=new Date(y,m,d);const dk=fmt(dt);if(isSchoolDay(dt,dk))t+=dayScore(sid,dk);}return Math.round(t*100)/100;}
 function weekGroupTotal(monday){return Math.round(state.students.reduce((a,st)=>a+weekTotal(st.id,monday),0)*100)/100;}
 function monthGroupTotal(y,m){return Math.round(state.students.reduce((a,st)=>a+monthTotal(st.id,y,m),0)*100)/100;}
-function itemWeekSum(sid,iid,monday){let t=0;for(let i=0;i<7;i++){const d=addDays(monday,i);const dk=fmt(d);if(isSchoolDay(d,dk))t+=cellVal(sid,iid,dk);}return Math.round(t*weightF()*100)/100;}
+function itemWeekSum(sid,iid,monday){let t=0;for(let i=0;i<6;i++){const d=addDays(monday,i);const dk=fmt(d);if(isSchoolDay(d,dk))t+=cellVal(sid,iid,dk);}return Math.round(t*weightF()*100)/100;}
 function itemMonthSum(sid,iid,y,m){let t=0;const n=monthDays(y,m);for(let d=1;d<=n;d++){const dt=new Date(y,m,d);const dk=fmt(dt);if(isSchoolDay(dt,dk))t+=cellVal(sid,iid,dk);}return Math.round(t*weightF()*100)/100;}
 function studentName(id){const s=state.students.find(x=>x.id===id);return s?s.name:'(已删除)';}
 function allTimeTotal(sid){
