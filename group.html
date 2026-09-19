@@ -2952,7 +2952,7 @@ function applyFormula(){
 /* ================= 周统计 ================= */
 function weekDates(monday){
   const dates=[];
-  for(let i=0;i<7;i++){
+  for(let i=0;i<6;i++){
     const d=addDays(monday,i);
     if(isSchoolDay(d,fmt(d)))dates.push(d);
   }
