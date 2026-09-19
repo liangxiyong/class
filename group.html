@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -4689,56 +4689,11 @@ function checkMaintenance(){
   }
   hideMaintBanner();
 }
-
-/* ================= 公告弹窗 ================= */
-function showNoticeModal(msg,time){
-  var mask=document.createElement('div');
-  mask.id='noticeModal';
-  mask.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;';
-  mask.innerHTML=
-    '<div style="background:#fffdf9;border-radius:16px;max-width:400px;width:100%;padding:24px;box-shadow:0 10px 40px rgba(0,0,0,.2);">'+
-      '<div style="text-align:center;margin-bottom:16px;">'+
-        '<div style="font-size:40px;margin-bottom:8px;">📢</div>'+
-        '<div style="font-size:18px;font-weight:700;color:#2b2420;">公告</div>'+
-      '</div>'+
-      '<div style="background:#f6f1e8;border-radius:10px;padding:14px;margin-bottom:16px;font-size:14px;line-height:1.7;color:#2b2420;white-space:pre-wrap;max-height:300px;overflow-y:auto;">'+escHtml(msg)+'</div>'+
-      '<div style="text-align:center;font-size:11px;color:#7a6d61;margin-bottom:16px;">'+time+'</div>'+
-      '<button onclick="document.getElementById(''noticeModal'').remove()" style="width:100%;padding:12px;background:#c0392b;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;">我知道了</button>'+
-    '</div>';
-  document.body.appendChild(mask);
+checkMaintenance();
+setInterval(checkMaintenance,15000);
+if(typeof document!=='undefined'){
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)checkMaintenance();});
 }
-function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function canSeeNotice(d){
-  if(!d||!d.scope||d.scope==='all')return true;
-  var u=currentUser||{};
-  var role=u.role||'guest';
-  var gid=String(u.groupId||'');
-  if(d.scope==='admin')return role==='admin';
-  if(d.scope==='teacher')return ['admin','admin2','teacher'].indexOf(role)>=0;
-  if(d.scope==='leader')return ['admin','admin2','teacher','leader'].indexOf(role)>=0;
-  if(d.scope==='groups'){
-    if(['admin','admin2','teacher'].indexOf(role)>=0)return true;
-    return (d.groups||[]).indexOf(gid)>=0;
-  }
-  return true;
-}
-async function checkNotice(){
-  try{
-    const r=await fetch(SUPABASE_URL+'/rest/v1/group_data?group_id=eq.notice&select=data',{headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken}});
-    const rows=await r.json();
-    if(rows&&rows.length&&rows[0].data&&rows[0].data.message){
-      var d=rows[0].data;
-      if(!canSeeNotice(d))return;
-      var lastSeen=localStorage.getItem('jfz_notice_seen')||'';
-      var curKey=d.updatedAt||'';
-      if(curKey&&curKey!==lastSeen){
-        localStorage.setItem('jfz_notice_seen',curKey);
-        showNoticeModal(d.message,new Date(curKey).toLocaleString('zh-CN'));
-      }
-    }
-  }catch(e){}
-}
-setTimeout(checkNotice,1500);
 </script>
 </body>
 </html>
