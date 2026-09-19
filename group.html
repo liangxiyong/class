@@ -4708,16 +4708,32 @@ function showNoticeModal(msg,time){
   document.body.appendChild(mask);
 }
 function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function canSeeNotice(d){
+  if(!d||!d.scope||d.scope==='all')return true;
+  var u=currentUser||{};
+  var role=u.role||'guest';
+  var gid=String(u.groupId||'');
+  if(d.scope==='admin')return role==='admin';
+  if(d.scope==='teacher')return ['admin','admin2','teacher'].indexOf(role)>=0;
+  if(d.scope==='leader')return ['admin','admin2','teacher','leader'].indexOf(role)>=0;
+  if(d.scope==='groups'){
+    if(['admin','admin2','teacher'].indexOf(role)>=0)return true;
+    return (d.groups||[]).indexOf(gid)>=0;
+  }
+  return true;
+}
 async function checkNotice(){
   try{
     const r=await fetch(SUPABASE_URL+'/rest/v1/group_data?group_id=eq.notice&select=data',{headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken}});
     const rows=await r.json();
     if(rows&&rows.length&&rows[0].data&&rows[0].data.message){
+      var d=rows[0].data;
+      if(!canSeeNotice(d))return;
       var lastSeen=localStorage.getItem('jfz_notice_seen')||'';
-      var curKey=rows[0].data.updatedAt||'';
+      var curKey=d.updatedAt||'';
       if(curKey&&curKey!==lastSeen){
         localStorage.setItem('jfz_notice_seen',curKey);
-        showNoticeModal(rows[0].data.message,new Date(curKey).toLocaleString('zh-CN'));
+        showNoticeModal(d.message,new Date(curKey).toLocaleString('zh-CN'));
       }
     }
   }catch(e){}

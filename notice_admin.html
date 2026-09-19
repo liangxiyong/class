@@ -18,28 +18,90 @@ body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:var(--pap
 .card{background:var(--card);border-radius:14px;padding:20px;margin-bottom:12px;border:1px solid var(--line)}
 .form-group{margin-bottom:16px}
 .form-label{font-size:13px;font-weight:600;margin-bottom:8px;display:block}
-.form-textarea{width:100%;min-height:150px;padding:12px;border:1px solid var(--line);border-radius:10px;font-size:14px;font-family:inherit;resize:vertical;background:var(--paper)}
+.form-textarea{width:100%;min-height:120px;padding:12px;border:1px solid var(--line);border-radius:10px;font-size:14px;font-family:inherit;resize:vertical;background:var(--paper)}
 .form-textarea:focus{outline:none;border-color:var(--accent)}
+.scope-options{display:flex;flex-direction:column;gap:8px}
+.scope-opt{display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;cursor:pointer;background:var(--paper)}
+.scope-opt:has(input:checked){border-color:var(--accent);background:var(--accent-soft,#f6e3df)}
+.scope-opt input{margin:0}
+.scope-opt label{cursor:pointer;flex:1;font-size:14px}
+.scope-opt .desc{font-size:11px;color:var(--ink-soft);display:block;margin-top:2px}
+.groups-select{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+.group-check{display:flex;align-items:center;gap:6px;font-size:13px;padding:6px 8px;background:var(--paper);border-radius:8px;cursor:pointer}
+.group-check:has(input:checked){background:var(--accent-soft,#f6e3df)}
 .btn-primary{width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer}
 .btn-secondary{width:100%;padding:14px;background:var(--paper);color:var(--ink);border:1px solid var(--line);border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;margin-top:10px}
 .btn-danger{width:100%;padding:14px;background:#fff;color:var(--accent);border:1px solid var(--accent);border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;margin-top:10px}
 .current-notice{background:var(--paper);border-radius:10px;padding:12px;margin-top:12px;white-space:pre-wrap;font-size:14px;line-height:1.6}
-.notice-time{font-size:11px;color:var(--ink-soft);margin-top:8px}
+.notice-meta{font-size:11px;color:var(--ink-soft);margin-top:8px}
 .toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.8);color:#fff;padding:12px 24px;border-radius:10px;font-size:14px;z-index:300;opacity:0;transition:opacity .2s;pointer-events:none}
 .toast.show{opacity:1}
 .loading{text-align:center;padding:40px;color:var(--ink-soft)}
+.hidden{display:none!important}
 </style>
 </head>
 <body>
 <div class="container">
   <div class="header">
     <h1>📢 公告管理</h1>
-    <p>发布公告，所有用户登录时可见</p>
+    <p>发布公告，可选择可见范围</p>
   </div>
   <div class="card">
     <div class="form-group">
       <label class="form-label">公告内容</label>
       <textarea class="form-textarea" id="noticeInput" placeholder="输入要发布的公告内容..."></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">可见范围</label>
+      <div class="scope-options">
+        <div class="scope-opt">
+          <input type="radio" name="scope" id="scopeAll" value="all" checked>
+          <label for="scopeAll">
+            所有人可见
+            <span class="desc">所有登录用户都能看到</span>
+          </label>
+        </div>
+        <div class="scope-opt">
+          <input type="radio" name="scope" id="scopeAdmin" value="admin">
+          <label for="scopeAdmin">
+            仅管理员
+            <span class="desc">只有admin账号可见</span>
+          </label>
+        </div>
+        <div class="scope-opt">
+          <input type="radio" name="scope" id="scopeTeacher" value="teacher">
+          <label for="scopeTeacher">
+            管理员+教师
+            <span class="desc">admin、admin2、teacher可见</span>
+          </label>
+        </div>
+        <div class="scope-opt">
+          <input type="radio" name="scope" id="scopeLeader" value="leader">
+          <label for="scopeLeader">
+            管理员+教师+组长
+            <span class="desc">管理组+所有组长可见</span>
+          </label>
+        </div>
+        <div class="scope-opt">
+          <input type="radio" name="scope" id="scopeGroups" value="groups">
+          <label for="scopeGroups">
+            指定组别
+            <span class="desc">只有选中的组可见</span>
+          </label>
+        </div>
+      </div>
+      <div class="groups-select hidden" id="groupsSelect">
+        <label class="group-check"><input type="checkbox" value="1"> 第一组</label>
+        <label class="group-check"><input type="checkbox" value="2"> 第二组</label>
+        <label class="group-check"><input type="checkbox" value="3"> 第三组</label>
+        <label class="group-check"><input type="checkbox" value="4"> 第四组</label>
+        <label class="group-check"><input type="checkbox" value="5"> 第五组</label>
+        <label class="group-check"><input type="checkbox" value="6"> 第六组</label>
+        <label class="group-check"><input type="checkbox" value="7"> 第七组</label>
+        <label class="group-check"><input type="checkbox" value="8"> 第八组</label>
+        <label class="group-check"><input type="checkbox" value="9"> 第九组</label>
+        <label class="group-check"><input type="checkbox" value="10"> 第十组</label>
+      </div>
     </div>
     <button class="btn-primary" onclick="publishNotice()">发布公告</button>
     <button class="btn-danger" onclick="clearNotice()">清空公告</button>
@@ -59,6 +121,15 @@ const sb=supabase.createClient(SB_URL,SB_KEY);
 let accessToken='';
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800);}
 function hdrs(){return {'apikey':SB_KEY,'Authorization':'Bearer '+accessToken,'Content-Type':'application/json';}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// 切换组别选择显示
+document.querySelectorAll('input[name="scope"]').forEach(function(radio){
+  radio.addEventListener('change',function(){
+    document.getElementById('groupsSelect').classList.toggle('hidden',this.value!=='groups');
+  });
+});
+
 async function init(){
   const {data:sd}=await sb.auth.getSession();
   if(!sd||!sd.session){location.href='index.html';return;}
@@ -72,8 +143,20 @@ async function loadNotice(){
     const r=await fetch(SB_URL+'/rest/v1/group_data?group_id=eq.notice&select=data',{headers:hdrs()});
     const rows=await r.json();
     if(rows&&rows.length&&rows[0].data&&rows[0].data.message){
-      document.getElementById('currentNotice').innerHTML='<div class="current-notice">'+esc(rows[0].data.message)+'</div><div class="notice-time">发布于：'+new Date(rows[0].data.updatedAt).toLocaleString('zh-CN')+'</div>';
-      document.getElementById('noticeInput').value=rows[0].data.message;
+      const d=rows[0].data;
+      document.getElementById('currentNotice').innerHTML=
+        '<div class="current-notice">'+esc(d.message)+'</div>'+
+        '<div class="notice-meta">发布于：'+new Date(d.updatedAt).toLocaleString('zh-CN')+'<br>可见范围：'+scopeText(d)+'</div>';
+      document.getElementById('noticeInput').value=d.message;
+      // 还原scope选择
+      const scope=d.scope||'all';
+      document.querySelector('input[name="scope"][value="'+scope+'"]').checked=true;
+      document.getElementById('groupsSelect').classList.toggle('hidden',scope!=='groups');
+      if(scope==='groups'&&d.groups){
+        document.querySelectorAll('#groupsSelect input[type="checkbox"]').forEach(function(cb){
+          cb.checked=d.groups.indexOf(cb.value)>=0;
+        });
+      }
     }else{
       document.getElementById('currentNotice').innerHTML='<div style="color:var(--ink-soft);text-align:center;padding:20px">暂无公告</div>';
     }
@@ -81,11 +164,26 @@ async function loadNotice(){
     document.getElementById('currentNotice').textContent='加载失败';
   }
 }
+function scopeText(d){
+  const s=d.scope||'all';
+  if(s==='all')return '所有人';
+  if(s==='admin')return '仅管理员';
+  if(s==='teacher')return '管理员+教师';
+  if(s==='leader')return '管理组+组长';
+  if(s==='groups')return '仅：'+(d.groups||[]).map(function(g){return '第'+g+'组';}).join('、');
+  return '未知';
+}
 async function publishNotice(){
   const msg=document.getElementById('noticeInput').value.trim();
   if(!msg){toast('请输入公告内容');return;}
+  const scope=document.querySelector('input[name="scope"]:checked').value;
+  let groups=[];
+  if(scope==='groups'){
+    groups=Array.from(document.querySelectorAll('#groupsSelect input:checked')).map(function(cb){return cb.value;});
+    if(groups.length===0){toast('请至少选择一个组');return;}
+  }
   try{
-    const data={message:msg,updatedAt:new Date().toISOString()};
+    const data={message:msg,updatedAt:new Date().toISOString(),scope:scope,groups:groups};
     const r=await fetch(SB_URL+'/rest/v1/group_data',{
       method:'POST',
       headers:{...hdrs(),'Prefer':'resolution=merge-duplicates'},
@@ -110,7 +208,6 @@ async function clearNotice(){
     await loadNotice();
   }catch(e){toast('清空失败：'+e.message);}
 }
-function esc(s){return String(s).replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 init();
 </script>
 </body>
