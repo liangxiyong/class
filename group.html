@@ -1003,6 +1003,23 @@ td.total-col.zero{color:#cfc4b4}
 </main>
 
 <!-- Score Modal -->
+<div class="modal-overlay" id="noticeModal" style="display:none;z-index:2000">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">📢 公告</div>
+      </div>
+      <button class="modal-close" onclick="closeNotice()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="noticeContent" style="white-space:pre-wrap;font-size:15px;line-height:1.7;padding:8px 0"></div>
+      <div id="noticeTime" style="font-size:12px;color:var(--ink-soft);margin-top:16px;text-align:right"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-primary" style="flex:1" onclick="closeNotice()">我知道了</button>
+    </div>
+  </div>
+</div>
 <div class="modal-overlay" id="scoreModal" style="display:none" onclick="if(event.target===this)closeScoreModal()">
   <div class="modal">
     <div class="modal-head">
@@ -2500,20 +2517,7 @@ function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x;}
 function startOfWeek(d){
   const x=new Date(d);
   const dow=d.getDay();
-  // 周日：看周六是不是上课日
-  if(dow===0){
-    const saturday=new Date(d);
-    saturday.setDate(d.getDate()-1);
-    if(isSchoolDay(saturday,fmt(saturday))){
-      // 周六也上课，周日属于本周，回到本周一
-      x.setDate(d.getDate()-(dow-1));
-    }else{
-      // 周六不上课，周日属于下周，到下周一
-      x.setDate(d.getDate()+1);
-    }
-  }else{
-    x.setDate(d.getDate()-(dow-1));
-  }
+  x.setDate(d.getDate()-dow);
   return x;
 }
 function formatCN(d){return d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日';}
@@ -2550,11 +2554,11 @@ function dayScore(sid,dk){
   return Math.round((base+state.items.reduce((a,it)=>a+cellVal(sid,it.id,dk),0))*weightF()*100)/100;
 }
 function dayGroupTotal(dk){return Math.round(state.students.reduce((a,st)=>a+dayScore(st.id,dk),0)*100)/100;}
-function weekTotal(sid,monday){let t=0;for(let i=0;i<6;i++){const d=addDays(monday,i);const dk=fmt(d);if(isSchoolDay(d,dk))t+=dayScore(sid,dk);}return Math.round(t*100)/100;}
+function weekTotal(sid,monday){let t=0;for(let i=0;i<7;i++){const d=addDays(monday,i);const dk=fmt(d);if(isSchoolDay(d,dk))t+=dayScore(sid,dk);}return Math.round(t*100)/100;}
 function monthTotal(sid,y,m){let t=0;const n=monthDays(y,m);for(let d=1;d<=n;d++){const dt=new Date(y,m,d);const dk=fmt(dt);if(isSchoolDay(dt,dk))t+=dayScore(sid,dk);}return Math.round(t*100)/100;}
 function weekGroupTotal(monday){return Math.round(state.students.reduce((a,st)=>a+weekTotal(st.id,monday),0)*100)/100;}
 function monthGroupTotal(y,m){return Math.round(state.students.reduce((a,st)=>a+monthTotal(st.id,y,m),0)*100)/100;}
-function itemWeekSum(sid,iid,monday){let t=0;for(let i=0;i<6;i++){const d=addDays(monday,i);const dk=fmt(d);if(isSchoolDay(d,dk))t+=cellVal(sid,iid,dk);}return Math.round(t*weightF()*100)/100;}
+function itemWeekSum(sid,iid,monday){let t=0;for(let i=0;i<7;i++){const d=addDays(monday,i);const dk=fmt(d);if(isSchoolDay(d,dk))t+=cellVal(sid,iid,dk);}return Math.round(t*weightF()*100)/100;}
 function itemMonthSum(sid,iid,y,m){let t=0;const n=monthDays(y,m);for(let d=1;d<=n;d++){const dt=new Date(y,m,d);const dk=fmt(dt);if(isSchoolDay(dt,dk))t+=cellVal(sid,iid,dk);}return Math.round(t*weightF()*100)/100;}
 function studentName(id){const s=state.students.find(x=>x.id===id);return s?s.name:'(已删除)';}
 function allTimeTotal(sid){
@@ -3136,7 +3140,7 @@ function buildItemTable(scope,ref){
   h+=`</tbody></table>`;
   return h;
 }
-function shiftWeek(n){currentWeek=clampMinDate(addDays(currentWeek,n*7));preloadMonth(currentWeek.getFullYear(),currentWeek.getMonth());preloadMonth(addDays(currentWeek,4).getFullYear(),addDays(currentWeek,4).getMonth());renderWeekly();}
+function shiftWeek(n){currentWeek=clampMinDate(startOfWeek(addDays(currentWeek,n*7)));preloadMonth(currentWeek.getFullYear(),currentWeek.getMonth());preloadMonth(addDays(currentWeek,4).getFullYear(),addDays(currentWeek,4).getMonth());renderWeekly();}
 function goThisWeek(){currentWeek=clampMinDate(startOfWeek(new Date()));renderWeekly();}
 
 /* ================= 图表 ================= */
@@ -4707,6 +4711,59 @@ function checkMaintenance(){
   }
   hideMaintBanner();
 }
+/* ================= 公告弹窗 ================= */
+async function loadNotice(){
+  if(!currentUser)return;
+  try{
+    const r=await fetch(SUPABASE_URL+'/rest/v1/group_data?group_id=eq.notice&select=data',{
+      headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+(SB?(await SB.auth.getSession()).data.session?.access_token:'')}
+    });
+    if(!r.ok)return;
+    const rows=await r.json();
+    if(!rows||!rows.length||!rows[0].data)return;
+    const d=rows[0].data;
+    if(!d.message)return;
+    // 判断可见范围
+    const role=currentUser.role;
+    const scope=d.scope||'all';
+    let visible=false;
+    if(scope==='all'){
+      visible=true;
+    }else if(scope==='admin'){
+      visible=(role==='admin');
+    }else if(scope==='teacher'){
+      visible=(role==='admin'||role==='admin2'||role==='teacher');
+    }else if(scope==='leader'){
+      visible=(role==='admin'||role==='admin2'||role==='teacher'||role==='leader');
+    }else if(scope==='groups'){
+      // 指定组别：组长只能看自己组，admin/admin2/teacher都能看
+      if(role==='admin'||role==='admin2'||role==='teacher'){
+        visible=true;
+      }else if(role==='leader'&&currentGroupId){
+        visible=(d.groups||[]).indexOf(String(currentUser.groupId))>=0;
+      }
+    }
+    if(!visible)return;
+    // 检查是否已经看过（用消息内容+时间做key）
+    const seenKey='jfz_notice_seen_'+(d.updatedAt||'');
+    if(localStorage.getItem(seenKey))return;
+    // 显示公告
+    document.getElementById('noticeContent').textContent=d.message;
+    if(d.updatedAt){
+      try{document.getElementById('noticeTime').textContent=new Date(d.updatedAt).toLocaleString('zh-CN');}catch(e){}
+    }
+    document.getElementById('noticeModal').style.display='flex';
+    // 标记已看
+    localStorage.setItem(seenKey,'1');
+  }catch(e){
+    console.log('公告加载失败',e);
+  }
+}
+function closeNotice(){
+  document.getElementById('noticeModal').style.display='none';
+}
+loadNotice();
+
 checkMaintenance();
 setInterval(checkMaintenance,15000);
 if(typeof document!=='undefined'){
