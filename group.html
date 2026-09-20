@@ -3316,7 +3316,7 @@ function renderMonthly(){
   document.getElementById('monthSummary').innerHTML=`
     <div class="summary-card"><div class="k">本月小组总分</div><div class="v accent">${group}</div></div>
     <div class="summary-card"><div class="k">人均月总分</div><div class="v">${avg}</div></div>
-    <div class="summary-card"><div class="k">日均月总分</div><div class="v">${dailyGroup}</div></div>
+    
     ${best?`<div class="summary-card"><div class="k">本月最高</div><div class="v pos">${esc(best.st.name)} · ${best.t}</div></div>`:''}`;
   document.getElementById('monthTable').innerHTML=buildMonthTable(y,m);
   document.getElementById('monthItemTable').innerHTML=buildItemTable('month',currentMonth);
@@ -4796,6 +4796,7 @@ if(typeof document!=='undefined'){
 </script>
 </body>
 </html>
+
 
 
 
