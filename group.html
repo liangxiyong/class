@@ -3368,7 +3368,7 @@ function buildMonthTable(y,m){
   const avg=avgOf(group);
   h+=`<tr><td style="position:sticky;left:0;z-index:2;background:var(--card);text-align:center;padding-left:6px;padding-right:6px"></td><td class="sticky-col" style="left:46px;font-weight:700">小组总分</td>${weeks.map(w=>{let t=0;w.forEach(d=>t+=dayGroupTotal(fmt(d)));t=Math.round(t*100)/100;return `<td style="font-family:var(--font-mono);font-weight:700">${t}</td>`;}).join('')}<td class="total-col">${group}</td></tr>`;
   h+=`<tr><td style="position:sticky;left:0;z-index:2;background:var(--card);text-align:center;padding-left:6px;padding-right:6px"></td><td class="sticky-col" style="left:46px;font-weight:700">平均分</td>${weeks.map(w=>{let t=0;w.forEach(d=>t+=dayGroupTotal(fmt(d)));t=Math.round(t*100)/100;return `<td style="font-family:var(--font-mono);font-weight:700">${avgOf(t)}</td>`;}).join('')}<td class="total-col">${avg}</td></tr>`;
-  h+=`<tr><td style="position:sticky;left:0;z-index:2;background:var(--card);text-align:center;padding-left:6px;padding-right:6px"></td><td class="sticky-col" style="left:46px;font-weight:700">日均分<span style="font-weight:400;font-size:10px;color:var(--ink-soft)"><br>去除节假日</span></td>${weeks.map(w=>{let t=0,sc=0;w.forEach(d=>{const dk=fmt(d);if(!isArchived(dk)&&isSchoolDay(d,dk)){t+=dayGroupTotal(dk);sc++;}});t=Math.round(t*100)/100;return `<td style="font-family:var(--font-mono);font-weight:700">${sc?Math.round(t/sc*100)/100:'·'}</td>`;}).join('')}<td class="total-col">${monthSchoolDays(y,m)?Math.round(group/monthSchoolDays(y,m)*100)/100:'·'}</td></tr>`;
+
   h+=`</tbody></table>`;
   return h;
 }
