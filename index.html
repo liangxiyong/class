@@ -215,9 +215,6 @@ function recordLogin(username, success, failReason){
 }
 async function doLogin(){
   const redirect=new URLSearchParams(location.search).get('redirect');
-  const btn=document.querySelector('.login-btn');
-  btn.disabled=true;
-  btn.textContent='登录中...';
   const name0=document.getElementById('loginName').value.trim();
   const name=name0.toLowerCase()==='teacher'?'teacher':name0;
   const pwd=document.getElementById('loginPwd').value;
@@ -228,8 +225,7 @@ async function doLogin(){
   const email=emailOf(name);
   const {data,error}=await SB.auth.signInWithPassword({email,password:pwd});
   if(error||!data.user){
-btn.disabled=false;
-btn.textContent='登 录';    err.textContent='用户名或密码错误，请重试或联系管理员重置';
+    err.textContent='用户名或密码错误，请重试或联系管理员重置';
     recordLogin(name,false,error?error.message:'登录失败');
     return;
   }
@@ -364,6 +360,7 @@ window.addEventListener('pageshow',function(){
 </script>
 </body>
 </html>
+
 
 
 
