@@ -242,7 +242,32 @@ async function doLogin(){
   if(!pwd){btn.disabled=false;btn.textContent='登 录';err.textContent='请输入密码';return;}
   if(!SB){btn.disabled=false;btn.textContent='登 录';err.textContent='无法连接认证服务，请检查网络后重试';return;}
   const email=emailOf(name);
-  const {data,error}=await SB.auth.signInWithPassword({email,password:pwd});
+  // 登录自动重试：网络错误时重试2次
+  let data=null,error=null;
+  for(let retry=0;retry<3;retry++){
+    try{
+      const res=await SB.auth.signInWithPassword({email,password:pwd});
+      data=res.data;
+      error=res.error;
+      if(!error)break;
+      const msg=error.message||'';
+      if(msg.includes('fetch')||msg.includes('Failed to fetch')){
+        if(retry<2){
+          err.textContent='网络不好，正在重试('+(retry+1)+'/2)...';
+          await new Promise(r=>setTimeout(r,1000));
+          continue;
+        }
+      }
+      break;
+    }catch(e){
+      error={message:e.message};
+      if(retry<2){
+        err.textContent='网络不好，正在重试('+(retry+1)+'/2)...';
+        await new Promise(r=>setTimeout(r,1000));
+        continue;
+      }
+    }
+  }
   if(error||!data.user){btn.disabled=false;btn.textContent='登 录';
     err.textContent='用户名或密码错误，请重试或联系管理员重置';
     recordLogin(name,false,error?error.message:'登录失败');
@@ -379,6 +404,7 @@ window.addEventListener('pageshow',function(){
 </script>
 </body>
 </html>
+
 
 
 
