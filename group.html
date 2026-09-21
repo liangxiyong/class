@@ -2103,6 +2103,7 @@ async function loadGroupIntoState(groupId,allowEmpty){
     }
   }catch(e){}
   // 云端加载失败
+  toast('网络不稳定，正在显示本地缓存数据');
   if(!s){
     if(!allowEmpty)return state; // 不允许空覆盖：保持当前页面数据不变
     // 云端完全取不到时：本地有备份就恢复本地（防丢数据），否则空状态
