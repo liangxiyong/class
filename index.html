@@ -149,28 +149,19 @@ var LZString=function(){var r=String.fromCharCode,o="ABCDEFGHIJKLMNOPQRSTUVWXYZa
 const SESSION_KEY='jfz_session_v1';
 // 临时维护：今天22:50开始禁用，22:00开始提示
 const MAINT_DATE='2026-09-21';
-const MAINT_START_HOUR=22;
-const MAINT_START_MIN=50;
-const MAINT_NOTICE_HOUR=22;
-const MAINT_NOTICE_MIN=0;
-
 function isMaintTime(){
   const d=new Date();
   const dateStr=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
   if(dateStr!==MAINT_DATE) return false;
   const now=d.getHours()*60+d.getMinutes();
-  const start=MAINT_START_HOUR*60+MAINT_START_MIN;
-  return now>=start;
+  return now>=22*60+50;
 }
-
 function isMaintNotice(){
   const d=new Date();
   const dateStr=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
   if(dateStr!==MAINT_DATE) return false;
   const now=d.getHours()*60+d.getMinutes();
-  const notice=MAINT_NOTICE_HOUR*60+MAINT_NOTICE_MIN;
-  const start=MAINT_START_HOUR*60+MAINT_START_MIN;
-  return now>=notice && now<start;
+  return now>=22*60 && now<22*60+50;
 }
 const SUPABASE_URL='https://zaeijgfuykhkabteqljw.supabase.co';
 const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InphZWlqZ2Z1eWtoa2FidGVxbGp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1ODA5MzgsImV4cCI6MjEwNDE1NjkzOH0.CQ-jqsslzaWpeeXg0OJnQsaW-iMNoCKbJGW_-p1F3D8';
@@ -194,6 +185,28 @@ function onLoginNameInput(){
   document.getElementById('loginPwdField').style.display='block';
   document.getElementById('loginErr').textContent='';
 }
+/* ================= 系统维护：0:00-0:30 禁止登录 ================= */
+var MAINT_START=0; // 0:00
+var MAINT_END=30;  // 0:30
+function isMaintTime(){
+  var d=new Date();
+  return d.getHours()===0 && d.getMinutes()<MAINT_END;
+}
+function maintCountdownText(){
+  var d=new Date();
+  if(d.getHours()!==0) return '';
+  var remain=MAINT_END-d.getMinutes();
+  if(remain<=0) return '';
+  return '约 '+remain+' 分钟后恢复';
+}
+function checkMaintBlock(){
+  // 维护时间不再显示横幅，只通过按钮置灰提示
+}
+setInterval(function(){
+  // 维护时间不再显示横幅
+},30000);
+
+// 记录登录日志（异步，不阻塞登录流程）
 function recordLogin(username, success, failReason){
   try{
     const ua = navigator.userAgent || '';
@@ -224,36 +237,20 @@ async function doLogin(){
   const name=name0.toLowerCase()==='teacher'?'teacher':name0;
   const pwd=document.getElementById('loginPwd').value;
   const err=document.getElementById('loginErr');
+  if(isMaintTime()){
+    err.textContent='系统维护中，请明天再试';
+    btn.disabled=false;
+    btn.textContent='登 录';
+    return;
+  }
+  if(isMaintNotice()){
+    err.textContent='提示：今天22:50开始系统维护，请尽快完成操作';
+  }
   if(!name){btn.disabled=false;btn.textContent='登 录';err.textContent='请输入用户名';return;}
   if(!pwd){btn.disabled=false;btn.textContent='登 录';err.textContent='请输入密码';return;}
   if(!SB){btn.disabled=false;btn.textContent='登 录';err.textContent='无法连接认证服务，请检查网络后重试';return;}
   const email=emailOf(name);
-  // 登录自动重试：网络错误时重试2次
-  let data=null,error=null;
-  for(let retry=0;retry<3;retry++){
-    try{
-      const res=await SB.auth.signInWithPassword({email,password:pwd});
-      data=res.data;
-      error=res.error;
-      if(!error)break;
-      const msg=error.message||'';
-      if(msg.includes('fetch')||msg.includes('Failed to fetch')){
-        if(retry<2){
-          document.getElementById('loginErr').textContent='网络不好，正在重试('+(retry+1)+'/2)...';
-          await new Promise(r=>setTimeout(r,1000));
-          continue;
-        }
-      }
-      break;
-    }catch(e){
-      error={message:e.message};
-      if(retry<2){
-        document.getElementById('loginErr').textContent='网络不好，正在重试('+(retry+1)+'/2)...';
-        await new Promise(r=>setTimeout(r,1000));
-        continue;
-      }
-    }
-  }
+  const {data,error}=await SB.auth.signInWithPassword({email,password:pwd});
   if(error||!data.user){btn.disabled=false;btn.textContent='登 录';
     err.textContent='用户名或密码错误，请重试或联系管理员重置';
     recordLogin(name,false,error?error.message:'登录失败');
@@ -287,8 +284,12 @@ async function doLogin(){
     document.getElementById('chooseName').textContent=name;
     document.getElementById('loginFields').style.display='none';
     document.getElementById('chooseBox').style.display='block';
+    // 维护时间禁用小组积分V1
     var gBtn2=document.getElementById('chooseBtnG');
-    ;
+    if(isMaintTime()){
+      gBtn2.style.opacity='.4';
+      gBtn2.style.cursor='not-allowed';
+      gBtn2.onclick=function(){alert('小组积分V1正在维护中（0:00-0:30），请使用小组积分V2或稍后再试');};
     }else{
       gBtn2.style.opacity='1';
       gBtn2.style.cursor='pointer';
@@ -321,8 +322,12 @@ async function doLogin(){
     document.getElementById('chooseClassV2Btn').style.display='flex';
 //     document.getElementById('chooseGroupV2Btn').style.display='flex'; // 已禁用V2入口
     document.getElementById('chooseNoticeBtn').style.display='flex';
+    // 维护时间禁用小组积分V1
     var gBtn=document.getElementById('chooseBtnG');
-    ;
+    if(isMaintTime()){
+      gBtn.style.opacity='.4';
+      gBtn.style.cursor='not-allowed';
+      gBtn.onclick=function(){alert('小组积分V1正在维护中（0:00-0:30），请使用小组积分V2或稍后再试');};
     }else{
       gBtn.style.opacity='1';
       gBtn.style.cursor='pointer';
@@ -354,6 +359,8 @@ function backToLogin(){
   document.getElementById('loginErr').textContent='';
 }
 window.addEventListener('pageshow',function(){
+  // 维护时间：显示提示横幅，不阻止登录
+  checkMaintBlock();
   document.getElementById('loginFields').style.display='block';
   document.getElementById('chooseBox').style.display='none';
   document.getElementById('loginErr').textContent='';
@@ -380,10 +387,6 @@ window.addEventListener('pageshow',function(){
 </script>
 </body>
 </html>
-
-
-
-
 
 
 
