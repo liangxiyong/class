@@ -237,15 +237,7 @@ async function doLogin(){
   const name=name0.toLowerCase()==='teacher'?'teacher':name0;
   const pwd=document.getElementById('loginPwd').value;
   const err=document.getElementById('loginErr');
-  if(isMaintTime()){
-    err.textContent='系统维护中，请明天再试';
-    btn.disabled=false;
-    btn.textContent='登 录';
-    return;
-  }
-  if(isMaintNotice()){
-    err.textContent='提示：今天22:50开始系统维护，请尽快完成操作';
-  }
+
   if(!name){btn.disabled=false;btn.textContent='登 录';err.textContent='请输入用户名';return;}
   if(!pwd){btn.disabled=false;btn.textContent='登 录';err.textContent='请输入密码';return;}
   if(!SB){btn.disabled=false;btn.textContent='登 录';err.textContent='无法连接认证服务，请检查网络后重试';return;}
@@ -387,6 +379,7 @@ window.addEventListener('pageshow',function(){
 </script>
 </body>
 </html>
+
 
 
 
