@@ -169,28 +169,6 @@ function onLoginNameInput(){
   document.getElementById('loginPwdField').style.display='block';
   document.getElementById('loginErr').textContent='';
 }
-/* ================= 系统维护：0:00-0:30 禁止登录 ================= */
-var MAINT_START=0; // 0:00
-var MAINT_END=30;  // 0:30
-function isMaintTime(){
-  var d=new Date();
-  return d.getHours()===0 && d.getMinutes()<MAINT_END;
-}
-function maintCountdownText(){
-  var d=new Date();
-  if(d.getHours()!==0) return '';
-  var remain=MAINT_END-d.getMinutes();
-  if(remain<=0) return '';
-  return '约 '+remain+' 分钟后恢复';
-}
-function checkMaintBlock(){
-  // 维护时间不再显示横幅，只通过按钮置灰提示
-}
-setInterval(function(){
-  // 维护时间不再显示横幅
-},30000);
-
-// 记录登录日志（异步，不阻塞登录流程）
 function recordLogin(username, success, failReason){
   try{
     const ua = navigator.userAgent || '';
@@ -284,12 +262,8 @@ async function doLogin(){
     document.getElementById('chooseName').textContent=name;
     document.getElementById('loginFields').style.display='none';
     document.getElementById('chooseBox').style.display='block';
-    // 维护时间禁用小组积分V1
     var gBtn2=document.getElementById('chooseBtnG');
-    if(isMaintTime()){
-      gBtn2.style.opacity='.4';
-      gBtn2.style.cursor='not-allowed';
-      gBtn2.onclick=function(){alert('小组积分V1正在维护中（0:00-0:30），请使用小组积分V2或稍后再试');};
+    ;
     }else{
       gBtn2.style.opacity='1';
       gBtn2.style.cursor='pointer';
@@ -322,12 +296,8 @@ async function doLogin(){
     document.getElementById('chooseClassV2Btn').style.display='flex';
 //     document.getElementById('chooseGroupV2Btn').style.display='flex'; // 已禁用V2入口
     document.getElementById('chooseNoticeBtn').style.display='flex';
-    // 维护时间禁用小组积分V1
     var gBtn=document.getElementById('chooseBtnG');
-    if(isMaintTime()){
-      gBtn.style.opacity='.4';
-      gBtn.style.cursor='not-allowed';
-      gBtn.onclick=function(){alert('小组积分V1正在维护中（0:00-0:30），请使用小组积分V2或稍后再试');};
+    ;
     }else{
       gBtn.style.opacity='1';
       gBtn.style.cursor='pointer';
@@ -359,8 +329,6 @@ function backToLogin(){
   document.getElementById('loginErr').textContent='';
 }
 window.addEventListener('pageshow',function(){
-  // 维护时间：显示提示横幅，不阻止登录
-  checkMaintBlock();
   document.getElementById('loginFields').style.display='block';
   document.getElementById('chooseBox').style.display='none';
   document.getElementById('loginErr').textContent='';
@@ -387,6 +355,7 @@ window.addEventListener('pageshow',function(){
 </script>
 </body>
 </html>
+
 
 
 
