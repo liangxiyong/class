@@ -4811,15 +4811,16 @@ function closeNotice(){
 }
 loadNotice();
 
-checkMaintenance();
+
 document.getElementById('loadingScreen').classList.add('hidden');
-setInterval(checkMaintenance,15000);
+
 if(typeof document!=='undefined'){
-  document.addEventListener('visibilitychange',function(){if(!document.hidden)checkMaintenance();});
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)});
 }
 </script>
 </body>
 </html>
+
 
 
 
