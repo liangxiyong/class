@@ -1290,17 +1290,7 @@ const DEFAULT_STATE = {
 /* ================= Supabase 多组配置 ================= */
 const SUPABASE_URL='https://zaeijgfuykhkabteqljw.supabase.co';
 const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InphZWlqZ2Z1eWtoa2FidGVxbGp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1ODA5MzgsImV4cCI6MjEwNDE1NjkzOH0.CQ-jqsslzaWpeeXg0OJnQsaW-iMNoCKbJGW_-p1F3D8';
-const SB=window.supabase?window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{
-  realtime:{
-    config:{
-      reconnectAfterMs:function(tries){
-        // 指数退避：10秒、30秒、1分钟、2分钟、5分钟，之后保持5分钟
-        const backoff=[10000,30000,60000,120000,300000];
-        return backoff[Math.min(tries-1,backoff.length-1)];
-      }
-    }
-  }
-}):null;
+const SB=window.supabase?window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;
 let sbAccessToken='';
 async function ensureSbToken(){
   if(!SB){requireLogin();return '';}
@@ -1924,8 +1914,6 @@ window.addEventListener('storage',function(ev){
 });
 // Supabase Realtime 订阅：跨设备实时同步（需在 Supabase 控制台开启 group_data 表的 Replication）
 let sbRealtimeChannel=null;
-let realtimeRetryCount=0;
-const REALTIME_BACKOFF=[10000,30000,60000,120000,300000]; // 10秒、30秒、1分钟、2分钟、5分钟
 function subscribeRealtime(gid){
   if(!SB||!SB.channel||!gid)return;
   try{
@@ -1950,20 +1938,9 @@ function subscribeRealtime(gid){
       })
       .subscribe(function(status){
         if(status==='SUBSCRIBED'){
-          realtimeRetryCount=0;
           setSyncStatus('☁️ 实时同步已连接','var(--ink-soft)');
-        }else if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'||status==='CLOSED'){
-          try{if(sbRealtimeChannel)SB.removeChannel(sbRealtimeChannel);}catch(e){}
-          sbRealtimeChannel=null;
-          const delay=REALTIME_BACKOFF[Math.min(realtimeRetryCount,REALTIME_BACKOFF.length-1)];
-          const mins=Math.floor(delay/60000);
-          const secs=Math.floor((delay%60000)/1000);
-          const timeStr=mins>0?(mins+'分'+secs+'秒'):(secs+'秒');
-          setSyncStatus('⚠️ 无法连接云端实时监听，'+timeStr+'后自动重试','#e67e22');
-          realtimeRetryCount++;
-          setTimeout(function(){
-            if(currentGroupId)subscribeRealtime(currentGroupId);
-          },delay);
+        }else if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'){
+          setSyncStatus('⚠️ 实时同步连接中...','#e67e22');
         }
       });
   }catch(e){}
@@ -4834,6 +4811,8 @@ if(typeof document!=='undefined'){
 </script>
 </body>
 </html>
+
+
 
 
 
