@@ -1914,6 +1914,7 @@ window.addEventListener('storage',function(ev){
 });
 // Supabase Realtime 订阅：跨设备实时同步（需在 Supabase 控制台开启 group_data 表的 Replication）
 let sbRealtimeChannel=null;
+let realtimeDisabled=false;
 function subscribeRealtime(gid){
   if(!SB||!SB.channel||!gid)return;
   try{
@@ -1937,10 +1938,12 @@ function subscribeRealtime(gid){
         }
       })
       .subscribe(function(status){
-        // 连接失败后停止重连，避免一直报错
-        if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'||status==='CLOSED'){
-          try{if(sbRealtimeChannel)SB.removeChannel(sbRealtimeChannel);}catch(e){}
+        // 连接失败后彻底关闭实时监听，避免一直重连报错
+        if(status!=='SUBSCRIBED'){
+          realtimeDisabled=true;
+          try{SB.removeAllChannels();}catch(e){}
           sbRealtimeChannel=null;
+          setSyncStatus('⚠️ 实时同步不可用，请手动刷新','#e67e22');
         }
       });
   }catch(e){}
@@ -4811,6 +4814,7 @@ if(typeof document!=='undefined'){
 </script>
 </body>
 </html>
+
 
 
 
