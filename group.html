@@ -1936,7 +1936,13 @@ function subscribeRealtime(gid){
           }).catch(function(){});
         }
       })
-      .subscribe(function(){});
+      .subscribe(function(status){
+        // 连接失败后停止重连，避免一直报错
+        if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'||status==='CLOSED'){
+          try{if(sbRealtimeChannel)SB.removeChannel(sbRealtimeChannel);}catch(e){}
+          sbRealtimeChannel=null;
+        }
+      });
   }catch(e){}
 }
 if(typeof document!=='undefined'){
@@ -2134,7 +2140,7 @@ async function loadGroupIntoState(groupId,allowEmpty){
   undoStack=[];redoStack=[];
   saveLocal();
   if(needUpload||fixedPollution)queueSbSave(); // 本地恢复或问号修复后写回云端
-  // subscribeRealtime(groupId); // 暂时关闭实时监听，避免WebSocket报错
+  subscribeRealtime(groupId);
   const sub=document.getElementById('sidebarGroup');
   if(sub){sub.textContent=(GROUP_NAMES[groupId]||s.groupName)+(isPersonalMode()?' · 我的分数':'');sub.style.display='block';}
   return s;
@@ -4805,6 +4811,7 @@ if(typeof document!=='undefined'){
 </script>
 </body>
 </html>
+
 
 
 
