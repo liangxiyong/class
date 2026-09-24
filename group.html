@@ -721,13 +721,17 @@ td.total-col.zero{color:#cfc4b4}
   .empty-tip{padding:26px 14px}
 }
 /* 启动加载屏 */
+#loadingScreen{position:fixed;top:0;left:0;width:100%;height:100%;background:#f6f1e8;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity .3s}
+#loadingScreen.hidden{opacity:0;pointer-events:none}
+#loadingScreen .icon{font-size:48px;margin-bottom:16px;animation:bounce 1s infinite}
+#loadingScreen .text{font-size:15px;color:#7a6d61}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
 </style>
 </head>
 <body>
-<div id="maintBanner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:#ff9800;color:white;padding:10px;text-align:center;font-size:14px;">
-  提示：今天22:50开始系统维护，请尽快完成操作
-</div>
 
+<div id="loadingScreen">
+  <div class="icon">📊</div>
   <div class="text">正在加载班级数据...</div>
 </div>
 
@@ -4212,10 +4216,7 @@ function rowsToStyledTable(rows, groupTitle){
   return h;
 }
 function styledExcelDoc(sheetName, bodyHtml){
-  return '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>'+escHtml(sheetName)+'</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--><style>'+STYLED_CSS+'</style></head><body>
-<div id="maintBanner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:#ff9800;color:white;padding:10px;text-align:center;font-size:14px;">
-  提示：今天22:50开始系统维护，请尽快完成操作
-</div>'+bodyHtml+'</body></html>';
+return '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>'+escHtml(sheetName)+'</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--><style>'+STYLED_CSS+'</style></head><body><div id="maintBanner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:#ff9800;color:white;padding:10px;text-align:center;font-size:14px;">  提示：今天22:50开始系统维护，请尽快完成操作</div>'+bodyHtml+'</body></html>';
 }
 function buildDayBlock(dk,students){
   const d=parseDate(dk);
@@ -4808,7 +4809,6 @@ loadNotice();
 
 
 if(typeof document!=='undefined'){
-  document.addEventListener('visibilitychange',function(){if(!document.hidden)});
 }
 </script>
 </body>
