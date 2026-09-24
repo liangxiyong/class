@@ -2134,7 +2134,7 @@ async function loadGroupIntoState(groupId,allowEmpty){
   undoStack=[];redoStack=[];
   saveLocal();
   if(needUpload||fixedPollution)queueSbSave(); // 本地恢复或问号修复后写回云端
-  subscribeRealtime(groupId);
+  // subscribeRealtime(groupId); // 暂时关闭实时监听，避免WebSocket报错
   const sub=document.getElementById('sidebarGroup');
   if(sub){sub.textContent=(GROUP_NAMES[groupId]||s.groupName)+(isPersonalMode()?' · 我的分数':'');sub.style.display='block';}
   return s;
