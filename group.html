@@ -1290,7 +1290,14 @@ const DEFAULT_STATE = {
 /* ================= Supabase 多组配置 ================= */
 const SUPABASE_URL='https://zaeijgfuykhkabteqljw.supabase.co';
 const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InphZWlqZ2Z1eWtoa2FidGVxbGp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1ODA5MzgsImV4cCI6MjEwNDE1NjkzOH0.CQ-jqsslzaWpeeXg0OJnQsaW-iMNoCKbJGW_-p1F3D8';
-const SB=window.supabase?window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;
+const SB=window.supabase?window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{
+  realtime:{
+    reconnectAfterMs:function(tries){
+      const backoff=[10000,30000,60000,120000,300000];
+      return backoff[Math.min(tries-1,backoff.length-1)];
+    }
+  }
+}):null;
 let sbAccessToken='';
 async function ensureSbToken(){
   if(!SB){requireLogin();return '';}
@@ -4811,6 +4818,7 @@ if(typeof document!=='undefined'){
 </script>
 </body>
 </html>
+
 
 
 
