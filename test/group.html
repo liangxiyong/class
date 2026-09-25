@@ -1,0 +1,545 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>小组积分</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+<link rel="stylesheet" href="group.css">
+</head>
+<body>
+
+</div>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="brand">
+    <div class="mark">积</div>
+    <div class="brand-info">
+      <div class="sub" id="sidebarGroup" style="display:none"></div>
+      <div class="sidebar-user" id="sidebarUser" title="点击退出登录" onclick="showLogout()"></div>
+    </div>
+    <button class="admin-btn" id="adminBtn" style="display:none" onclick="openAdminModal()">⚙️ 管理</button>
+  </div>
+  <div class="group-switch" id="adminGroupBar" style="display:none">
+    <div class="group-switch-label">当前组</div>
+    <select id="adminGroupSelect" onchange="switchAdminGroup(this.value)"></select>
+  </div>
+  <nav class="nav">
+    <div class="nav-item active" data-view="daily" onclick="switchView('daily')"><span class="ico">📝</span>每日评分</div>
+    <div class="nav-item" data-view="weekly" onclick="switchView('weekly')"><span class="ico">📅</span>周统计</div>
+    <div class="nav-item" data-view="monthly" onclick="switchView('monthly')"><span class="ico">🗓️</span>月统计</div>
+    <div class="nav-item" data-view="semester" onclick="switchView('semester')" style="display:none"><span class="ico">📊</span>学期报告</div>
+    <div class="nav-item" data-view="myrecords" onclick="switchView('myrecords')"><span class="ico">📋</span>我的记录</div>
+    <div class="nav-item" data-view="members" onclick="switchView('members')"><span class="ico">👥</span>成员管理</div>
+    <div class="nav-item" data-view="settings" onclick="switchView('settings')"><span class="ico">⚙️</span>设置</div>
+  </nav>
+  <div class="sidebar-foot"><span id="sidebarSync" style="color:rgba(247,241,230,.38)">☁️ 未同步</span></div>
+  <button class="sidebar-logout" onclick="showLogout()">退出登录</button>
+</aside>
+
+<!-- Main -->
+<main class="main">
+
+  <!-- ============ 每日评分 ============ -->
+  <section class="view active" id="view-daily">
+    <div class="view-head">
+      <div class="view-title">每日评分</div>
+    </div>
+    <div class="toolbar">
+      <div class="date-nav">
+        <button class="nav-btn" onclick="shiftDate(-1)">◀</button>
+        <span class="date-label" id="dailyDate" style="display:none"></span>
+        <button class="nav-btn" onclick="shiftDate(1)">▶</button>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="goToday()">今天</button>
+      <input type="date" id="dailyDatePicker" style="padding:7px 10px;border:1px solid var(--line);border-radius:10px;background:var(--card);font-size:13px;outline:none" onchange="pickDate(this.value)">
+      <button class="btn btn-ghost btn-sm" onclick="undo()" title="撤销 Ctrl+Z">↩️ 撤销</button>
+      <button class="btn btn-ghost btn-sm" onclick="redo()" title="重做 Ctrl+Y">↪️ 重做</button>
+      <div style="flex:1"></div>
+      <span class="batch-hint" id="batchHint">已进入批量模式：勾选成员后点击格子，可同时给多人加减分</span>
+      <button class="btn btn-ghost btn-sm print-btn" onclick="printView()">🖨️ 打印</button>
+      <button class="btn btn-ghost btn-sm" onclick="exportExcel()">⬇️ 导出Excel</button>
+      <button class="btn btn-ghost btn-sm" id="weightBtn" onclick="openWeightModal()" title="对全组个人总分（含基础分）加权">⚖️ 加权</button>
+      <div class="batch-toggle" id="baseToggle" onclick="toggleBase()" title="今日是否加基础分10分">
+        <div class="switch"></div><span id="baseToggleText">基础分10</span>
+      </div>
+      <div class="batch-toggle" id="batchToggle" onclick="toggleBatch()">
+        <div class="switch"></div>批量模式
+      </div>
+    </div>
+    <div class="summary-row" id="dailySummary"></div>
+    <div id="dailyTable"></div>
+  </section>
+
+  <!-- ============ 周统计 ============ -->
+  <section class="view" id="view-weekly">
+    <div class="view-head">
+      <div class="view-title">周统计</div>
+      <div class="view-sub" id="weekRange"></div>
+    </div>
+    <div class="toolbar">
+      <div class="date-nav">
+        <button class="nav-btn" onclick="shiftWeek(-1)">◀</button>
+        <span class="date-label" id="weekLabel"></span>
+        <button class="nav-btn" onclick="shiftWeek(1)">▶</button>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="goThisWeek()">本周</button>
+      <div style="flex:1"></div>
+      <button class="btn btn-ghost btn-sm print-btn" onclick="printView()">🖨️ 打印</button>
+      <button class="btn btn-ghost btn-sm" onclick="exportExcel()">⬇️ 导出Excel</button>
+    </div>
+    <div class="summary-row" id="weekSummary"></div>
+    <div class="chart-card" id="weekTrendCard" style="display:none">
+      <div class="chart-head">
+        <div><div class="chart-title">📈 积分趋势</div><div class="chart-sub" id="weekTrendSub"></div></div>
+      </div>
+      <div class="chart-canvas-wrap"><canvas id="weekTrendCanvas" class="chart-canvas"></canvas></div>
+      <div class="chart-legend" id="weekTrendLegend"></div>
+    </div>
+    <div class="chart-card" id="weekPieCard" style="display:none">
+      <div class="chart-head">
+        <div><div class="chart-title">🥧 项目占比</div><div class="chart-sub">各项目加减分占比（按绝对值）</div></div>
+      </div>
+      <div class="chart-canvas-wrap"><canvas id="weekPieCanvas" class="chart-canvas"></canvas></div>
+      <div class="chart-legend" id="weekPieLegend"></div>
+    </div>
+    <div class="panel" style="padding:16px">
+      <div class="panel-title" style="font-size:15px">本周积分排名（含基础分）</div>
+      <div class="table-wrap" style="max-height:none;border:none;box-shadow:none" id="weekRankTable"></div>
+    </div>
+  </section>
+
+  <!-- ============ 月统计 ============ -->
+  <section class="view" id="view-monthly">
+    <div class="view-head">
+      <div class="view-title">月统计</div>
+      <div class="view-sub" id="monthRange"></div>
+    </div>
+    <div class="toolbar">
+      <div class="date-nav">
+        <button class="nav-btn" onclick="shiftMonth(-1)">◀</button>
+        <span class="date-label" id="monthLabel"></span>
+        <button class="nav-btn" onclick="shiftMonth(1)">▶</button>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="goThisMonth()">本月</button>
+      <div style="flex:1"></div>
+      <button class="btn btn-ghost btn-sm print-btn" onclick="printView()">🖨️ 打印</button>
+      <button class="btn btn-ghost btn-sm" onclick="exportExcel()">⬇️ 导出Excel</button>
+    </div>
+    <div class="summary-row" id="monthSummary"></div>
+    <div class="chart-card" id="monthTrendCard" style="display:none">
+      <div class="chart-head">
+        <div><div class="chart-title">📈 积分趋势</div><div class="chart-sub" id="monthTrendSub"></div></div>
+      </div>
+      <div class="chart-canvas-wrap"><canvas id="monthTrendCanvas" class="chart-canvas"></canvas></div>
+      <div class="chart-legend" id="monthTrendLegend"></div>
+    </div>
+    <div class="chart-card" id="monthPieCard" style="display:none">
+      <div class="chart-head">
+        <div><div class="chart-title">🥧 项目占比</div><div class="chart-sub">各项目加减分占比（按绝对值）</div></div>
+      </div>
+      <div class="chart-canvas-wrap"><canvas id="monthPieCanvas" class="chart-canvas"></canvas></div>
+      <div class="chart-legend" id="monthPieLegend"></div>
+    </div>
+    <div class="panel" style="padding:16px">
+      <div class="panel-title" style="font-size:15px">本月每周总分</div>
+      <div class="table-wrap" style="max-height:none;border:none;box-shadow:none" id="monthTable"></div>
+    </div>
+  </section>
+
+
+  <!-- ============ 学期报告（废弃，不显示） ============ -->
+  <section class="view" id="view-semester">
+    <div class="view-head">
+      <div class="view-title">学期报告</div>
+      <div class="view-sub" id="semesterRange"></div>
+    </div>
+    <div class="toolbar">
+      <div style="flex:1"></div>
+      <button class="btn btn-ghost btn-sm print-btn" onclick="printView()">🖨️ 打印</button>
+      <button class="btn btn-ghost btn-sm" onclick="exportExcel()">⬇️ 导出Excel</button>
+    </div>
+    <div class="summary-row" id="semesterSummary"></div>
+    <div class="semester-grid">
+      <div class="panel">
+        <div class="panel-title">🏅 学期总排名</div>
+        <div class="table-wrap" style="max-height:420px" id="semesterTable"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">🚀 进步之星</div>
+        <div id="semesterProgress"></div>
+      </div>
+    </div>
+    <div class="chart-card" id="semesterBarCard" style="display:none">
+      <div class="chart-head">
+        <div><div class="chart-title">📊 每周总分对比</div><div class="chart-sub" id="semesterBarSub"></div></div>
+      </div>
+      <div class="chart-canvas-wrap"><canvas id="semesterBarCanvas" class="chart-canvas"></canvas></div>
+      <div class="chart-legend" id="semesterBarLegend"></div>
+    </div>
+    <div class="chart-card" id="semesterPieCard" style="display:none">
+      <div class="chart-head">
+        <div><div class="chart-title">🥧 学期项目占比</div><div class="chart-sub">各项目加减分占比（按绝对值）</div></div>
+      </div>
+      <div class="chart-canvas-wrap"><canvas id="semesterPieCanvas" class="chart-canvas"></canvas></div>
+      <div class="chart-legend" id="semesterPieLegend"></div>
+    </div>
+    <div class="panel" style="padding:16px;margin-top:18px">
+      <div class="panel-title" style="font-size:15px">学期项目明细</div>
+      <div class="table-wrap" style="max-height:none;border:none;box-shadow:none" id="semesterItemTable"></div>
+    </div>
+  </section>
+
+  <!-- ============ 我的记录 ============ -->
+  <section class="view" id="view-myrecords">
+    <div class="view-head">
+      <div class="view-title">我的记录</div>
+    </div>
+    <div class="myrec-toolbar">
+      <button class="btn btn-ghost btn-sm" onclick="forceRefresh()">🔄 刷新</button>
+      <span class="myrec-count" id="myrecCount"></span>
+    </div>
+    <div class="myrec-list" id="myrecList"></div>
+  </section>
+
+  <!-- ============ 成员管理 ============ -->
+  <section class="view" id="view-members">
+    <div class="view-head">
+      <div class="view-title">成员管理</div>
+    </div>
+    <div class="add-row" id="memberAddRow">
+      <input type="text" id="newMemberName" placeholder="输入成员姓名" onkeydown="if(event.key==='Enter')addMember()">
+      <button class="btn btn-primary" onclick="addMember()">＋ 添加成员</button>
+    </div>
+    <div class="member-list" id="memberList"></div>
+  </section>
+
+  <!-- ============ 设置 ============ -->
+  <section class="view" id="view-settings">
+    <div class="view-head">
+      <div class="view-title">设置</div>
+    </div>
+    <div class="settings-grid">
+      <div>
+        <div class="panel" id="panelGroupInfo" style="margin-bottom:20px">
+          <div class="panel-title">小组信息</div>
+          <div class="field">
+            <label>小组名称（可留空）</label>
+            <input type="text" id="groupNameInput" placeholder="不填则不显示" onchange="saveGroupName(this.value)">
+          </div>
+          <div class="field">
+            <label>界面字体</label>
+            <select id="fontSelect" onchange="saveFont(this.value)">
+              <option value="sans">思源黑体</option>
+            </select>
+          </div>
+        </div>
+        <div class="panel" style="margin-bottom:20px">
+          <div class="panel-title">账号与密码</div>
+          <div class="backup-row">
+            <button class="btn btn-ghost" onclick="openChangePwdModal()">🔑 修改密码</button>
+          </div>
+        </div>
+        <div class="panel" id="panelItemsCfg">
+          <div class="panel-title">评分项目与预设</div>
+          <div id="itemsList"></div>
+          <button class="add-item-btn" onclick="addItem()">＋ 添加新项目</button>
+        </div>
+      </div>
+      <div>
+        <div class="panel" style="margin-bottom:20px">
+          <div class="panel-title">配置管理</div>
+          <div class="backup-row">
+            <button class="btn btn-ghost" onclick="exportConfig()">⬇️ 导出配置</button>
+            <button class="btn btn-ghost" onclick="document.getElementById('importConfigFile').click()">⬆️ 导入配置</button>
+            <input type="file" id="importConfigFile" accept=".json" style="display:none" onchange="importConfig(this)">
+          </div>
+        </div>
+        <div class="panel" style="margin-bottom:20px">
+          <div class="panel-title">数据备份</div>
+          <div class="backup-row">
+            <button class="btn btn-ghost" onclick="exportData()">⬇️ 导出备份</button>
+            <button class="btn btn-ghost" onclick="document.getElementById('importDataFile').click()">⬆️ 导入备份</button>
+            <input type="file" id="importDataFile" accept=".json" style="display:none" onchange="importData(this)">
+          </div>
+        </div>
+        <div class="panel" style="margin-bottom:20px" id="cloudPanel">
+          <div class="panel-title">☁️ 云同步</div>
+          <div class="field">
+            <label>同步状态</label>
+            <div id="syncStatus" style="font-size:13px;color:var(--ink-soft)"></div>
+          </div>
+          <div class="backup-row" style="margin-top:14px">
+            <button class="btn btn-primary" onclick="cloudPush()" id="btnCloudPush">⬆️ 立即上传</button>
+            <button class="btn btn-ghost" onclick="cloudPull()" id="btnCloudPull">⬇️ 从云端拉取</button>
+          </div>
+        </div>
+        <div class="panel" style="margin-bottom:20px" id="dangerPanel">
+          <div class="panel-title" style="color:var(--red)">危险操作</div>
+          <div class="panel-sub">清空全部数据（成员、配置、积分），不可恢复</div>
+          <button class="btn btn-danger" onclick="clearAllData()">🗑️ 清空全部数据</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- Score Modal -->
+<div class="modal-overlay" id="noticeModal" style="display:none;z-index:2000">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">📢 公告</div>
+      </div>
+      <button class="modal-close" onclick="closeNotice()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="noticeContent" style="white-space:pre-wrap;font-size:15px;line-height:1.7;padding:8px 0"></div>
+      <div id="noticeTime" style="font-size:12px;color:var(--ink-soft);margin-top:16px;text-align:right"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-primary" style="flex:1" onclick="closeNotice()">我知道了</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="scoreModal" style="display:none" onclick="if(event.target===this)closeScoreModal()">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="scoreModalTitle"></div>
+        <div class="modal-sub" id="scoreModalSub"></div>
+      </div>
+      <button class="icon-btn" onclick="closeScoreModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="current-box">
+        <span class="lbl" id="scoreModalLbl">当前分值</span>
+        <span class="val" id="scoreModalCurrent">0</span>
+      </div>
+      <div id="formulaSection" style="display:none">
+        <div class="section-label">名次公式</div>
+        <div class="formula-row">
+          <input type="number" id="rankInput" placeholder="输入名次 N" oninput="updateFormulaPreview()">
+          <div class="formula-preview" id="formulaPreview">—</div>
+          <button class="btn btn-primary" onclick="applyFormula()">应用</button>
+        </div>
+        <div id="weightSection" style="display:none">
+          <div class="section-label">加权选项</div>
+          <div id="weightOptions"></div>
+        </div>
+      </div>
+      <div id="presetSection">
+        <div class="section-label">预设加减分</div>
+        <div class="preset-grid" id="presetGrid"></div>
+      </div>
+      <div class="section-label">自定义分值</div>
+      <div class="custom-row">
+        <input type="number" id="customValue" placeholder="输入数值，如 -3 或 5">
+        <button class="btn btn-ghost" onclick="applyCustom('add')">加</button>
+        <button class="btn btn-primary" onclick="applyCustom('set')">设为</button>
+      </div>
+      <div class="section-label">备注（附加惩罚等，不参与计分）</div>
+      <div class="note-row">
+        <input type="text" id="noteInput" placeholder="如：值日一周、再值日一周">
+        <button class="btn btn-ghost" onclick="saveNote()">保存</button>
+      </div>
+      <div class="section-label">本项记录</div>
+      <div id="eventHistory"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-danger btn-sm" onclick="clearCell()">清零该项</button>
+      <button class="btn btn-ghost" onclick="closeScoreModal()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 个人积分卡片 -->
+<div class="modal-overlay" id="studentModal" style="display:none" onclick="if(event.target===this)closeStudentCard()">
+  <div class="modal modal-lg">
+    <div class="modal-head">
+      <div id="studentCardHead"></div>
+      <button class="icon-btn" onclick="closeStudentCard()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="student-card-summary" id="studentCardSummary"></div>
+      <div class="section-label">📈 每周积分趋势</div>
+      <div class="chart-canvas-wrap" style="height:180px"><canvas id="studentTrendCanvas" class="chart-canvas"></canvas></div>
+      <div class="section-label">📋 各项目明细</div>
+      <div id="studentItemBars"></div>
+      <div class="section-label">🕘 最近记录</div>
+      <div id="studentRecent"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeStudentCard()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 管理面板 -->
+<div class="modal-overlay" id="adminModal" style="display:none" onclick="if(event.target===this)closeAdminModal()">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">⚙️ 管理设置</div>
+      </div>
+      <button class="icon-btn" onclick="closeAdminModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="admin-switch-row" id="admin2SwitchRow" style="display:none">
+        <div>
+          <div class="admin-switch-title">启用 admin2 班级管理V2</div>
+          <div class="admin-switch-sub">关闭后 admin2 的班级管理V2入口将被禁用，仍可使用小组积分</div>
+        </div>
+        <div class="admin-switch" id="admin2Switch" onclick="toggleAdmin2()"><div class="admin-switch-knob"></div></div>
+      </div>
+
+      <div class="admin-section">
+        <div class="admin-section-title">📤 批量导出</div>
+        <div class="admin-range-row">
+          <input type="date" id="batchExportStart" min="2026-08-31">
+          <span>至</span>
+          <input type="date" id="batchExportEnd" min="2026-08-31">
+          <button class="btn btn-ghost btn-sm" onclick="setBatchRangeToday('batchExport')">今天</button>
+        </div>
+        <button class="btn btn-primary" onclick="exportAllGroupsExcel()">⬇️ 导出全部小组数据</button>
+      </div>
+
+      <div class="admin-section">
+        <div class="admin-section-title">🚫 批量关闭基础分</div>
+        <div class="admin-range-row">
+          <input type="date" id="batchBaseStart" min="2026-08-31">
+          <span>至</span>
+          <input type="date" id="batchBaseEnd" min="2026-08-31">
+          <button class="btn btn-ghost btn-sm" onclick="setBatchRangeToday('batchBase')">今天</button>
+        </div>
+        <button class="btn btn-danger" onclick="adminBatchBaseOff()">🚫 关闭全部小组基础分</button>
+      </div>
+
+      <div class="admin-section" id="resetPwdSection">
+        <div class="admin-section-title">🔑 重置用户密码</div>
+        <div class="admin-range-row">
+          <input type="text" id="resetPwdName" placeholder="用户名" style="flex:1;min-width:80px">
+          <input type="text" id="resetPwdNew" placeholder="新密码" style="flex:1;min-width:90px">
+          <button class="btn btn-primary btn-sm" onclick="adminResetPwd()">重置</button>
+        </div>
+        <div id="resetPwdErr" style="font-size:12px;color:var(--red);margin-top:6px"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="weightModal" style="display:none" onclick="if(event.target===this)closeWeightModal()">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">⚖️ 数据加权</div>
+        <div class="modal-sub">对全组总分按百分比加成（0%~12%）</div>
+      </div>
+      <button class="icon-btn" onclick="closeWeightModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="weight-group">
+        <span style="font-size:13px;color:var(--ink-soft)">加权百分比（0%-12%）</span>
+        <div style="display:flex;align-items:center;gap:12px;width:100%">
+          <input type="range" id="weightPercent" min="0" max="12" step="1" value="4" style="flex:1;height:6px;accent-color:var(--primary)" oninput="document.getElementById('weightPercentVal').textContent=this.value+'%'">
+          <span id="weightPercentVal" style="font-size:16px;font-weight:700;color:var(--primary);min-width:45px;text-align:right">4%</span>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--ink-soft);line-height:1.7">
+        对全组<b>所有日期的个人总分</b>（含基础分10、默认分、加减分记录）统一加权。<br>
+        加权 = 总分 × (1+百分比/100)，范围0%-12%。<br>
+        当前加权系数：<b id="weightFactorNow">×1</b>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeWeightModal()">取消</button>
+      <button class="btn btn-primary" onclick="applyWeight()">✅ 确认加权</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="pwdMeModal" style="display:none" onclick="if(event.target===this)closeChangePwdModal()">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">🔑 修改密码</div>
+        <div class="modal-sub">修改后下次登录请使用新密码</div>
+      </div>
+      <button class="icon-btn" onclick="closeChangePwdModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="margin-bottom:12px">
+        <div style="font-size:12px;color:var(--ink-soft);margin-bottom:6px;font-weight:600">用户名</div>
+        <input type="text" id="pwdMeName" readonly style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-size:14px;outline:none;background:var(--paper);opacity:.75">
+      </div>
+      <div style="margin-bottom:12px">
+        <div style="font-size:12px;color:var(--ink-soft);margin-bottom:6px;font-weight:600">当前密码</div>
+        <input type="password" id="pwdMeOld" placeholder="输入当前密码" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-size:14px;outline:none">
+      </div>
+      <div style="margin-bottom:12px">
+        <div style="font-size:12px;color:var(--ink-soft);margin-bottom:6px;font-weight:600">新密码</div>
+        <input type="password" id="pwdMeNew" placeholder="新密码" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-size:14px;outline:none">
+      </div>
+      <div style="margin-bottom:8px">
+        <div style="font-size:12px;color:var(--ink-soft);margin-bottom:6px;font-weight:600">确认新密码</div>
+        <input type="password" id="pwdMeNew2" placeholder="再次输入新密码" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font-size:14px;outline:none">
+      </div>
+      <div id="pwdMeErr" style="font-size:12px;color:var(--red);min-height:16px;margin-bottom:4px"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeChangePwdModal()">取消</button>
+      <button class="btn btn-primary" onclick="doChangePwdMe()">✅ 确认修改</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div id="printArea"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="01-utils.js"></script>
+<script src="02-auth.js"></script>
+<script src="03-data.js"></script>
+<script src="04-render.js"></script>
+<script src="05-actions.js"></script>
+<script src="06-export.js"></script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

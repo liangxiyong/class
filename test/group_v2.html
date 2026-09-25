@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>小组积分 V2</title>
+<style>
+:root{
+  --paper:#f6f1e8;--card:#fffdf9;--ink:#2b2420;--ink-soft:#7a6d61;
+  --line:#e3d9c9;--accent:#c0392b;--accent-soft:#f6e3df;
+  --green:#2e7d32;--red:#c62828;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:var(--paper);color:var(--ink);font-size:14px;padding-bottom:70px;min-height:100vh}
+.topbar{position:sticky;top:0;z-index:100;background:var(--card);padding:12px 16px;box-shadow:0 1px 4px rgba(0,0,0,.06);border-bottom:1px solid var(--line)}
+.topbar-row{display:flex;align-items:center;justify-content:space-between}
+.topbar-title{font-size:17px;font-weight:700}
+.topbar-badge{font-size:10px;background:var(--accent);color:#fff;padding:2px 6px;border-radius:4px;font-weight:500;margin-left:6px;vertical-align:middle}
+.topbar-user{font-size:12px;color:var(--ink-soft)}
+.date-nav{display:flex;align-items:center;gap:8px;margin-top:10px}
+.date-btn{width:36px;height:36px;border-radius:10px;background:var(--paper);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;flex:none;border:1px solid var(--line)}
+.date-current{flex:1;text-align:center;font-size:13px;font-weight:600;padding:8px;background:var(--paper);border-radius:10px;border:1px solid var(--line)}
+.refresh-btn{width:36px;height:36px;border-radius:10px;background:var(--paper);display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;flex:none;border:1px solid var(--line)}
+.content{padding:12px}
+.view{display:none}
+.view.active{display:block;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.group-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px;-webkit-overflow-scrolling:touch}
+.group-tab{padding:7px 14px;border-radius:18px;background:var(--card);font-size:12px;white-space:nowrap;cursor:pointer;color:var(--ink-soft);flex:none;border:1px solid var(--line)}
+.group-tab.active{background:var(--accent);color:#fff;font-weight:600;border-color:var(--accent)}
+.stu-card{background:var(--card);border-radius:14px;padding:14px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.04);border:1px solid var(--line)}
+.stu-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.stu-name{font-size:16px;font-weight:700}
+.stu-day-score{font-size:20px;font-weight:800}
+.stu-day-score.positive{color:var(--green)}
+.stu-day-score.negative{color:var(--red)}
+.stu-items{display:flex;flex-direction:column;gap:2px}
+.stu-item{display:flex;align-items:center;justify-content:space-between;padding:10px 8px;border-radius:8px;cursor:pointer;transition:background .1s}
+.stu-item:active{background:var(--accent-soft)}
+.stu-item-left{display:flex;align-items:center;gap:8px}
+.stu-item-name{font-size:14px}
+.stu-item-val{font-size:14px;font-weight:700}
+.stu-item-val.positive{color:var(--green)}
+.stu-item-val.negative{color:var(--red)}
+.ev-count{display:inline-block;background:var(--accent);color:#fff;font-size:9px;padding:1px 4px;border-radius:4px}
+.rank-card{background:var(--card);border-radius:14px;padding:16px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.04);border:1px solid var(--line)}
+.rank-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.rank-left{display:flex;align-items:center;flex:1;min-width:0}
+.rank-num{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff;flex:none}
+.rank-num.r1{background:linear-gradient(135deg,#fbbf24,#f59e0b)}
+.rank-num.r2{background:linear-gradient(135deg,#94a3b8,#64748b)}
+.rank-num.r3{background:linear-gradient(135deg,#fb923c,#ea580c)}
+.rank-num.rn{background:var(--line);color:var(--ink-soft)}
+.rank-name{font-size:17px;font-weight:700;margin-left:12px}
+.rank-score{font-size:22px;font-weight:800}
+.rank-score.positive{color:var(--green)}
+.rank-score.negative{color:var(--red)}
+.rank-members{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
+.rank-member{font-size:11px;background:var(--paper);padding:4px 9px;border-radius:6px;color:var(--ink-soft)}
+.stats-row{display:flex;gap:8px;margin-bottom:12px}
+.stat-item{flex:1;background:var(--card);border-radius:14px;padding:14px 8px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.04);border:1px solid var(--line)}
+.stat-num{font-size:22px;font-weight:800;line-height:1.2}
+.stat-num.green{color:var(--green)}
+.stat-label{font-size:10px;color:var(--ink-soft);margin-top:4px}
+.card{background:var(--card);border-radius:14px;padding:16px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.04);border:1px solid var(--line)}
+.card-title{font-size:14px;font-weight:700;margin-bottom:12px}
+.tabbar{position:fixed;bottom:0;left:0;right:0;background:var(--card);display:flex;box-shadow:0 -2px 10px rgba(0,0,0,.06);z-index:100;padding-bottom:env(safe-area-inset-bottom);border-top:1px solid var(--line)}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 4px;cursor:pointer;color:var(--ink-soft)}
+.tab-item.active{color:var(--accent)}
+.tab-item .ico{font-size:22px;margin-bottom:3px}
+.tab-item .txt{font-size:10px;font-weight:500}
+.modal-mask{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:200;display:none;align-items:flex-end;justify-content:center}
+.modal-mask.show{display:flex}
+.modal{background:var(--card);width:100%;max-width:500px;border-radius:20px 20px 0 0;padding:20px;max-height:85vh;overflow-y:auto;animation:slideUp .25s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:none}}
+.modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.modal-title{font-size:17px;font-weight:700}
+.modal-close{width:32px;height:32px;border-radius:50%;background:var(--paper);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--ink-soft);cursor:pointer;border:1px solid var(--line)}
+.modal-current{text-align:center;margin-bottom:16px}
+.modal-current-num{font-size:36px;font-weight:800}
+.modal-current-num.positive{color:var(--green)}
+.modal-current-num.negative{color:var(--red)}
+.modal-current-label{font-size:12px;color:var(--ink-soft);margin-top:4px}
+.preset-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.preset-btn{padding:12px;border-radius:10px;border:none;font-size:13px;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.preset-btn.pos{background:rgba(46,125,50,.12);color:var(--green)}
+.preset-btn.neg{background:rgba(198,40,40,.12);color:var(--red)}
+.preset-label{font-weight:500}
+.preset-val{font-weight:700}
+.rec-list{border-top:1px solid var(--line);padding-top:12px}
+.rec-title{font-size:12px;font-weight:600;color:var(--ink-soft);margin-bottom:8px}
+.rec-item{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--paper);border-radius:8px;margin-bottom:6px}
+.rec-label{font-size:13px}
+.rec-by{font-size:11px;color:var(--ink-soft)}
+.rec-val{font-size:14px;font-weight:700}
+.rec-val.positive{color:var(--green)}
+.rec-val.negative{color:var(--red)}
+.rec-del{color:var(--red);font-size:12px;cursor:pointer;padding:4px 6px}
+.switch-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--line)}
+.switch-row:last-child{border-bottom:none}
+.switch-title{font-size:14px;font-weight:500}
+.switch-sub{font-size:11px;color:var(--ink-soft);margin-top:3px}
+.switch{width:50px;height:28px;border-radius:14px;background:var(--line);position:relative;cursor:pointer;transition:background .2s;flex:none}
+.switch.on{background:var(--green)}
+.switch-knob{width:24px;height:24px;border-radius:50%;background:#fff;position:absolute;top:2px;left:2px;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.switch.on .switch-knob{transform:translateX(22px)}
+.toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.8);color:#fff;padding:12px 24px;border-radius:10px;font-size:14px;z-index:300;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.show{opacity:1}
+.empty{text-align:center;padding:30px;color:var(--ink-soft);font-size:13px}
+.weight-slider{width:100%;height:6px;-webkit-appearance:none;background:var(--line);border-radius:3px;outline:none;margin:20px 0 8px}
+.weight-slider::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 2px 8px rgba(192,57,43,.3);border:3px solid #fff}
+.weight-marks{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-soft)}
+.btn-primary{width:100%;padding:15px;background:var(--accent);color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer;margin-top:16px}
+.btn-secondary{width:100%;padding:15px;background:var(--paper);color:var(--ink);border:1px solid var(--line);border-radius:14px;font-size:15px;font-weight:600;cursor:pointer;margin-top:10px}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-row">
+    <div class="topbar-title">小组积分<span class="topbar-badge">V2</span></div>
+    <div class="topbar-user" id="userInfo"></div>
+  </div>
+  <div class="date-nav">
+    <div class="date-btn" onclick="shiftDate(-1)">‹</div>
+    <div class="date-current" id="dateLabel">今天</div>
+    <div class="date-btn" onclick="shiftDate(1)">›</div>
+    <div class="refresh-btn" onclick="refresh()">🔄</div>
+  </div>
+</div>
+<div class="content">
+  <div class="view active" id="view-daily">
+    <div class="group-tabs" id="groupTabs"></div>
+    <div id="dailyList"></div>
+  </div>
+  <div class="view" id="view-rank">
+    <div class="stats-row">
+      <div class="stat-item"><div class="stat-num" id="totalAll">0</div><div class="stat-label">全班总分</div></div>
+      <div class="stat-item"><div class="stat-num" id="avgAll">0</div><div class="stat-label">组均</div></div>
+      <div class="stat-item"><div class="stat-num green" id="topGrp">-</div><div class="stat-label">第一名</div></div>
+    </div>
+    <div id="rankList"></div>
+  </div>
+  <div class="view" id="view-base">
+    <div class="card">
+      <div class="card-title">📅 每日基础分</div>
+      <div id="baseList"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">⚖️ 加权系数（全班统一）</div>
+      <div style="text-align:center;font-size:32px;font-weight:800;color:var(--accent)" id="weightShow">×1.00</div>
+      <input type="range" class="weight-slider" id="weightSlider" min="1" max="1.12" step="0.01" value="1">
+      <div class="weight-marks"><span>×1.00</span><span>×1.06</span><span>×1.12</span></div>
+      <button class="btn-primary" onclick="saveWeight()">保存系数</button>
+    </div>
+  </div>
+  <div class="view" id="view-me">
+    <div class="card">
+      <div style="padding:8px 0">
+        <div style="font-size:17px;font-weight:700" id="meName"></div>
+        <div style="font-size:12px;color:var(--ink-soft);margin-top:4px" id="meRole"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="switch-row" onclick="exportData()" style="cursor:pointer">
+        <div><div class="switch-title">📤 导出全部数据</div><div class="switch-sub">下载所有小组JSON备份</div></div>
+        <div style="color:var(--ink-soft)">›</div>
+      </div>
+    </div>
+    <div class="card"><button class="btn-secondary" onclick="logout()">退出登录</button></div>
+  </div>
+</div>
+<div class="tabbar">
+  <div class="tab-item active" data-view="daily" onclick="switchView('daily')"><span class="ico">📝</span><span class="txt">打分</span></div>
+  <div class="tab-item" data-view="rank" onclick="switchView('rank')"><span class="ico">🏆</span><span class="txt">排名</span></div>
+  <div class="tab-item" data-view="base" onclick="switchView('base')"><span class="ico">📅</span><span class="txt">设置</span></div>
+  <div class="tab-item" data-view="me" onclick="switchView('me')"><span class="ico">👤</span><span class="txt">我的</span></div>
+</div>
+<div class="modal-mask" id="scoreModal" onclick="if(event.target===this)closeScoreModal()">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="scoreModalTitle">打分</div>
+      <div class="modal-close" onclick="closeScoreModal()">✕</div>
+    </div>
+    <div class="modal-current">
+      <div class="modal-current-num" id="scoreModalNum">0</div>
+      <div class="modal-current-label" id="scoreModalLabel">当前分值</div>
+    </div>
+    <div class="preset-grid" id="presetGrid"></div>
+    <div class="rec-list">
+      <div class="rec-title">历史记录</div>
+      <div id="eventHistory"></div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SB_URL='https://zaeijgfuykhkabteqljw.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InphZWlqZ2Z1eWtoa2FidGVxbGp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1ODA5MzgsImV4cCI6MjEwNDE1NjkzOH0.CQ-jqsslzaWpeeXg0OJnQsaW-iMNoCKbJGW_-p1F3D8';
+const SESSION_KEY='jfz_session_v1';
+const sb=supabase.createClient(SB_URL,SB_KEY);
+let user=null, accessToken='';
+let view='daily', curDate=new Date(), curGrp=1;
+let groups={}, activeCell=null;
+let realtimeCh=null;
+function fmt(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function today(){return fmt(new Date());}
+function addD(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r;}
+function isWork(d){const w=d.getDay();return w>=1&&w<=5;}
+function esc(s){return String(s).replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800);}
+function hdrs(){return {'apikey':SB_KEY,'Authorization':'Bearer '+accessToken,'Content-Type':'application/json'};}
+async function init(){
+  try{user=JSON.parse(localStorage.getItem(SESSION_KEY)||'null');}catch(e){user=null;}
+  if(!user||user.role!=='admin'){location.href='index.html';return;}
+  document.getElementById('userInfo').textContent=user.name||'';
+  document.getElementById('meName').textContent=user.name||'';
+  document.getElementById('meRole').textContent='管理员';
+  const {data:sd}=await sb.auth.getSession();
+  if(!sd||!sd.session){location.href='index.html';return;}
+  accessToken=sd.session.access_token;
+  await loadAll();renderAll();startRT();
+}
+async function loadAll(){
+  const r=await fetch(SB_URL+'/rest/v1/group_data?select=*&order=group_id',{headers:hdrs()});
+  const rows=await r.json();
+  groups={};
+  for(const row of rows)groups[String(row.group_id)]=row.data||{};
+}
+async function refresh(){await loadAll();renderAll();toast('已刷新');}
+function gd(g){return groups[String(g)]||{};}
+function stu(g){return gd(g).students||[];}
+function items(g){return gd(g).items||[];}
+function wt(g){return gd(g).weightFactor||1;}
+function isOff(g,d){return !!(gd(g).baseOff&&gd(g).baseOff[d]);}
+function cellV(g,sid,cat,date){
+  const dd=gd(g).scores||{};const day=dd[date]||{};const sday=day[sid]||{};const ev=sday[cat]||[];
+  return ev.reduce((a,e)=>a+(+e.v||0),0);
+}
+function cellEvents(g,sid,cat,date){
+  const dd=gd(g).scores||{};const day=dd[date]||{};const sday=day[sid]||{};
+  return sday[cat]||[];
+}
+function dayScore(g,sid,date){
+  if(!isWork(new Date(date)))return 0;
+  let total=isOff(g,date)?0:10;
+  for(const it of items(g))total+=cellV(g,sid,it.id,date);
+  return Math.round(total*wt(g)*100)/100;
+}
+function shiftDate(n){curDate=addD(curDate,n);renderAll();}
+function updateDateLabel(){
+  const d=fmt(curDate);const t=today();
+  document.getElementById('dateLabel').textContent=d===t?'今天 '+d:d;
+}
+function renderGrpTabs(){
+  let html='';
+  for(let g=1;g<=10;g++)html+='<div class="group-tab'+(curGrp===g?' active':'')+'" onclick="pickGrp('+g+')">第'+g+'组</div>';
+  document.getElementById('groupTabs').innerHTML=html;
+}
+function pickGrp(g){curGrp=g;renderGrpTabs();renderDaily();}
+function renderDaily(){
+  updateDateLabel();renderGrpTabs();
+  const date=fmt(curDate);const g=curGrp;
+  const sList=stu(g);const itemList=items(g);
+  if(!sList.length||!itemList.length){
+    document.getElementById('dailyList').innerHTML='<div class="empty">该组暂无数据</div>';return;
+  }
+  let html='';
+  for(const s of sList){
+    const ds=dayScore(g,s.id,date);
+    html+='<div class="stu-card">';
+    html+='<div class="stu-head"><div class="stu-name">'+esc(s.name)+'</div>';
+    html+='<div class="stu-day-score '+(ds>=0?'positive':'negative')+'">'+(ds>0?'+':'')+ds+'</div></div>';
+    html+='<div class="stu-items">';
+    for(const it of itemList){
+      const v=cellV(g,s.id,it.id,date);
+      const cls=v>0?'positive':v<0?'negative':'';
+      const disp=v===0?'0':(v>0?'+'+v:v);
+      const evs=cellEvents(g,s.id,it.id,date);
+      const badge=evs.length>1?'<span class="ev-count">'+evs.length+'</span>':'';
+      html+='<div class="stu-item" onclick="openScoreModal('+g+',\''+s.id+'\',\''+it.id+'\')">';
+      html+='<div class="stu-item-left"><span class="stu-item-name">'+esc(it.name)+'</span>'+badge+'</div>';
+      html+='<span class="stu-item-val '+cls+'">'+disp+'</span>';
+      html+='</div>';
+    }
+    html+='</div></div>';
+  }
+  document.getElementById('dailyList').innerHTML=html;
+}
+function openScoreModal(g,sid,iid){
+  activeCell={g,sid,iid};
+  const date=fmt(curDate);
+  const gData=gd(g);
+  const item=gData.items.find(i=>i.id===iid);
+  const student=gData.students.find(s=>s.id===sid);
+  document.getElementById('scoreModalTitle').textContent=item.name;
+  document.getElementById('scoreModalLabel').textContent=student.name+' · '+date;
+  renderPresets();updateModalCurrent();renderEventHistory();
+  document.getElementById('scoreModal').classList.add('show');
+}
+function closeScoreModal(){document.getElementById('scoreModal').classList.remove('show');activeCell=null;}
+function renderPresets(){
+  const {g,iid}=activeCell;
+  const item=gd(g).items.find(i=>i.id===iid);
+  const grid=document.getElementById('presetGrid');
+  if(!item.presets||!item.presets.length){
+    grid.innerHTML='<div style="grid-column:1/-1;font-size:12px;color:var(--ink-soft);text-align:center;padding:8px">暂无预设</div>';return;
+  }
+  grid.innerHTML=item.presets.map(p=>{
+    const cls=p.value>0?'pos':'neg';const sign=p.value>0?'+':'';
+    return '<button class="preset-btn '+cls+'" onclick="applyValue('+p.value+',\''+esc(p.label)+'\')"><span class="preset-label">'+esc(p.label)+'</span><span class="preset-val">'+sign+p.value+'</span></button>';
+  }).join('');
+}
+function updateModalCurrent(){
+  const {g,sid,iid}=activeCell;const date=fmt(curDate);
+  const v=cellV(g,sid,iid,date);
+  const el=document.getElementById('scoreModalNum');
+  el.textContent=v===0?'0':(v>0?'+'+v:v);
+  el.className='modal-current-num '+(v>0?'positive':v<0?'negative':'');
+}
+function renderEventHistory(){
+  const {g,sid,iid}=activeCell;const date=fmt(curDate);
+  const evs=cellEvents(g,sid,iid,date);
+  const el=document.getElementById('eventHistory');
+  if(!evs.length){el.innerHTML='<div style="font-size:12px;color:var(--ink-soft);text-align:center;padding:8px">暂无记录</div>';return;}
+  el.innerHTML=evs.map((e,idx)=>{
+    const cls=e.v>0?'positive':'negative';
+    return '<div class="rec-item"><div><div class="rec-label">'+esc(e.label||'记录')+'</div><div class="rec-by">'+esc(e.by||'')+'</div></div><div style="display:flex;align-items:center"><span class="rec-val '+cls+'">'+(e.v>0?'+':'')+e.v+'</span><span class="rec-del" onclick="deleteEvent('+idx+')">✕</span></div></div>';
+  }).join('');
+}
+async function applyValue(value,label){
+  const {g,sid,iid}=activeCell;const date=fmt(curDate);
+  const gstr=String(g);
+  try{
+    if(!groups[gstr].scores)groups[gstr].scores={};
+    if(!groups[gstr].scores[date])groups[gstr].scores[date]={};
+    if(!groups[gstr].scores[date][sid])groups[gstr].scores[date][sid]={};
+    if(!Array.isArray(groups[gstr].scores[date][sid][iid]))groups[gstr].scores[date][sid][iid]=[];
+    const newEvent={v:value,by:user.name||'admin',id:'sm'+Date.now().toString(36),ts:Date.now(),label:label||''};
+    groups[gstr].scores[date][sid][iid].push(newEvent);
+    groups[gstr].lastModified=Date.now();
+    renderDaily();updateModalCurrent();renderEventHistory();
+    await fetch(SB_URL+'/rest/v1/group_data?group_id=eq.'+g,{method:'PATCH',headers:hdrs(),body:JSON.stringify({data:groups[gstr]})});
+    toast('已 '+value+' 分');
+  }catch(e){toast('保存失败');}
+}
+async function deleteEvent(idx){
+  const {g,sid,iid}=activeCell;const date=fmt(curDate);
+  if(!confirm('确定删除这条记录吗？'))return;
+  const gstr=String(g);
+  try{
+    const arr=groups[gstr].scores?.[date]?.[sid]?.[iid];
+    if(Array.isArray(arr)&&arr[idx])arr.splice(idx,1);
+    groups[gstr].lastModified=Date.now();
+    renderDaily();updateModalCurrent();renderEventHistory();
+    await fetch(SB_URL+'/rest/v1/group_data?group_id=eq.'+g,{method:'PATCH',headers:hdrs(),body:JSON.stringify({data:groups[gstr]})});
+    toast('已删除');
+  }catch(e){toast('删除失败');}
+}
+function getMon(off){const n=new Date();const day=(n.getDay()+6)%7;const m=addD(n,-day+off*7);m.setHours(0,0,0,0);return m;}
+function weekScore(g,sid,mon){let t=0;for(let i=0;i<7;i++){const d=addD(mon,i);if(isWork(d))t+=dayScore(g,sid,fmt(d));}return Math.round(t*100)/100;}
+function grpTotal(g,mon){let t=0;for(const s of stu(g))t+=weekScore(g,s.id,mon);return Math.round(t*100)/100;}
+function renderRank(){
+  const mon=getMon(0);const arr=[];let all=0;
+  for(let g=1;g<=10;g++){const s=grpTotal(g,mon);arr.push({g,s});all+=s;}
+  arr.sort((a,b)=>b.s-a.s);
+  document.getElementById('totalAll').textContent=Math.round(all);
+  document.getElementById('avgAll').textContent=(all/10).toFixed(1);
+  document.getElementById('topGrp').textContent=arr[0]?('第'+arr[0].g+'组'):'-';
+  let html='';
+  for(let i=0;i<arr.length;i++){
+    const {g,s}=arr[i];const sList=stu(g);
+    const rc=i===0?'r1':i===1?'r2':i===2?'r3':'rn';
+    html+='<div class="rank-card"><div class="rank-top"><div class="rank-left"><div class="rank-num '+rc+'">'+(i+1)+'</div><div class="rank-name">第'+g+'组</div></div>';
+    html+='<div class="rank-score '+(s>=0?'positive':'negative')+'">'+(s>0?'+':'')+s+'</div></div>';
+    html+='<div class="rank-members">';
+    for(const s2 of sList.slice(0,5))html+='<span class="rank-member">'+esc(s2.name)+'</span>';
+    if(sList.length>5)html+='<span class="rank-member">+'+(sList.length-5)+'</span>';
+    html+='</div></div>';
+  }
+  document.getElementById('rankList').innerHTML=html;
+}
+function renderBase(){
+  const mon=getMon(0);let html='';const names=['周一','周二','周三','周四','周五'];
+  for(let i=0;i<5;i++){
+    const d=addD(mon,i);const ds=fmt(d);
+    let allOff=true,anyOff=false;
+    for(let g=1;g<=10;g++){if(isOff(g,ds))anyOff=true;else allOff=false;}
+    html+='<div class="switch-row"><div><div class="switch-title">'+ds.slice(5)+' '+names[i]+'</div>';
+    html+='<div class="switch-sub">'+(allOff?'已关闭':anyOff?'部分关闭':'基础分+10')+'</div></div>';
+    html+='<div class="switch '+(allOff?'on':'')+'" onclick="toggleBase(\''+ds+'\','+allOff+')"><div class="switch-knob"></div></div></div>';
+  }
+  document.getElementById('baseList').innerHTML=html;
+  const w=wt(1);
+  document.getElementById('weightShow').textContent='×'+w.toFixed(2);
+  document.getElementById('weightSlider').value=w;
+}
+async function toggleBase(date,currentlyOff){
+  for(let g=1;g<=10;g++){
+    const gstr=String(g);
+    try{
+      if(!groups[gstr].baseOff)groups[gstr].baseOff={};
+      if(currentlyOff)delete groups[gstr].baseOff[date];else groups[gstr].baseOff[date]=true;
+      groups[gstr].lastModified=Date.now();
+      await fetch(SB_URL+'/rest/v1/group_data?group_id=eq.'+g,{method:'PATCH',headers:hdrs(),body:JSON.stringify({data:groups[gstr]})});
+    }catch(e){}
+  }
+  renderBase();toast(currentlyOff?'已开启基础分':'已关闭基础分');
+}
+async function saveWeight(){
+  const w=parseFloat(document.getElementById('weightSlider').value);
+  document.getElementById('weightShow').textContent='×'+w.toFixed(2);
+  for(let g=1;g<=10;g++){
+    const gstr=String(g);
+    try{
+      groups[gstr].weightFactor=w;
+      groups[gstr].lastModified=Date.now();
+      await fetch(SB_URL+'/rest/v1/group_data?group_id=eq.'+g,{method:'PATCH',headers:hdrs(),body:JSON.stringify({data:groups[gstr]})});
+    }catch(e){}
+  }
+  toast('已保存系数 ×'+w.toFixed(2));
+}
+function exportData(){
+  const data={exportTime:new Date().toISOString(),groups};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='积分V2备份_'+today()+'.json';a.click();toast('已导出');
+}
+function logout(){sb.auth.signOut();localStorage.removeItem(SESSION_KEY);location.href='index.html';}
+function switchView(v){
+  view=v;document.querySelectorAll('.view').forEach(e=>e.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  document.querySelectorAll('.tab-item').forEach(e=>e.classList.remove('active'));
+  document.querySelector('.tab-item[data-view="'+v+'"]').classList.add('active');
+  renderAll();
+}
+function renderAll(){
+  updateDateLabel();
+  if(view==='daily')renderDaily();
+  else if(view==='rank')renderRank();
+  else if(view==='base')renderBase();
+}
+function startRT(){
+  // 监听整个表的变化，用一个channel
+  realtimeCh=sb.channel('gv2_all')
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'group_data'},(payload)=>{
+      if(payload.new&&payload.new.group_id&&payload.new.data){
+        groups[String(payload.new.group_id)]=payload.new.data;
+        renderAll();
+      }
+    })
+    .subscribe();
+}
+init();
+</script>
+</body>
+</html>

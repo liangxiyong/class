@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>班级管理 - 已停止服务</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f6f1e8;color:#2b2420;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.container{text-align:center;max-width:400px}
+.icon{font-size:72px;margin-bottom:24px}
+.title{font-size:24px;font-weight:700;margin-bottom:12px}
+.desc{font-size:15px;color:#7a6d61;line-height:1.8;margin-bottom:32px}
+.export-btn{padding:14px 40px;background:#c0392b;color:#fff;border:none;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer;margin-bottom:12px}
+.export-btn:active{transform:scale(.97)}
+.status{font-size:13px;color:#7a6d61;margin-top:16px;min-height:20px}
+.back-link{display:inline-block;margin-top:24px;font-size:13px;color:#7a6d61;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="icon">🚫</div>
+  <div class="title">班级管理 V1 已停止服务</div>
+  <div class="desc">该版本已停用<br>仅保留数据导出功能</div>
+  <button class="export-btn" onclick="exportAll()">📤 导出全部数据</button>
+  <div class="status" id="status"></div>
+  <a href="index.html" class="back-link">← 返回登录</a>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL='https://zaeijgfuykhkabteqljw.supabase.co';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InphZWlqZ2Z1eWtoa2FidGVxbGp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1ODA5MzgsImV4cCI6MjEwNDE1NjkzOH0.CQ-jqsslzaWpeeXg0OJnQsaW-iMNoCKbJGW_-p1F3D8';
+const SB=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+
+async function exportAll(){
+  const status=document.getElementById('status');
+  status.textContent='正在导出...';
+  status.style.color='#7a6d61';
+  try{
+    // 从Supabase auth获取登录token
+    const {data:sd}=await SB.auth.getSession();
+    if(!sd||!sd.session){
+      status.textContent='❌ 请先登录后再导出';
+      status.style.color='#c62828';
+      return;
+    }
+    const token=sd.session.access_token;
+    const resp=await fetch(SUPABASE_URL+'/rest/v1/group_data?select=*&order=group_id',{
+      headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+token}
+    });
+    const raw=await resp.json();
+    if(!Array.isArray(raw)||raw.length===0){
+      status.textContent='❌ 未读取到数据，请确认已登录';
+      status.style.color='#c62828';
+      return;
+    }
+    // 日期范围：8月31日到今天
+    const today=new Date().toISOString().slice(0,10);
+    const startDate='2026-08-31';
+    // 过滤每个小组的scores，只保留日期范围内的
+    const exportData=raw.map(row=>{
+      const d=row.data||{};
+      const filteredScores={};
+      if(d.scores){
+        for(const date in d.scores){
+          if(date>=startDate&&date<=today){
+            filteredScores[date]=d.scores[date];
+          }
+        }
+      }
+      return {
+        group_id:row.group_id,
+        groupName:d.groupName||('第'+row.group_id+'组'),
+        students:d.students||[],
+        scores:filteredScores,
+        baseOff:d.baseOff||{},
+        weightFactor:d.weightFactor||1
+      };
+    });
+    const blob=new Blob([JSON.stringify(exportData,null,2)],{type:'application/json'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='小组积分数据_'+startDate+'_至_'+today+'.json';
+    a.click();
+    status.textContent='✅ 导出成功，共'+exportData.length+'个小组（'+startDate+'至'+today+'）';
+    status.style.color='#2e7d32';
+  }catch(e){
+    status.textContent='❌ 导出失败: '+e.message;
+    status.style.color='#c62828';
+  }
+}
+</script>
+</body>
+</html>

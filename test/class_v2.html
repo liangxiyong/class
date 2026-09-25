@@ -1,0 +1,874 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>班级管理 V2</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#f5f6fa;--card:#fff;--text:#2c3e50;--text-soft:#7f8c8d;
+  --line:#ecf0f1;--accent:#3498db;--green:#27ae60;--red:#e74c3c;
+  --orange:#f39c12;--purple:#9b59b6;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:70px}
+.topbar{position:sticky;top:0;z-index:100;background:var(--card);padding:12px 16px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.topbar-row1{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.topbar-title{font-size:18px;font-weight:700}
+.topbar-user{font-size:12px;color:var(--text-soft)}
+.topbar-row2{display:flex;align-items:center;gap:8px}
+.date-nav{display:flex;align-items:center;gap:6px;flex:1}
+.date-btn{padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);font-size:13px;cursor:pointer;min-width:36px;text-align:center}
+.date-current{flex:1;text-align:center;font-size:14px;font-weight:600;padding:6px;background:var(--bg);border-radius:8px}
+.sync-btn{padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);font-size:12px;cursor:pointer;color:var(--text-soft)}
+.content{padding:12px}
+.view{display:none}
+.view.active{display:block;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.card{background:var(--card);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.card-title{font-size:15px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+.card-title .badge{font-size:11px;font-weight:500;color:var(--text-soft);background:var(--bg);padding:2px 8px;border-radius:10px}
+.group-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:10px;-webkit-overflow-scrolling:touch}
+.group-tab{padding:6px 14px;border-radius:20px;background:var(--bg);font-size:13px;white-space:nowrap;cursor:pointer;border:1px solid transparent;transition:all .15s}
+.group-tab.active{background:var(--accent);color:#fff}
+.student-item{display:flex;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.student-item:last-child{border-bottom:none}
+.student-info{flex:1;min-width:0}
+.student-name{font-size:15px;font-weight:600}
+.student-meta{font-size:11px;color:var(--text-soft);margin-top:2px}
+.student-score{font-size:20px;font-weight:700;margin-right:12px;min-width:50px;text-align:right}
+.student-score.positive{color:var(--green)}
+.student-score.negative{color:var(--red)}
+.score-btns{display:flex;gap:6px}
+.score-btn{width:36px;height:36px;border-radius:10px;border:none;font-size:18px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .1s}
+.score-btn:active{transform:scale(.9)}
+.score-btn.plus{background:rgba(39,174,96,.15);color:var(--green)}
+.score-btn.minus{background:rgba(231,76,60,.15);color:var(--red)}
+.member-add{display:flex;gap:8px;margin-bottom:12px}
+.member-add input{flex:1;padding:10px;border:1px solid var(--line);border-radius:8px;font-size:14px;min-width:0}
+.member-add select{padding:10px;border:1px solid var(--line);border-radius:8px;font-size:14px;background:var(--card)}
+.member-add button{padding:10px 16px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;font-weight:600}
+.member-group{margin-bottom:16px}
+.member-group-title{font-size:13px;font-weight:700;color:var(--text-soft);margin-bottom:6px;padding-left:4px}
+.member-row{display:flex;align-items:center;padding:10px 12px;background:var(--bg);border-radius:8px;margin-bottom:6px}
+.member-row .name{flex:1;font-size:14px}
+.member-row .grp{font-size:11px;color:var(--text-soft);margin-right:10px}
+.member-row .del{color:var(--red);font-size:13px;cursor:pointer;padding:4px 8px}
+.stat-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
+.stat-row:last-child{border-bottom:none}
+.stat-name{color:var(--text)}
+.stat-val{font-weight:600}
+.stat-val.positive{color:var(--green)}
+.stat-val.negative{color:var(--red)}
+.export-btn{width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;margin-bottom:10px}
+.export-btn.secondary{background:var(--bg);color:var(--text);border:1px solid var(--line)}
+.tabbar{position:fixed;bottom:0;left:0;right:0;background:var(--card);display:flex;box-shadow:0 -2px 10px rgba(0,0,0,.08);z-index:100;padding-bottom:env(safe-area-inset-bottom)}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 4px;cursor:pointer;color:var(--text-soft);transition:color .15s}
+.tab-item.active{color:var(--accent)}
+.tab-item .ico{font-size:20px;margin-bottom:2px}
+.tab-item .txt{font-size:10px;font-weight:500}
+/* 眼操主题：绿青色系 */
+body.theme-eye{--accent:#16a085;--green:#27ae60;--red:#e67e22}
+body.theme-eye .card{border-left:3px solid var(--accent)}
+body.theme-eye .score-btn.plus{background:rgba(22,160,133,.15);color:#16a085}
+body.theme-eye .score-btn.minus{background:rgba(230,126,34,.15);color:#e67e22}
+body.theme-dis .card{border-left:3px solid var(--accent)}
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:200;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(2px)}
+.modal-overlay.show{display:flex}
+.modal{background:var(--card);width:100%;max-width:380px;border-radius:20px;padding:24px;max-height:85vh;overflow-y:auto;animation:modalIn .25s ease;box-shadow:0 20px 60px rgba(0,0,0,.15)}
+@keyframes modalIn{from{opacity:0;transform:scale(.92) translateY(10px)}to{opacity:1;transform:none}}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.modal-title{font-size:18px;font-weight:700}
+.modal-close{width:32px;height:32px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--text-soft);cursor:pointer;transition:all .15s}
+.modal-close:hover{background:var(--line);color:var(--text)}
+.modal-score-display{text-align:center;margin-bottom:20px}
+.modal-score-num{font-size:48px;font-weight:800;line-height:1}
+.modal-score-label{font-size:12px;color:var(--text-soft);margin-top:6px}
+.modal-slider-wrap{margin-bottom:24px}
+.modal-slider{width:100%;height:10px;-webkit-appearance:none;background:var(--line);border-radius:5px;outline:none}
+.modal-slider::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.2);border:3px solid #fff;transition:transform .1s}
+.modal-slider::-webkit-slider-thumb:active{transform:scale(1.15)}
+.modal-slider::-moz-range-thumb{width:28px;height:28px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.2);border:3px solid #fff}
+.modal-slider-marks{display:flex;justify-content:space-between;font-size:11px;color:var(--text-soft);margin-top:8px}
+.modal-actions{display:flex;gap:10px;margin-bottom:20px}
+.modal-btn{flex:1;padding:14px;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;transition:all .15s}
+.modal-btn:active{transform:scale(.97)}
+.modal-btn.primary{background:var(--accent);color:#fff}
+.modal-btn.secondary{background:var(--bg);color:var(--text)}
+.modal-records{border-top:1px solid var(--line);padding-top:16px}
+.modal-records-title{font-size:13px;font-weight:600;color:var(--text-soft);margin-bottom:10px}
+.modal-record-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg);border-radius:10px;margin-bottom:6px}
+.modal-record-item:last-child{margin-bottom:0}
+.modal-record-info{flex:1;min-width:0}
+.modal-record-label{font-size:13px;font-weight:500}
+.modal-record-by{font-size:11px;color:var(--text-soft);margin-top:2px}
+.modal-record-val{font-size:16px;font-weight:700;margin-right:10px}
+.modal-record-del{color:var(--red);font-size:12px;cursor:pointer;padding:4px 8px;border-radius:6px;transition:background .15s}
+.modal-record-del:hover{background:rgba(231,76,60,.1)}
+.toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.8);color:#fff;padding:12px 20px;border-radius:8px;font-size:14px;z-index:300;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.show{opacity:1}
+.ai-typing{padding:10px 14px;font-size:13px;color:var(--text-soft);font-style:italic}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-row1">
+    <div class="topbar-title" id="pageTitle">纪律打分</div>
+    <div class="topbar-user" id="userInfo">加载中...</div>
+  </div>
+  <div class="topbar-row2">
+    <div class="date-nav">
+      <button class="date-btn" onclick="shiftDate(-1)">←</button>
+      <div class="date-current" id="dateCurrent" onclick="openDatePicker()">2026-09-14</div>
+      <button class="date-btn" onclick="shiftDate(1)">→</button>
+    </div>
+    <button class="sync-btn" onclick="forceRefresh()">🔄</button>
+  </div>
+</div>
+
+<div id="readonlyBanner" style="display:none;background:#fef3c7;color:#92400e;padding:8px 16px;text-align:center;font-size:13px;font-weight:600">
+  ⚠️ 当前为只读模式，无法修改数据
+</div>
+
+<div class="content">
+  <div class="view active" id="view-dis">
+    <div class="card">
+      <div class="card-title">
+        <span>📋 纪律打分</span>
+        <span class="badge" id="disDateBadge">今天</span>
+      </div>
+      <div class="group-tabs" id="disGroupTabs"></div>
+      <div id="disList"></div>
+    </div>
+  </div>
+
+  <div class="view" id="view-eye">
+    <div class="card">
+      <div class="card-title">
+        <span>👁️ 眼操打分</span>
+        <span class="badge" id="eyeDateBadge">今天</span>
+      </div>
+      <div class="group-tabs" id="eyeGroupTabs"></div>
+      <div id="eyeList"></div>
+    </div>
+  </div>
+
+  <div class="view" id="view-members">
+    <div class="card">
+      <div class="card-title"><span>👥 成员管理</span><span class="badge" id="memberCount">0人</span></div>
+      <button class="export-btn" onclick="syncStudentsFromGroups()">🔄 从小组积分同步名单</button>
+      <div id="memberList" style="margin-top:12px"></div>
+    </div>
+  </div>
+
+  <div class="view" id="view-export">
+    <div class="card">
+      <div class="card-title"><span>📤 数据导出</span></div>
+      <button class="export-btn" onclick="exportDay()">导出当日数据（Excel）</button>
+      <button class="export-btn secondary" onclick="exportJSON()">导出全部数据（JSON）</button>
+    </div>
+    <div class="card">
+      <div class="card-title"><span>💾 数据备份</span></div>
+      <button class="export-btn secondary" onclick="exportBackup()">导出备份文件</button>
+    </div>
+  </div>
+</div>
+
+<div class="tabbar">
+  <div class="tab-item active" data-view="dis" onclick="switchView('dis')"><span class="ico">📋</span><span class="txt">纪律</span></div>
+  <div class="tab-item" data-view="eye" onclick="switchView('eye')"><span class="ico">👁️</span><span class="txt">眼操</span></div>
+  <div class="tab-item" data-view="members" onclick="switchView('members')"><span class="ico">👥</span><span class="txt">成员</span></div>
+  <div class="tab-item" data-view="export" onclick="switchView('export')"><span class="ico">📤</span><span class="txt">导出</span></div>
+</div>
+
+<div class="modal-overlay" id="scoreModal" onclick="if(event.target===this)closeScoreModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">加减分</div>
+      <div class="modal-close" onclick="closeScoreModal()">✕</div>
+    </div>
+    <div class="modal-score-display">
+      <div class="modal-score-num" id="modalScoreValue" style="color:var(--text-soft)">0</div>
+      <div class="modal-score-label">拖动滑块选择分值</div>
+    </div>
+    <div class="modal-slider-wrap">
+      <input type="range" class="modal-slider" id="modalScoreSlider" min="-10" max="10" step="1" value="0"
+        oninput="var v=parseInt(this.value);document.getElementById('modalScoreValue').textContent=(v>0?'+':'')+v;document.getElementById('modalScoreValue').style.color=v>0?'var(--green)':v<0?'var(--red)':'var(--text-soft)'">
+      <div class="modal-slider-marks"><span>-10</span><span>0</span><span>+10</span></div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn secondary" onclick="closeScoreModal()">取消</button>
+      <button class="modal-btn primary" onclick="confirmCustomScore()">确认</button>
+    </div>
+    <div class="modal-records">
+      <div class="modal-records-title">今日记录</div>
+      <div id="modalRecordList"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="eyeModal" onclick="if(event.target===this)closeEyeModal()">
+  <div class="modal" id="eyeModalContent"></div>
+</div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ================= 配置 =================
+const SUPABASE_URL='https://zaeijgfuykhkabteqljw.supabase.co';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InphZWlqZ2Z1eWtoa2FidGVxbGp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1ODA5MzgsImV4cCI6MjEwNDE1NjkzOH0.CQ-jqsslzaWpeeXg0OJnQsaW-iMNoCKbJGW_-p1F3D8';
+const SB=window.supabase?window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;
+const SESSION_KEY='jfz_session_v1';
+const CACHE_KEY='jfz_class_v2_cache';
+const GROUP_NAMES={'1':'第一组','2':'第二组','3':'第三组','4':'第四组','5':'第五组','6':'第六组','7':'第七组','8':'第八组','9':'第九组','10':'第十组'};
+const EYE_VALUES=[-4,-2,0,2];
+const EYE_LABELS={'-4':'不做操','-2':'不认真','0':'未评','2':'优秀'};
+const ALLOW_EDIT=true;
+
+// ================= 状态 =================
+// students: V2人员名单，每个学生含 id(V2内部), name, group(组号), gid(group_data里的学生ID)
+// disDay/eyeDay: 只存当天的分数数据（内存，不持久化）
+let state={students:[],version:2};
+let disDay={};  // 当天纪律 {v2id: [{value,label,by,ts,id}]}
+let eyeDay={};  // 当天眼操 {v2id: value}
+let currentUser=null;
+let currentView='dis';
+let currentDate=new Date();
+let disFilterGroup=0;
+let eyeFilterGroup=0;
+let modalStudent=null;
+let sbAccessToken='';
+let isUpdating=false; // 防止自己修改触发Realtime循环
+let realtimeSub=null;
+let groupRealtimeSubs={}; // 每个组的Realtime订阅
+let saveQueues={}; // 每个学生的保存队列，防止并发覆盖
+
+// ================= 工具 =================
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+function fmtDate(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function todayStr(){return fmtDate(new Date());}
+function curDateStr(){return fmtDate(currentDate);}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
+function esc(s){return String(s).replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function sbHeaders(){return {'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken,'Content-Type':'application/json'};}
+
+// ================= 认证 =================
+function loadSession(){try{const r=localStorage.getItem(SESSION_KEY);return r?JSON.parse(r):null;}catch(e){return null;}}
+
+async function init(){
+  document.body.classList.add('theme-dis');
+  currentUser=loadSession();
+  if(!currentUser){location.href='index.html';return;}
+  if(currentUser.role!=='admin'&&currentUser.role!=='admin2'&&currentUser.role!=='teacher'){
+    location.href='index.html';return;
+  }
+  document.getElementById('userInfo').textContent=currentUser.name||'';
+  if(!SB){toast('Supabase加载失败');return;}
+  const {data:sd}=await SB.auth.getSession();
+  if(!sd||!sd.session){location.href='index.html';return;}
+  sbAccessToken=sd.session.access_token;
+  if(!ALLOW_EDIT)document.getElementById('readonlyBanner').style.display='block';
+
+  // 先显示缓存的人员名单
+  try{
+    const cache=localStorage.getItem(CACHE_KEY);
+    if(cache){const c=JSON.parse(cache);if(c.students&&c.students.length){state.students=c.students;renderAll();}}
+  }catch(e){}
+
+  document.getElementById('disList').innerHTML='<div class="loading">加载中...</div>';
+
+  // 加载人员名单 + 当天分数
+  await loadStudents();
+  await loadDayData(curDateStr());
+  renderAll();
+  startRealtime();
+}
+
+// ================= 人员名单（存在class_data_v2） =================
+async function loadStudents(){
+  try{
+    const resp=await fetch(SUPABASE_URL+'/rest/v1/class_data_v2?id=eq.class&select=data',{headers:sbHeaders()});
+    const rows=await resp.json();
+    if(rows&&rows.length&&rows[0].data&&rows[0].data.students){
+      state.students=rows[0].data.students;
+      // 如果名单里没有gid，从group_data同步一次
+      const needGid=state.students.some(s=>!s.gid);
+      if(needGid||state.students.length===0){
+        await syncStudentsFromGroups();
+      }
+    }else{
+      await syncStudentsFromGroups();
+    }
+    try{localStorage.setItem(CACHE_KEY,JSON.stringify({students:state.students}));}catch(e){}
+  }catch(e){
+    console.log('加载名单失败:',e);
+  }
+}
+
+async function saveStudents(){
+  try{
+    isUpdating=true;
+    await fetch(SUPABASE_URL+'/rest/v1/class_data_v2?id=eq.class',{
+      method:'PATCH',headers:sbHeaders(),
+      body:JSON.stringify({data:{students:state.students,version:2,lastModified:Date.now()}})
+    });
+    try{localStorage.setItem(CACHE_KEY,JSON.stringify({students:state.students}));}catch(e){}
+    setTimeout(()=>{isUpdating=false;},1000);
+  }catch(e){toast('保存名单失败: '+e.message);isUpdating=false;}
+}
+
+// 从group_data同步人员名单到class_data_v2（保存gid）
+async function syncStudentsFromGroups(){
+  try{
+    const resp=await fetch(SUPABASE_URL+'/rest/v1/group_data?select=group_id,data&order=group_id',{headers:sbHeaders()});
+    const groups=await resp.json();
+    const students=[];
+    for(const g of groups){
+      const gid=parseInt(g.group_id);
+      const gstudents=(g.data&&g.data.students)||[];
+      for(let i=0;i<gstudents.length;i++){
+        students.push({
+          id:'v2_'+gid+'_'+i,
+          gid:gstudents[i].id,  // 保存group_data里的学生ID
+          name:gstudents[i].name,
+          group:gid,
+          order:i
+        });
+      }
+    }
+    students.sort((a,b)=>a.group-b.group||a.order-b.order);
+    state.students=students;
+    await saveStudents();
+    toast('已同步人员名单（'+students.length+'人）');
+  }catch(e){toast('同步名单失败: '+e.message);}
+}
+
+// ================= 当天分数（从group_data读取，按gid匹配） =================
+async function loadDayData(d){
+  try{
+    const resp=await fetch(SUPABASE_URL+'/rest/v1/group_data?select=group_id,data&order=group_id',{headers:sbHeaders()});
+    const groups=await resp.json();
+    const newDis={};
+    const newEye={};
+
+    for(const g of groups){
+      const gid=parseInt(g.group_id);
+      const gdata=g.data||{};
+      const dayScores=(gdata.scores&&gdata.scores[d])||{};
+      const gStudents=(gdata.students)||[];
+
+      // 建立 group_data学生ID -> V2学生 的映射
+      const gidToV2={};
+      for(const gs of gStudents){
+        const v2s=state.students.find(s=>s.gid===gs.id);
+        if(v2s)gidToV2[gs.id]=v2s;
+      }
+
+      for(const gsid in dayScores){
+        const v2s=gidToV2[gsid];
+        if(!v2s)continue;
+        const sdata=dayScores[gsid];
+
+        // 纪律：class字段
+        if(sdata.class&&Array.isArray(sdata.class)&&sdata.class.length>0){
+          newDis[v2s.id]=sdata.class.map(r=>({
+            id:r.id||uid(),value:r.v,label:r.label||'',by:r.by||'admin',ts:r.ts||Date.now()
+          }));
+        }
+
+        // 眼操：eye字段（所有eye记录的v值总和+2=显示分数，兼容小组积分追加多条记录）
+        if(sdata.eye&&Array.isArray(sdata.eye)&&sdata.eye.length>0){
+          let eyeSum=0;
+          for(const er of sdata.eye){eyeSum+=(er.v||0);}
+          newEye[v2s.id]=eyeSum+2;
+        }
+      }
+    }
+
+    disDay=newDis;
+    eyeDay=newEye;
+  }catch(e){console.log('加载当日数据失败:',e);}
+}
+
+// ================= 保存分数（直接写group_data，按gid匹配） =================
+// 纪律：写入 group_data.scores[date][gid].class
+async function saveDisToGroup(v2id,records){
+  const student=state.students.find(s=>s.id===v2id);
+  if(!student||!student.gid)return;
+  // 保存队列：同一个学生的保存按顺序执行，防止并发覆盖
+  if(!saveQueues[v2id])saveQueues[v2id]=Promise.resolve();
+  saveQueues[v2id]=saveQueues[v2id].then(()=>_saveDisToGroup(v2id,records,student));
+  return saveQueues[v2id];
+}
+async function _saveDisToGroup(v2id,records,student){
+  const d=curDateStr();
+  const gid=String(student.group);
+  try{
+    const resp=await fetch(SUPABASE_URL+'/rest/v1/group_data?group_id=eq.'+gid+'&select=data',{headers:sbHeaders()});
+    const rows=await resp.json();
+    if(!rows||!rows.length)throw new Error('小组数据不存在');
+    const gd=rows[0].data;
+    if(!gd.scores)gd.scores={};
+    if(!gd.scores[d])gd.scores[d]={};
+    if(!gd.scores[d][student.gid])gd.scores[d][student.gid]={};
+
+    if(records&&records.length>0){
+      gd.scores[d][student.gid].class=records.map(r=>({
+        v:r.value,by:currentUser?currentUser.name:'admin',id:r.id||uid(),ts:r.ts||Date.now(),label:r.label||''
+      }));
+    }else{
+      if(gd.scores[d][student.gid].class)delete gd.scores[d][student.gid].class;
+      if(Object.keys(gd.scores[d][student.gid]).length===0)delete gd.scores[d][student.gid];
+    }
+    if(Object.keys(gd.scores[d]).length===0)delete gd.scores[d];
+
+    gd.lastModified=Date.now();
+    const patchResp=await fetch(SUPABASE_URL+'/rest/v1/group_data?group_id=eq.'+gid,{
+      method:'PATCH',headers:sbHeaders(),body:JSON.stringify({data:gd})
+    });
+    if(!patchResp.ok)throw new Error('保存失败 HTTP '+patchResp.status);
+  }catch(e){console.log('保存纪律失败:',e);isUpdating=false;throw e;}
+}
+
+// 眼操：写入 group_data.scores[date][gid].eye（默认+2不存记录）
+async function saveEyeToGroup(v2id,val){
+  const student=state.students.find(s=>s.id===v2id);
+  if(!student||!student.gid)return;
+  if(!saveQueues[v2id])saveQueues[v2id]=Promise.resolve();
+  saveQueues[v2id]=saveQueues[v2id].then(()=>_saveEyeToGroup(v2id,val,student));
+  return saveQueues[v2id];
+}
+async function _saveEyeToGroup(v2id,val,student){
+  const d=curDateStr();
+  const gid=String(student.group);
+  try{
+    const resp=await fetch(SUPABASE_URL+'/rest/v1/group_data?group_id=eq.'+gid+'&select=data',{headers:sbHeaders()});
+    const rows=await resp.json();
+    if(!rows||!rows.length)throw new Error('小组数据不存在');
+    const gd=rows[0].data;
+    if(!gd.scores)gd.scores={};
+    if(!gd.scores[d])gd.scores[d]={};
+    if(!gd.scores[d][student.gid])gd.scores[d][student.gid]={};
+
+    if(val===2||val===undefined){
+      if(gd.scores[d][student.gid].eye)delete gd.scores[d][student.gid].eye;
+    }else{
+      gd.scores[d][student.gid].eye=[{
+        v:val-2,by:currentUser?currentUser.name:'admin',id:uid(),ts:Date.now(),label:EYE_LABELS[String(val)]||''
+      }];
+    }
+    if(Object.keys(gd.scores[d][student.gid]).length===0)delete gd.scores[d][student.gid];
+    if(Object.keys(gd.scores[d]).length===0)delete gd.scores[d];
+
+    gd.lastModified=Date.now();
+    isUpdating=true;
+    const patchResp=await fetch(SUPABASE_URL+'/rest/v1/group_data?group_id=eq.'+gid,{
+      method:'PATCH',headers:sbHeaders(),body:JSON.stringify({data:gd})
+    });
+    if(!patchResp.ok)throw new Error('保存失败 HTTP '+patchResp.status);
+    setTimeout(()=>{isUpdating=false;},1500);
+  }catch(e){console.log('保存眼操失败:',e);isUpdating=false;throw e;}
+}
+
+// ================= 实时同步（监听class_data_v2 + 10个group_data） =================
+function startRealtime(){
+  if(!SB)return;
+
+  // 监听人员名单变化
+  realtimeSub=SB.channel('class_v2_students')
+    .on('postgres_changes',{event:'*',schema:'public',table:'class_data_v2'},(payload)=>{
+      if(isUpdating)return;
+      setTimeout(()=>{loadStudents().then(()=>renderAll());},500);
+    })
+    .subscribe();
+
+  // 监听每个小组的分数变化
+  for(let g=1;g<=10;g++){
+    const ch=SB.channel('group_'+g)
+      .on('postgres_changes',{
+        event:'UPDATE',schema:'public',table:'group_data',
+        filter:'group_id=eq.'+g
+      },(payload)=>{
+        if(isUpdating)return;
+        // 只重新加载当天数据，延迟避免频繁刷新
+        clearTimeout(window._rtTimer);
+        window._rtTimer=setTimeout(()=>{loadDayData(curDateStr()).then(()=>renderAll());},500);
+      })
+      .subscribe((status)=>{console.log('group_'+g+' realtime:',status);});
+    groupRealtimeSubs[g]=ch;
+  }
+}
+
+async function forceRefresh(){
+  toast('正在刷新...');
+  await loadStudents();
+  await loadDayData(curDateStr());
+  renderAll();
+  toast('已刷新');
+}
+
+// ================= 视图切换 =================
+function switchView(v){
+  currentView=v;
+  document.body.classList.remove('theme-dis','theme-eye','theme-members','theme-export');
+  document.body.classList.add('theme-'+v);
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  document.querySelectorAll('.tab-item').forEach(el=>el.classList.remove('active'));
+  document.querySelector('.tab-item[data-view="'+v+'"]').classList.add('active');
+  const titles={dis:'纪律打分',eye:'眼操打分',members:'成员管理',export:'数据导出'};
+  document.getElementById('pageTitle').textContent=titles[v];
+  renderAll();
+}
+
+// ================= 日期 =================
+async function shiftDate(n){
+  currentDate.setDate(currentDate.getDate()+n);
+  updateDateDisplay();
+  await loadDayData(curDateStr());
+  renderAll();
+}
+function updateDateDisplay(){
+  const d=curDateStr();
+  document.getElementById('dateCurrent').textContent=d;
+  const isToday=d===todayStr();
+  document.getElementById('disDateBadge').textContent=isToday?'今天':d;
+  document.getElementById('eyeDateBadge').textContent=isToday?'今天':d;
+}
+function openDatePicker(){
+  const input=document.createElement('input');
+  input.type='date';input.value=curDateStr();
+  input.style.position='fixed';input.style.opacity='0';
+  document.body.appendChild(input);input.click();
+  input.onchange=async()=>{
+    if(input.value){
+      currentDate=new Date(input.value+'T00:00:00');
+      updateDateDisplay();
+      await loadDayData(curDateStr());
+      renderAll();
+    }
+    document.body.removeChild(input);
+  };
+}
+
+// ================= 纪律 =================
+function renderDis(){
+  const groups=[...new Set(state.students.map(s=>s.group))].sort((a,b)=>a-b);
+  let tabs='<div class="group-tab'+(disFilterGroup===0?' active':'')+'" onclick="setDisGroup(0)">全部</div>';
+  for(const g of groups)tabs+='<div class="group-tab'+(disFilterGroup===g?' active':'')+'" onclick="setDisGroup('+g+')">第'+g+'组</div>';
+  document.getElementById('disGroupTabs').innerHTML=tabs;
+
+  let students=state.students.slice().sort((a,b)=>a.group-b.group||(a.order||0)-(b.order||0));
+  if(disFilterGroup>0)students=students.filter(s=>s.group===disFilterGroup);
+
+  let html='';
+  for(const s of students){
+    const recs=disDay[s.id]||[];
+    const total=recs.reduce((sum,r)=>sum+r.value,0);
+    const cls=total>0?'positive':total<0?'negative':'';
+    html+='<div class="student-item">';
+    html+='<div class="student-info"><div class="student-name">'+esc(s.name)+'</div>';
+    html+='<div class="student-meta">第'+s.group+'组 · '+recs.length+'条记录</div></div>';
+    html+='<div class="student-score '+cls+'">'+(total>0?'+':'')+total+'</div>';
+    html+='<div class="score-btns">';
+    html+='<button class="score-btn minus" onclick="quickScore(\''+s.id+'\',-2)">−</button>';
+    html+='<button class="score-btn plus" onclick="quickScore(\''+s.id+'\',2)">+</button>';
+    html+='</div></div>';
+  }
+  if(!html)html='<div class="loading">暂无学生</div>';
+  document.getElementById('disList').innerHTML=html;
+}
+function setDisGroup(g){disFilterGroup=g;renderDis();}
+
+function quickScore(sid,val){
+  addScore(sid,val,val===2?'表现好':val===-2?'说话':'');
+}
+
+async function addScore(sid,val,label){
+  if(!ALLOW_EDIT){toast('当前为只读模式');return;}
+  isUpdating=true; // 提前设置，防止保存过程中Realtime冲掉数据
+  if(!disDay[sid])disDay[sid]=[];
+  const rec={id:uid(),value:val,label:label||'',by:currentUser?currentUser.name:'admin',ts:Date.now()};
+  disDay[sid].push(rec);
+  renderDis();
+  const student=state.students.find(s=>s.id===sid);
+  toast((student?student.name:'')+' '+(val>0?'+':'')+val+'分');
+  try{
+    await saveDisToGroup(sid,disDay[sid]);
+    // 保存成功后重新加载当天全部数据，确保内存与云端完全一致
+    await loadDayData(curDateStr());
+    renderDis();
+  }catch(e){toast('同步失败: '+e.message);}
+  setTimeout(function(){isUpdating=false;},2000);
+}
+
+// 长按弹窗
+let longPressTimer=null;
+function setupLongPress(){
+  const list=document.getElementById('disList');
+  list.addEventListener('touchstart',function(e){
+    const item=e.target.closest('.student-item');if(!item)return;
+    const name=item.querySelector('.student-name').textContent;
+    const student=state.students.find(s=>s.name===name);if(!student)return;
+    longPressTimer=setTimeout(()=>{modalStudent=student;openScoreModal(student);},500);
+  });
+  list.addEventListener('touchend',()=>{if(longPressTimer)clearTimeout(longPressTimer);});
+  list.addEventListener('touchmove',()=>{if(longPressTimer)clearTimeout(longPressTimer);});
+  // PC端右键
+  list.addEventListener('contextmenu',function(e){
+    e.preventDefault();
+    const item=e.target.closest('.student-item');if(!item)return;
+    const name=item.querySelector('.student-name').textContent;
+    const student=state.students.find(s=>s.name===name);if(!student)return;
+    modalStudent=student;openScoreModal(student);
+  });
+}
+
+function openScoreModal(student){
+  modalStudent=student;
+  document.getElementById('modalTitle').textContent=student.name+' - 加减分';
+  document.getElementById('modalScoreSlider').value=0;
+  document.getElementById('modalScoreValue').textContent='0';
+  document.getElementById('modalScoreValue').style.color='var(--text-soft)';
+  const recs=disDay[student.id]||[];
+  let listHtml='';
+  if(recs.length===0){
+    listHtml='<div style="text-align:center;color:var(--text-soft);font-size:12px;padding:16px">今日暂无记录</div>';
+  }else{
+    for(let i=0;i<recs.length;i++){
+      const r=recs[i];
+      const valCls=r.value>0?'positive':r.value<0?'negative':'';
+      listHtml+='<div class="modal-record-item">';
+      listHtml+='<div class="modal-record-info">';
+      listHtml+='<div class="modal-record-label">'+(r.label||'自定义')+'</div>';
+      listHtml+='<div class="modal-record-by">'+(r.by||'')+'</div>';
+      listHtml+='</div>';
+      listHtml+='<span class="modal-record-val '+valCls+'">'+(r.value>0?'+':'')+r.value+'</span>';
+      listHtml+='<span class="modal-record-del" onclick="deleteRecord(\''+student.id+'\','+i+')">删除</span>';
+      listHtml+='</div>';
+    }
+  }
+  document.getElementById('modalRecordList').innerHTML=listHtml;
+  document.getElementById('scoreModal').classList.add('show');
+}
+function closeScoreModal(){document.getElementById('scoreModal').classList.remove('show');modalStudent=null;}
+function confirmCustomScore(){
+  const val=parseInt(document.getElementById('modalScoreSlider').value)||0;
+  if(modalStudent&&val!==0)addScore(modalStudent.id,val,'自定义');
+  closeScoreModal();
+}
+
+async function deleteRecord(sid,index){
+  if(!ALLOW_EDIT){toast('当前为只读模式');return;}
+  if(!disDay[sid])return;
+  isUpdating=true;
+  disDay[sid].splice(index,1);
+  if(disDay[sid].length===0)delete disDay[sid];
+  const student=state.students.find(s=>s.id===sid);
+  if(student)openScoreModal(student);
+  renderDis();
+  toast('已删除记录');
+  try{
+    await saveDisToGroup(sid,disDay[sid]||[]);
+    await loadDayData(curDateStr());
+    renderDis();
+  }catch(e){toast('同步失败: '+e.message);}
+  setTimeout(function(){isUpdating=false;},2000);
+}
+
+// ================= 眼操 =================
+function renderEye(){
+  const groups=[...new Set(state.students.map(s=>s.group))].sort((a,b)=>a-b);
+  let tabs='<div class="group-tab'+(eyeFilterGroup===0?' active':'')+'" onclick="setEyeGroup(0)">全部</div>';
+  for(const g of groups)tabs+='<div class="group-tab'+(eyeFilterGroup===g?' active':'')+'" onclick="setEyeGroup('+g+')">第'+g+'组</div>';
+  document.getElementById('eyeGroupTabs').innerHTML=tabs;
+
+  let students=state.students.slice().sort((a,b)=>a.group-b.group||(a.order||0)-(b.order||0));
+  if(eyeFilterGroup>0)students=students.filter(s=>s.group===eyeFilterGroup);
+
+  let html='';
+  for(const s of students){
+    const val=eyeDay[s.id]!==undefined?eyeDay[s.id]:2;
+    const cls=val>0?'positive':val<0?'negative':'';
+    html+='<div class="student-item" oncontextmenu="event.preventDefault();openEyeModal(\''+s.id+'\')" ontouchstart="startEyeLongPress(\''+s.id+'\')" ontouchend="cancelEyeLongPress()" ontouchmove="cancelEyeLongPress()">';
+    html+='<div class="student-info"><div class="student-name">'+esc(s.name)+'</div>';
+    html+='<div class="student-meta">第'+s.group+'组</div></div>';
+    html+='<div class="student-score '+cls+'">'+(val>0?'+':'')+val+'</div>';
+    html+='<div class="score-btns">';
+    html+='<button class="score-btn minus" onclick="event.stopPropagation();changeEye(\''+s.id+'\',-2)">−</button>';
+    html+='<button class="score-btn plus" onclick="event.stopPropagation();changeEye(\''+s.id+'\',2)">+</button>';
+    html+='</div></div>';
+  }
+  if(!html)html='<div class="loading">暂无学生</div>';
+  document.getElementById('eyeList').innerHTML=html;
+}
+function setEyeGroup(g){eyeFilterGroup=g;renderEye();}
+
+let eyeLongPressTimer=null;
+function startEyeLongPress(sid){eyeLongPressTimer=setTimeout(()=>{openEyeModal(sid);eyeLongPressTimer=null;},500);}
+function cancelEyeLongPress(){if(eyeLongPressTimer){clearTimeout(eyeLongPressTimer);eyeLongPressTimer=null;}}
+
+async function changeEye(sid,delta){
+  if(!ALLOW_EDIT){toast('当前为只读模式');return;}
+  let val=(eyeDay[sid]!==undefined?eyeDay[sid]:2)+delta;
+  val=Math.max(-4,Math.min(2,val));
+  if(val===2)delete eyeDay[sid];else eyeDay[sid]=val;
+  renderEye();
+  try{await saveEyeToGroup(sid,val===2?undefined:val);}catch(e){toast('同步失败: '+e.message);}
+}
+
+function openEyeModal(sid){
+  const student=state.students.find(s=>s.id===sid);if(!student)return;
+  const val=eyeDay[sid]!==undefined?eyeDay[sid]:2;
+  let html='<div style="text-align:center;margin-bottom:16px">';
+  html+='<div style="font-size:18px;font-weight:700;margin-bottom:8px">'+student.name+' - 眼操</div>';
+  html+='<div style="font-size:32px;font-weight:700;color:var(--accent)">'+(val>0?'+':'')+val+' '+EYE_LABELS[String(val)]+'</div>';
+  html+='</div>';
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">';
+  const opts=[{v:-4,l:'不做操'},{v:-2,l:'不认真'},{v:0,l:'未评'},{v:2,l:'优秀'}];
+  for(const o of opts){
+    const active=val===o.v?'style="background:var(--accent);color:#fff"':'';
+    html+='<button '+active+' onclick="setEyeVal(\''+sid+'\','+o.v+')" style="padding:12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);font-size:14px;cursor:pointer">'+o.l+' ('+(o.v>0?'+':'')+o.v+')</button>';
+  }
+  html+='</div>';
+  html+='<button onclick="closeEyeModal()" style="width:100%;padding:12px;background:var(--line);border:none;border-radius:8px;font-size:15px;cursor:pointer">关闭</button>';
+  document.getElementById('eyeModalContent').innerHTML=html;
+  document.getElementById('eyeModal').classList.add('show');
+}
+async function setEyeVal(sid,val){
+  if(!ALLOW_EDIT){toast('当前为只读模式');return;}
+  if(val===2)delete eyeDay[sid];else eyeDay[sid]=val;
+  closeEyeModal();renderEye();
+  try{await saveEyeToGroup(sid,val===2?undefined:val);}catch(e){toast('同步失败: '+e.message);}
+}
+function closeEyeModal(){document.getElementById('eyeModal').classList.remove('show');}
+
+// ================= 成员管理 =================
+function renderMembers(){
+  document.getElementById('memberCount').textContent=state.students.length+'人';
+  const groups=[...new Set(state.students.map(s=>s.group))].sort((a,b)=>a-b);
+  let html='';
+  for(const g of groups){
+    const members=state.students.filter(s=>s.group===g);
+    html+='<div class="member-group"><div class="member-group-title">第'+g+'组（'+members.length+'人）</div>';
+    for(const m of members){
+      html+='<div class="member-row"><span class="name">'+esc(m.name)+'</span>';
+      html+='<span class="grp">第'+m.group+'组</span>';
+      html+='<span class="del" onclick="deleteMember(\''+m.id+'\')">删除</span></div>';
+    }
+    html+='</div>';
+  }
+  document.getElementById('memberList').innerHTML=html;
+}
+
+async function addMember(){
+  if(!ALLOW_EDIT){toast('当前为只读模式');return;}
+  const name=document.getElementById('newName').value.trim();
+  const group=parseInt(document.getElementById('newGroup').value);
+  if(!name){toast('请输入姓名');return;}
+  try{
+    const resp=await fetch(SUPABASE_URL+'/rest/v1/group_data?group_id=eq.'+group+'&select=data',{headers:sbHeaders()});
+    const rows=await resp.json();
+    if(rows&&rows.length){
+      const gd=rows[0].data;
+      if(!gd.students)gd.students=[];
+      const newGid='seed'+group+'_'+(gd.students.length+1);
+      gd.students.push({id:newGid,name:name});
+      gd.lastModified=Date.now();
+      isUpdating=true;
+      await fetch(SUPABASE_URL+'/rest/v1/group_data?group_id=eq.'+group,{
+        method:'PATCH',headers:sbHeaders(),body:JSON.stringify({data:gd})
+      });
+      setTimeout(()=>{isUpdating=false;},1000);
+    }
+  }catch(e){toast('添加失败: '+e.message);return;}
+  document.getElementById('newName').value='';
+  await syncStudentsFromGroups();
+  await loadDayData(curDateStr());
+  renderAll();
+  toast('已添加 '+name);
+}
+
+async function deleteMember(sid){
+  if(!ALLOW_EDIT){toast('当前为只读模式');return;}
+  const member=state.students.find(s=>s.id===sid);if(!member)return;
+  if(!confirm('确定删除 '+member.name+' 吗？'))return;
+  try{
+    const resp=await fetch(SUPABASE_URL+'/rest/v1/group_data?group_id=eq.'+member.group+'&select=data',{headers:sbHeaders()});
+    const rows=await resp.json();
+    if(rows&&rows.length){
+      const gd=rows[0].data;
+      gd.students=(gd.students||[]).filter(s=>s.id!==member.gid);
+      gd.lastModified=Date.now();
+      isUpdating=true;
+      await fetch(SUPABASE_URL+'/rest/v1/group_data?group_id=eq.'+member.group,{
+        method:'PATCH',headers:sbHeaders(),body:JSON.stringify({data:gd})
+      });
+      setTimeout(()=>{isUpdating=false;},1000);
+    }
+  }catch(e){toast('删除失败: '+e.message);return;}
+  await syncStudentsFromGroups();
+  await loadDayData(curDateStr());
+  renderAll();
+  toast('已删除 '+member.name);
+}
+
+// ================= 导出 =================
+let xlsxLoaded=false;
+function loadXlsx(){
+  return new Promise((resolve,reject)=>{
+    if(window.XLSX){resolve();return;}
+    const s=document.createElement('script');
+    s.src='https://cdn.bootcdn.net/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    s.onload=()=>{xlsxLoaded=true;resolve();};s.onerror=reject;
+    document.head.appendChild(s);
+  });
+}
+async function exportDay(){
+  await loadXlsx();
+  const d=curDateStr();
+  const data=[['组别','姓名','纪律分','眼操分','纪律记录']];
+  for(const s of state.students){
+    const recs=disDay[s.id]||[];
+    const disSum=recs.reduce((sum,r)=>sum+r.value,0);
+    const eyeVal=eyeDay[s.id]!==undefined?eyeDay[s.id]:2;
+    const recStr=recs.map(r=>(r.label||'自定义')+':'+(r.value>0?'+':'')+r.value).join('; ');
+    data.push(['第'+s.group+'组',s.name,disSum,eyeVal,recStr]);
+  }
+  const ws=XLSX.utils.aoa_to_sheet(data);
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,d);
+  XLSX.writeFile(wb,'班级数据_'+d+'.xlsx');
+  toast('已导出当日数据');
+}
+function exportJSON(){
+  const blob=new Blob([JSON.stringify({students:state.students,exportTime:new Date().toISOString()},null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='班级名单_'+todayStr()+'.json';a.click();
+  toast('已导出JSON');
+}
+function exportBackup(){
+  const backup={exportTime:new Date().toISOString(),students:state.students};
+  const blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='班级备份_'+todayStr()+'.json';a.click();
+  toast('已导出备份');
+}
+
+// ================= 渲染 =================
+function renderAll(){
+  updateDateDisplay();
+  if(currentView==='dis')renderDis();
+  else if(currentView==='eye')renderEye();
+  else if(currentView==='members')renderMembers();
+}
+
+// ================= 启动 =================
+setupLongPress();
+init();
+
+</script>
+</body>
+</html>
