@@ -275,19 +275,9 @@ window.addEventListener('storage',function(ev){
 });
 // Supabase Realtime 订阅：跨设备实时同步（需在 Supabase 控制台开启 group_data 表的 Replication）
 let sbRealtimeChannel=null;
-let realtimeReconnectTimer=null;
-function clearRealtimeReconnect(){
-  if(realtimeReconnectTimer){clearTimeout(realtimeReconnectTimer);realtimeReconnectTimer=null;}
-}
-function scheduleRealtimeReconnect(gid){
-  clearRealtimeReconnect();
-  setSyncStatus('⚠️ 实时同步断开，3秒后重连...','#e67e22');
-  realtimeReconnectTimer=setTimeout(function(){subscribeRealtime(gid);},3000);
-}
 function subscribeRealtime(gid){
   if(!SB||!SB.channel||!gid)return;
   try{
-    clearRealtimeReconnect();
     if(sbRealtimeChannel){try{SB.removeChannel(sbRealtimeChannel);}catch(e){}sbRealtimeChannel=null;}
     sbRealtimeChannel=SB.channel('grp-'+gid)
       .on('postgres_changes',{event:'UPDATE',schema:'public',table:'group_data',filter:'group_id=eq.'+gid},function(payload){
@@ -309,14 +299,13 @@ function subscribeRealtime(gid){
       })
       .subscribe(function(status){
         if(status==='SUBSCRIBED'){
-          clearRealtimeReconnect();
           setSyncStatus('☁️ 实时同步已连接','var(--ink-soft)');
         }else if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'||status==='CLOSED'){
-          scheduleRealtimeReconnect(gid);
+          setSyncStatus('⚠️ 实时同步连接中...','#e67e22');
         }
       });
   }catch(e){
-    scheduleRealtimeReconnect(gid);
+          setSyncStatus('⚠️ 实时同步连接中...','#e67e22');
   }
 }
 if(typeof document!=='undefined'){
