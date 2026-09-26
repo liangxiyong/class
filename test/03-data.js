@@ -280,14 +280,11 @@ function clearRealtimeReconnect(){
   if(realtimeReconnectTimer){clearTimeout(realtimeReconnectTimer);realtimeReconnectTimer=null;}
 }
 function scheduleRealtimeReconnect(gid){
-  console.log('[重连] 触发重连, gid=', gid);
   clearRealtimeReconnect();
   setSyncStatus('⚠️ 实时同步断开，3秒后重连...','#e67e22');
   realtimeReconnectTimer=setTimeout(function(){subscribeRealtime(gid);},3000);
 }
-let realtimeConnectTimer=null;
 function subscribeRealtime(gid){
-  console.log('[订阅] 函数被调用, gid=', gid, 'SB=', !!SB, 'channel=', !!(SB&&SB.channel));
   if(!SB||!SB.channel||!gid)return;
   try{
     clearRealtimeReconnect();
@@ -313,20 +310,11 @@ function subscribeRealtime(gid){
       .subscribe(function(status){
         if(status==='SUBSCRIBED'){
           clearRealtimeReconnect();
-          if(realtimeConnectTimer){clearTimeout(realtimeConnectTimer);realtimeConnectTimer=null;}
           setSyncStatus('☁️ 实时同步已连接','var(--ink-soft)');
         }else if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'||status==='CLOSED'){
           scheduleRealtimeReconnect(gid);
-          setSyncStatus('⚠️ 实时同步连接中...','#e67e22');
         }
       });
-    // 连接超时检测：3秒没连上就自动重连
-    if(realtimeConnectTimer){clearTimeout(realtimeConnectTimer);}
-    realtimeConnectTimer=setTimeout(function(){
-      if(sbRealtimeChannel&&sbRealtimeChannel.state!=='joined'){
-        scheduleRealtimeReconnect(gid);
-      }
-    },3000);
   }catch(e){
     scheduleRealtimeReconnect(gid);
   }
