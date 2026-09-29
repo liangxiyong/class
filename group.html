@@ -1712,7 +1712,6 @@ let sbRetryTimer=null;
 let sbSavePending=false;
 let localDirty=false;   // 本地是否有尚未成功同步到云端的修改
 let sbRetryCount=0;
-let pendingRemoteUpdate=false; // 本地修改期间收到的远程更新，保存成功后补拉
 function queueSbSave(){
   localDirty=true;
   sbSavePending=true;
@@ -1731,8 +1730,6 @@ function doSbSave(){
     sbSavePending=false;
     sbRetryCount=0;
     setSyncStatus('✅ 已同步 '+new Date().toLocaleTimeString('zh-CN'),'var(--green)');
-    // 保存成功后检查：本地修改期间是否有远程更新被挂起，有则补拉云端最新数据
-    if(pendingRemoteUpdate){pendingRemoteUpdate=false;setTimeout(function(){pollRemote();},300);}
     // 跨标签页广播：同一浏览器其他标签页收到后立即刷新
     try{localStorage.setItem('jfz_sync_broadcast',JSON.stringify({gid:currentGroupId,ts:Date.now()}));}catch(e){}
   }).catch(err=>{
@@ -1933,7 +1930,7 @@ function subscribeRealtime(gid){
         if(switchingGroup)return; // 切换组中：忽略旧组的更新通知，防止跳回旧组
         if(!currentGroupId||String(currentGroupId)!==String(gid))return;
         if(typeof document!=='undefined'&&document.hidden)return;
-        if(localDirty||sbSavePending){pendingRemoteUpdate=true;return;} // 本地有修改时记标志位，保存成功后补拉
+        if(localDirty||sbSavePending)return; // 本地有未保存修改时不覆盖
         const newAt=payload.new&&payload.new.updated_at;
         if(newAt&&newAt!==lastRemoteUpdatedAt){
           // 关键防护：先验证云端数据有效（有items），有效才覆盖当前state；
