@@ -1817,7 +1817,7 @@ document.addEventListener('keydown',e=>{
 async function sbFetch(path,options,retried){
   const token=await ensureSbToken();
   const ctrl=new AbortController();
-  const timer=setTimeout(()=>ctrl.abort(),15000);
+  const timer=setTimeout(()=>ctrl.abort(),8000);
   try{
     const resp=await fetch(SUPABASE_URL+'/rest/v1/'+path,Object.assign({
       signal:ctrl.signal
@@ -2128,11 +2128,9 @@ async function loadGroupIntoState(groupId,allowEmpty){
         }
       }catch(e){}
     }
-  }catch(e){
-    console.error('[加载云端数据失败]', e);
-    // 云端加载失败时才弹提示
-    toast('网络不稳定，正在显示本地缓存数据');
-  }
+  }catch(e){}
+  // 云端加载失败
+  toast('网络不稳定，正在显示本地缓存数据');
   if(!s){
     if(!allowEmpty)return state; // 不允许空覆盖：保持当前页面数据不变
     // 云端完全取不到时：本地有备份就恢复本地（防丢数据），否则空状态
@@ -4582,7 +4580,7 @@ function processHolidayQueue(){
   const year=holidayQueue.shift();
   holidayLoading=true;
   const ctrl=new AbortController();
-  const timer=setTimeout(()=>ctrl.abort(),15000);
+  const timer=setTimeout(()=>ctrl.abort(),8000);
   fetch('https://timor.tech/api/holiday/year/'+year,{signal:ctrl.signal})
     .then(r=>r.json())
     .then(data=>{
@@ -4820,7 +4818,6 @@ if(typeof document!=='undefined'){
 </script>
 </body>
 </html>
-
 
 
 
