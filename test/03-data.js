@@ -165,7 +165,7 @@ document.addEventListener('keydown',e=>{
 async function sbFetch(path,options,retried){
   const token=await ensureSbToken();
   const ctrl=new AbortController();
-  const timer=setTimeout(()=>ctrl.abort(),8000);
+  const timer=setTimeout(()=>ctrl.abort(),15000);
   try{
     const resp=await fetch(SUPABASE_URL+'/rest/v1/'+path,Object.assign({
       signal:ctrl.signal
@@ -223,7 +223,7 @@ let lastRemoteUpdatedAt=0;
 async function pollRemote(){
   // 超时保护：本地有修改超过30秒还没同步成功，强制拉取云端（避免永久阻塞远程更新）
   if(localDirty&&!window._localDirtyTime){window._localDirtyTime=Date.now();}
-  if(localDirty&&Date.now()-window._localDirtyTime>30000){localDirty=false;sbSavePending=false;pendingRemoteUpdate=false;console.log('[同步]本地修改超时，强制拉取云端');}
+  if(localDirty&&Date.now()-window._localDirtyTime>30000){localDirty=false;sbSavePending=false;pendingRemoteUpdate=false;}
   if(!localDirty){window._localDirtyTime=0;}
   // 页面不可见（切后台/锁屏）时跳过，降低手机端内存与电量压力，避免浏览器自动回收页面
   if(typeof document!=='undefined'&&document.hidden)return;
@@ -497,7 +497,6 @@ async function loadGroupIntoState(groupId,allowEmpty){
   undoStack=[];redoStack=[];
   saveLocal();
   if(needUpload||fixedPollution)queueSbSave(); // 本地恢复或问号修复后写回云端
-  console.log('[调试] 即将调用subscribeRealtime, groupId=', groupId);
   subscribeRealtime(groupId);
   const sub=document.getElementById('sidebarGroup');
   if(sub){sub.textContent=(GROUP_NAMES[groupId]||s.groupName)+(isPersonalMode()?' · 我的分数':'');sub.style.display='block';}
@@ -784,5 +783,6 @@ window.addEventListener('pagehide',()=>{});
 document.addEventListener('visibilitychange',()=>{});
 
 /* ================= 我的记录 ================= */
+
 
 
