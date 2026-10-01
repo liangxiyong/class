@@ -3,67 +3,249 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>国庆快乐 - 系统维护中</title>
+<title>国庆快乐 - 班级积分管理系统</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🇨🇳</text></svg>">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
 body{
-  font-family:"PingFang SC","Microsoft YaHei",sans-serif;
-  background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);
-  min-height:100vh;display:flex;align-items:center;justify-content:center;
-  padding:20px;
+  font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;
+  background:linear-gradient(135deg,#8B0000 0%,#C41E3A 40%,#DE2910 100%);
+  display:flex;align-items:center;justify-content:center;
+  min-height:100vh;overflow:hidden;position:relative;
+  -webkit-font-smoothing:antialiased;
 }
-.card{
-  background:#fff;border-radius:20px;padding:48px 40px;
-  max-width:420px;width:100%;text-align:center;
-  box-shadow:0 20px 60px rgba(0,0,0,.3);
+
+/* 背景装饰 - 金色光芒 */
+body::before{
+  content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;
+  background:radial-gradient(circle at 30% 20%,rgba(255,215,0,.15) 0%,transparent 40%),
+             radial-gradient(circle at 70% 80%,rgba(255,215,0,.1) 0%,transparent 40%);
+  animation:glow 8s ease-in-out infinite alternate;
+}
+@keyframes glow{from{opacity:.6}to{opacity:1}}
+
+/* 飘落的五角星 */
+.star{
+  position:absolute;color:#FFD700;opacity:0;
+  animation:fall linear infinite;pointer-events:none;
+}
+@keyframes fall{
+  0%{transform:translateY(-10vh) rotate(0deg);opacity:0}
+  10%{opacity:.8}
+  90%{opacity:.8}
+  100%{transform:translateY(110vh) rotate(360deg);opacity:0}
+}
+
+.main-card{
+  background:rgba(255,255,255,.97);
+  border-radius:24px;padding:40px 36px;width:100%;max-width:440px;
+  box-shadow:0 30px 80px rgba(0,0,0,.4),0 0 60px rgba(255,215,0,.2);
+  text-align:center;position:relative;z-index:10;
+  animation:cardIn .6s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes cardIn{from{opacity:0;transform:translateY(30px) scale(.95)}to{opacity:1;transform:none}}
+
+/* 国旗 */
+.flag-wrap{
+  width:120px;height:80px;margin:0 auto 20px;
+  border-radius:6px;overflow:hidden;
+  box-shadow:0 8px 24px rgba(0,0,0,.3);
+  position:relative;
 }
 .flag{
-  width:120px;height:80px;margin:0 auto 24px;
-  border-radius:6px;overflow:hidden;
-  box-shadow:0 8px 24px rgba(222,41,16,.3);
-  position:relative;background:#DE2910;
+  width:100%;height:100%;
+  background:#DE2910;
+  position:relative;
+  animation:wave 3s ease-in-out infinite;
 }
-.flag .big{position:absolute;top:12px;left:14px;color:#FFDE00;font-size:28px}
-.flag .s{position:absolute;color:#FFDE00;font-size:12px}
-.flag .s1{top:6px;left:46px;transform:rotate(15deg)}
-.flag .s2{top:16px;left:54px;transform:rotate(35deg)}
-.flag .s3{top:28px;left:52px;transform:rotate(-15deg)}
-.flag .s4{top:38px;left:44px;transform:rotate(-35deg)}
-h1{
-  font-size:32px;font-weight:800;
-  background:linear-gradient(135deg,#C41E3A,#E74C3C);
+@keyframes wave{
+  0%,100%{transform:skewY(0deg)}
+  50%{transform:skewY(-1.5deg)}
+}
+.flag .big-star{
+  position:absolute;top:12px;left:14px;
+  width:28px;height:28px;color:#FFDE00;
+  font-size:28px;line-height:1;
+}
+.flag .small-star{
+  position:absolute;color:#FFDE00;font-size:12px;line-height:1;
+}
+.flag .s1{top:6px;left:44px;transform:rotate(20deg)}
+.flag .s2{top:16px;left:52px;transform:rotate(40deg)}
+.flag .s3{top:28px;left:50px;transform:rotate(-20deg)}
+.flag .s4{top:38px;left:42px;transform:rotate(-40deg)}
+
+.title{
+  font-size:32px;font-weight:900;
+  background:linear-gradient(135deg,#C41E3A,#DE2910,#FF6B35);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  background-clip:text;margin-bottom:8px;letter-spacing:3px;
+  background-clip:text;
+  margin-bottom:6px;letter-spacing:4px;
 }
-.sub{font-size:14px;color:#999;margin-bottom:28px;letter-spacing:1px}
-.line{width:50px;height:3px;background:linear-gradient(90deg,#C41E3A,#E74C3C);margin:0 auto 28px;border-radius:2px}
-.notice{
-  background:#fef5f5;border:1px solid #fdd;border-radius:12px;
-  padding:20px;margin-bottom:8px;
+.subtitle{
+  font-size:15px;color:#8B4513;margin-bottom:24px;
+  font-weight:600;letter-spacing:2px;
 }
-.notice p{font-size:14px;color:#555;line-height:2}
-.notice .date{color:#C41E3A;font-weight:700}
-.footer{font-size:12px;color:#bbb;margin-top:24px}
+
+.divider{
+  width:60px;height:3px;
+  background:linear-gradient(90deg,transparent,#FFD700,transparent);
+  margin:0 auto 24px;border-radius:2px;
+}
+
+.maint-box{
+  background:linear-gradient(135deg,#FFF8E7,#FFEFC4);
+  border:2px solid #FFD700;border-radius:16px;
+  padding:22px 20px;margin-bottom:20px;
+  position:relative;
+}
+.maint-icon{
+  font-size:36px;margin-bottom:10px;
+  animation:bounce 2s ease-in-out infinite;
+}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.maint-title{
+  font-size:18px;font-weight:800;color:#8B4513;margin-bottom:8px;
+}
+.maint-text{
+  font-size:14px;color:#A0522D;line-height:1.8;
+}
+.maint-text strong{color:#C41E3A;font-weight:700}
+
+.countdown{
+  display:flex;justify-content:center;gap:12px;margin-top:16px;
+}
+.countdown-item{
+  background:#fff;border-radius:10px;padding:10px 14px;
+  box-shadow:0 2px 8px rgba(139,69,19,.15);
+  min-width:60px;
+}
+.countdown-num{
+  font-size:24px;font-weight:900;color:#C41E3A;
+  font-variant-numeric:tabular-nums;
+}
+.countdown-label{
+  font-size:11px;color:#8B4513;font-weight:600;margin-top:2px;
+}
+
+.footer-tip{
+  font-size:12px;color:#999;margin-top:18px;line-height:1.7;
+}
+.footer-tip a{color:#C41E3A;text-decoration:none;font-weight:600}
+
+/* 响应式 */
+@media(max-width:480px){
+  .main-card{padding:28px 20px;border-radius:18px;margin:16px}
+  .title{font-size:26px;letter-spacing:2px}
+  .flag-wrap{width:100px;height:67px}
+  .maint-title{font-size:16px}
+  .maint-text{font-size:13px}
+  .countdown-num{font-size:20px}
+  .countdown-item{padding:8px 10px;min-width:50px}
+}
 </style>
 </head>
 <body>
-<div class="card">
-  <div class="flag">
-    <span class="big">★</span>
-    <span class="s s1">★</span>
-    <span class="s s2">★</span>
-    <span class="s s3">★</span>
-    <span class="s s4">★</span>
+
+<!-- 飘落五角星 -->
+<div id="stars"></div>
+
+<div class="main-card">
+  <!-- 国旗 -->
+  <div class="flag-wrap">
+    <div class="flag">
+      <span class="big-star">★</span>
+      <span class="small-star s1">★</span>
+      <span class="small-star s2">★</span>
+      <span class="small-star s3">★</span>
+      <span class="small-star s4">★</span>
+    </div>
   </div>
-  <h1>国庆快乐</h1>
-  <div class="sub">1949 — 2026</div>
-  <div class="line"></div>
-  <div class="notice">
-    <p>系统维护升级中</p>
-    <p>维护至 <span class="date">10月4日</span>，期间暂停登录</p>
-    <p>感谢您的理解与支持</p>
+
+  <div class="title">国庆快乐</div>
+  <div class="subtitle">1949 — 2026 · 庆祝中华人民共和国成立77周年</div>
+
+  <div class="divider"></div>
+
+  <div class="maint-box">
+    <div class="maint-icon">🔧</div>
+    <div class="maint-title">系统维护通知</div>
+    <div class="maint-text">
+      班级积分管理系统正在进行国庆假期维护升级，<br>
+      <strong>维护时间：即日起至 10月4日</strong><br>
+      维护期间<strong>暂停登录服务</strong>，给您带来的不便敬请谅解。
+    </div>
+
+    <!-- 倒计时 -->
+    <div class="countdown" id="countdown">
+      <div class="countdown-item">
+        <div class="countdown-num" id="cd-days">--</div>
+        <div class="countdown-label">天</div>
+      </div>
+      <div class="countdown-item">
+        <div class="countdown-num" id="cd-hours">--</div>
+        <div class="countdown-label">时</div>
+      </div>
+      <div class="countdown-item">
+        <div class="countdown-num" id="cd-mins">--</div>
+        <div class="countdown-label">分</div>
+      </div>
+      <div class="countdown-item">
+        <div class="countdown-num" id="cd-secs">--</div>
+        <div class="countdown-label">秒</div>
+      </div>
+    </div>
   </div>
-  <div class="footer">祝全体师生国庆假期愉快</div>
+
+  <div class="footer-tip">
+    祝全体老师和同学国庆快乐、阖家幸福！<br>
+    维护完成后将自动恢复登录，感谢您的耐心等待。
+  </div>
 </div>
+
+<script>
+// 生成飘落五角星
+(function(){
+  const container=document.getElementById('stars');
+  const stars=['★','☆','✦','✧'];
+  for(let i=0;i<20;i++){
+    const s=document.createElement('div');
+    s.className='star';
+    s.textContent=stars[Math.floor(Math.random()*stars.length)];
+    s.style.left=Math.random()*100+'%';
+    s.style.fontSize=(12+Math.random()*20)+'px';
+    s.style.animationDuration=(6+Math.random()*8)+'s';
+    s.style.animationDelay=(Math.random()*10)+'s';
+    container.appendChild(s);
+  }
+})();
+
+// 倒计时到10月4日 00:00:00
+(function(){
+  const target=new Date('2026-10-04T00:00:00+08:00').getTime();
+  function update(){
+    const now=Date.now();
+    let diff=target-now;
+    if(diff<=0){
+      document.getElementById('cd-days').textContent='0';
+      document.getElementById('cd-hours').textContent='0';
+      document.getElementById('cd-mins').textContent='0';
+      document.getElementById('cd-secs').textContent='0';
+      return;
+    }
+    const days=Math.floor(diff/86400000);diff%=86400000;
+    const hours=Math.floor(diff/3600000);diff%=3600000;
+    const mins=Math.floor(diff/60000);diff%=60000;
+    const secs=Math.floor(diff/1000);
+    document.getElementById('cd-days').textContent=days;
+    document.getElementById('cd-hours').textContent=String(hours).padStart(2,'0');
+    document.getElementById('cd-mins').textContent=String(mins).padStart(2,'0');
+    document.getElementById('cd-secs').textContent=String(secs).padStart(2,'0');
+  }
+  update();
+  setInterval(update,1000);
+})();
+</script>
 </body>
 </html>
