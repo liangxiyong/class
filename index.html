@@ -10,28 +10,30 @@
 html,body{height:100%}
 body{
   font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;
-  background:#1a1a1a;
+  background:#111;
+  background-image:
+    radial-gradient(ellipse at left center, rgba(192,30,46,.25) 0%, transparent 50%),
+    radial-gradient(ellipse at right center, rgba(192,30,46,.25) 0%, transparent 50%);
   display:flex;align-items:center;justify-content:center;
   min-height:100vh;padding:20px;
   -webkit-font-smoothing:antialiased;
 }
 
-/* 主卡片 */
 .main-card{
-  background:#222;
-  border:2px solid #c9a84c;
-  border-radius:20px;padding:40px 36px;
-  width:100%;max-width:440px;
+  background:#1a1a1a;
+  border:2px solid #b8860b;
+  border-radius:24px;
+  padding:36px 32px 20px;
+  width:100%;max-width:420px;
   text-align:center;position:relative;
-  box-shadow:0 0 40px rgba(201,168,76,.15);
+  box-shadow:0 0 50px rgba(184,134,11,.15);
 }
 
-/* 国旗 - 正确的五星红旗 */
+/* 国旗 */
 .flag-wrap{
-  width:140px;height:93px;
-  margin:0 auto 24px;
-  border-radius:4px;overflow:hidden;
-  box-shadow:0 4px 16px rgba(0,0,0,.5);
+  width:130px;height:87px;
+  margin:0 auto 20px;
+  border-radius:8px;overflow:hidden;
   cursor:pointer;
   user-select:none;
   -webkit-user-select:none;
@@ -41,95 +43,85 @@ body{
   background:#DE2910;
   position:relative;
 }
-/* 大星：左上方，直径约为旗高的3/10 */
 .flag .big-star{
-  position:absolute;
-  top:14px;left:16px;
-  font-size:32px;
-  color:#FFDE00;
-  line-height:1;
+  position:absolute;top:13px;left:15px;
+  font-size:30px;color:#FFDE00;line-height:1;
 }
-/* 四颗小星：各有一角正对大星中心 */
 .flag .small-star{
-  position:absolute;
-  color:#FFDE00;
-  font-size:11px;
-  line-height:1;
+  position:absolute;color:#FFDE00;font-size:11px;line-height:1;
 }
-/* 第一颗小星：大星右上方 */
-.flag .s1{top:8px;left:52px;transform:rotate(20deg)}
-/* 第二颗小星：大星右方偏上 */
-.flag .s2{top:20px;left:62px;transform:rotate(45deg)}
-/* 第三颗小星：大星右方偏下 */
-.flag .s3{top:34px;left:60px;transform:rotate(-20deg)}
-/* 第四颗小星：大星右下方 */
-.flag .s4{top:46px;left:50px;transform:rotate(-45deg)}
+.flag .s1{top:7px;left:48px;transform:rotate(18deg)}
+.flag .s2{top:18px;left:57px;transform:rotate(40deg)}
+.flag .s3{top:31px;left:55px;transform:rotate(-18deg)}
+.flag .s4{top:42px;left:46px;transform:rotate(-40deg)}
 
 .title{
-  font-size:34px;font-weight:900;
+  font-size:36px;font-weight:900;
   color:#E74C3C;
-  margin-bottom:8px;letter-spacing:6px;
-  text-shadow:0 2px 8px rgba(231,76,60,.3);
+  margin-bottom:10px;letter-spacing:4px;
 }
 .subtitle{
-  font-size:15px;color:#c9a84c;
-  margin-bottom:24px;font-weight:600;letter-spacing:2px;
+  font-size:16px;color:#d4a017;
+  margin-bottom:22px;font-weight:600;
   line-height:1.6;
 }
 
 .divider{
-  width:60px;height:2px;
-  background:linear-gradient(90deg,transparent,#c9a84c,transparent);
-  margin:0 auto 28px;
+  width:70px;height:2px;
+  background:linear-gradient(90deg,transparent,#d4a017,transparent);
+  margin:0 auto 24px;
 }
 
 .maint-box{
-  background:rgba(201,168,76,.08);
-  border:1px solid rgba(201,168,76,.3);
-  border-radius:14px;
-  padding:24px 20px;margin-bottom:8px;
+  background:rgba(184,134,11,.08);
+  border:1.5px solid rgba(184,134,11,.4);
+  border-radius:16px;
+  padding:22px 18px 20px;
+  position:relative;
 }
 .maint-icon{
-  font-size:32px;margin-bottom:12px;
+  font-size:36px;margin-bottom:10px;
 }
 .maint-title{
   font-size:18px;font-weight:800;
-  color:#c9a84c;margin-bottom:12px;
+  color:#d4a017;margin-bottom:14px;
   letter-spacing:2px;
 }
 .maint-text{
-  font-size:14px;color:#bbb;line-height:2;
+  font-size:14px;color:#ccc;line-height:2;
 }
 .maint-text .date{color:#E74C3C;font-weight:700}
+.maint-text .stop{color:#E74C3C;font-weight:700}
 
 .countdown{
-  display:flex;justify-content:center;gap:12px;margin-top:20px;
+  display:flex;justify-content:center;gap:10px;margin-top:18px;
 }
 .countdown-item{
-  background:#1a1a1a;
-  border:1px solid rgba(201,168,76,.3);
-  border-radius:10px;padding:10px 12px;
-  min-width:58px;
+  background:#111;
+  border:1px solid rgba(184,134,11,.3);
+  border-radius:10px;padding:10px 8px;
+  min-width:56px;
 }
 .countdown-num{
   font-size:26px;font-weight:900;color:#E74C3C;
   font-variant-numeric:tabular-nums;
 }
 .countdown-label{
-  font-size:11px;color:#888;margin-top:4px;font-weight:600;
+  font-size:11px;color:#d4a017;margin-top:4px;font-weight:600;
 }
 
-.footer-tip{
-  font-size:12px;color:#666;margin-top:20px;line-height:1.7;
+/* 底部天安门剪影装饰 */
+.tiananmen{
+  margin-top:16px;height:30px;opacity:.4;
+  background:linear-gradient(to top,#d4a017,transparent);
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 30'%3E%3Cpath d='M10 25 L10 18 L20 18 L20 12 L30 12 L30 8 L40 8 L40 5 L50 5 L50 3 L60 3 L60 5 L70 5 L70 8 L80 8 L80 12 L90 12 L90 18 L100 18 L100 15 L110 15 L110 18 L120 18 L120 12 L130 12 L130 8 L140 8 L140 5 L150 5 L150 3 L160 3 L160 5 L170 5 L170 8 L180 8 L180 12 L190 12 L190 18 L200 18 L200 25 Z' fill='black'/%3E%3C/svg%3E") center/contain no-repeat;
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 30'%3E%3Cpath d='M10 25 L10 18 L20 18 L20 12 L30 12 L30 8 L40 8 L40 5 L50 5 L50 3 L60 3 L60 5 L70 5 L70 8 L80 8 L80 12 L90 12 L90 18 L100 18 L100 15 L110 15 L110 18 L120 18 L120 12 L130 12 L130 8 L140 8 L140 5 L150 5 L150 3 L160 3 L160 5 L170 5 L170 8 L180 8 L180 12 L190 12 L190 18 L200 18 L200 25 Z' fill='black'/%3E%3C/svg%3E") center/contain no-repeat;
 }
 
-/* admin登录表单（默认隐藏） */
-.admin-login{
-  display:none;
-  text-align:left;
-}
+/* admin登录 */
+.admin-login{display:none;text-align:left}
 .admin-login h2{
-  font-size:20px;color:#c9a84c;text-align:center;
+  font-size:20px;color:#d4a017;text-align:center;
   margin-bottom:20px;letter-spacing:2px;
 }
 .admin-field{margin-bottom:14px}
@@ -140,13 +132,13 @@ body{
 .admin-field input{
   width:100%;padding:11px 13px;
   border:1px solid #444;border-radius:8px;
-  font-size:14px;background:#1a1a1a;color:#eee;
+  font-size:14px;background:#111;color:#eee;
   outline:none;transition:border .15s;
 }
-.admin-field input:focus{border-color:#c9a84c}
+.admin-field input:focus{border-color:#d4a017}
 .admin-btn{
   width:100%;padding:12px;border:none;border-radius:8px;
-  background:linear-gradient(135deg,#c9a84c,#b8941f);
+  background:linear-gradient(135deg,#d4a017,#b8860b);
   color:#1a1a1a;font-size:15px;font-weight:700;
   cursor:pointer;margin-top:6px;transition:all .15s;
 }
@@ -155,35 +147,34 @@ body{
   text-align:center;font-size:12px;color:#666;
   margin-top:14px;cursor:pointer;
 }
-.admin-back:hover{color:#c9a84c}
+.admin-back:hover{color:#d4a017}
 .admin-err{
   font-size:12px;color:#E74C3C;margin-top:10px;
   min-height:16px;text-align:center;
 }
 
-/* 响应式 */
 @media(max-width:480px){
-  .main-card{padding:28px 20px;border-radius:16px}
-  .title{font-size:28px;letter-spacing:4px}
-  .flag-wrap{width:120px;height:80px}
-  .flag .big-star{font-size:28px;top:12px;left:14px}
+  .main-card{padding:28px 20px 16px;border-radius:18px}
+  .title{font-size:30px;letter-spacing:3px}
+  .flag-wrap{width:110px;height:73px}
+  .flag .big-star{font-size:26px;top:11px;left:13px}
   .flag .small-star{font-size:10px}
-  .flag .s1{top:7px;left:45px}
-  .flag .s2{top:17px;left:54px}
-  .flag .s3{top:30px;left:52px}
-  .flag .s4{top:40px;left:43px}
+  .flag .s1{top:6px;left:41px}
+  .flag .s2{top:16px;left:49px}
+  .flag .s3{top:27px;left:47px}
+  .flag .s4{top:36px;left:39px}
+  .subtitle{font-size:14px}
   .maint-title{font-size:16px}
   .maint-text{font-size:13px}
   .countdown-num{font-size:22px}
-  .countdown-item{padding:8px 10px;min-width:50px}
+  .countdown-item{min-width:50px;padding:8px 6px}
 }
 </style>
 </head>
 <body>
 
 <div class="main-card" id="maintView">
-  <!-- 国旗（连点5次进入admin登录） -->
-  <div class="flag-wrap" id="flag" title="">
+  <div class="flag-wrap" id="flag">
     <div class="flag">
       <span class="big-star">★</span>
       <span class="small-star s1">★</span>
@@ -194,7 +185,7 @@ body{
   </div>
 
   <div class="title">国庆快乐</div>
-  <div class="subtitle">庆祝中华人民共和国成立77周年</div>
+  <div class="subtitle">庆祝中华人民共和国成<br>立77周年</div>
 
   <div class="divider"></div>
 
@@ -203,8 +194,7 @@ body{
     <div class="maint-title">系统维护通知</div>
     <div class="maint-text">
       维护时间：即日起至 <span class="date">10月4日</span><br>
-      维护期间暂停登录服务<br>
-      给您带来的不便敬请谅解
+      维护期间<span class="stop">暂停登录服务</span>，给您带来的不便敬请谅解。
     </div>
 
     <div class="countdown" id="countdown">
@@ -227,10 +217,9 @@ body{
     </div>
   </div>
 
-  <div class="footer-tip">祝全体师生国庆假期愉快</div>
+  <div class="tiananmen"></div>
 </div>
 
-<!-- Admin登录视图 -->
 <div class="main-card admin-login" id="adminView">
   <h2>管理员登录</h2>
   <div class="admin-field">
@@ -272,7 +261,6 @@ function backToMaint(){
   document.getElementById('adminErr').textContent='';
 }
 
-/* Admin登录 */
 async function doAdminLogin(){
   const btn=document.querySelector('.admin-btn');
   btn.disabled=true;btn.textContent='登录中...';
@@ -282,17 +270,12 @@ async function doAdminLogin(){
   if(!name){btn.disabled=false;btn.textContent='登 录';err.textContent='请输入用户名';return;}
   if(!pwd){btn.disabled=false;btn.textContent='登 录';err.textContent='请输入密码';return;}
   if(!SB){btn.disabled=false;btn.textContent='登 录';err.textContent='无法连接服务';return;}
-  
   const email=(name==='admin'||name==='teacher'||name==='admin2')?name+'@jfz.local':name+'@jfz.local';
-  
   try{
     const res=await SB.auth.signInWithPassword({email,password:pwd});
     if(res.error||!res.data.user){
-      btn.disabled=false;btn.textContent='登 录';
-      err.textContent='用户名或密码错误';
-      return;
+      btn.disabled=false;btn.textContent='登 录';err.textContent='用户名或密码错误';return;
     }
-    // 登录成功，查询角色
     let role='user',gid=null;
     try{
       const rresp=await fetch(SUPABASE_URL+'/rest/v1/users?email=eq.'+encodeURIComponent(email)+'&select=username,role,group_id',{
@@ -301,19 +284,14 @@ async function doAdminLogin(){
       const rrows=await rresp.json();
       if(rrows&&rrows.length){role=rrows[0].role||'user';gid=rrows[0].group_id||null;}
     }catch(e){}
-    
     if(role==='user'){
-      btn.disabled=false;btn.textContent='登 录';
-      err.textContent='该账号无管理员权限';
-      await SB.auth.signOut();
-      return;
+      btn.disabled=false;btn.textContent='登 录';err.textContent='该账号无管理员权限';
+      await SB.auth.signOut();return;
     }
-    
     localStorage.setItem('jfz_session_v1',JSON.stringify({name,role,groupId:gid||undefined}));
     location.href='group.html';
   }catch(e){
-    btn.disabled=false;btn.textContent='登 录';
-    err.textContent='网络错误，请重试';
+    btn.disabled=false;btn.textContent='登 录';err.textContent='网络错误，请重试';
   }
 }
 
