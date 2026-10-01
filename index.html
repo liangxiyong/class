@@ -270,7 +270,11 @@ async function doAdminLogin(){
   try{
     const res=await SB.auth.signInWithPassword({email,password:pwd});
     if(res.error||!res.data.user){
-      btn.disabled=false;btn.textContent='登 录';err.textContent='用户名或密码错误';return;
+      btn.disabled=false;btn.textContent='登 录';
+      const msg=res.error?(res.error.message||JSON.stringify(res.error)):'登录失败';
+      err.textContent='登录失败：'+msg;
+      console.error('admin登录错误:',res.error,'email:',email);
+      return;
     }
     let role='user',gid=null;
     try{
