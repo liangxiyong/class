@@ -10,150 +10,180 @@
 html,body{height:100%}
 body{
   font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;
-  background:linear-gradient(135deg,#8B0000 0%,#C41E3A 40%,#DE2910 100%);
+  background:#1a1a1a;
   display:flex;align-items:center;justify-content:center;
-  min-height:100vh;overflow:hidden;position:relative;
+  min-height:100vh;padding:20px;
   -webkit-font-smoothing:antialiased;
 }
 
-/* 背景装饰 - 金色光芒 */
-body::before{
-  content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;
-  background:radial-gradient(circle at 30% 20%,rgba(255,215,0,.15) 0%,transparent 40%),
-             radial-gradient(circle at 70% 80%,rgba(255,215,0,.1) 0%,transparent 40%);
-  animation:glow 8s ease-in-out infinite alternate;
-}
-@keyframes glow{from{opacity:.6}to{opacity:1}}
-
-/* 飘落的五角星 */
-.star{
-  position:absolute;color:#FFD700;opacity:0;
-  animation:fall linear infinite;pointer-events:none;
-}
-@keyframes fall{
-  0%{transform:translateY(-10vh) rotate(0deg);opacity:0}
-  10%{opacity:.8}
-  90%{opacity:.8}
-  100%{transform:translateY(110vh) rotate(360deg);opacity:0}
-}
-
+/* 主卡片 */
 .main-card{
-  background:rgba(255,255,255,.97);
-  border-radius:24px;padding:40px 36px;width:100%;max-width:440px;
-  box-shadow:0 30px 80px rgba(0,0,0,.4),0 0 60px rgba(255,215,0,.2);
-  text-align:center;position:relative;z-index:10;
-  animation:cardIn .6s cubic-bezier(.34,1.56,.64,1);
+  background:#222;
+  border:2px solid #c9a84c;
+  border-radius:20px;padding:40px 36px;
+  width:100%;max-width:440px;
+  text-align:center;position:relative;
+  box-shadow:0 0 40px rgba(201,168,76,.15);
 }
-@keyframes cardIn{from{opacity:0;transform:translateY(30px) scale(.95)}to{opacity:1;transform:none}}
 
-/* 国旗 */
+/* 国旗 - 正确的五星红旗 */
 .flag-wrap{
-  width:120px;height:80px;margin:0 auto 20px;
-  border-radius:6px;overflow:hidden;
-  box-shadow:0 8px 24px rgba(0,0,0,.3);
-  position:relative;
+  width:140px;height:93px;
+  margin:0 auto 24px;
+  border-radius:4px;overflow:hidden;
+  box-shadow:0 4px 16px rgba(0,0,0,.5);
+  cursor:pointer;
+  user-select:none;
+  -webkit-user-select:none;
 }
 .flag{
   width:100%;height:100%;
   background:#DE2910;
   position:relative;
-  animation:wave 3s ease-in-out infinite;
 }
-@keyframes wave{
-  0%,100%{transform:skewY(0deg)}
-  50%{transform:skewY(-1.5deg)}
-}
+/* 大星：左上方，直径约为旗高的3/10 */
 .flag .big-star{
-  position:absolute;top:12px;left:14px;
-  width:28px;height:28px;color:#FFDE00;
-  font-size:28px;line-height:1;
+  position:absolute;
+  top:14px;left:16px;
+  font-size:32px;
+  color:#FFDE00;
+  line-height:1;
 }
+/* 四颗小星：各有一角正对大星中心 */
 .flag .small-star{
-  position:absolute;color:#FFDE00;font-size:12px;line-height:1;
+  position:absolute;
+  color:#FFDE00;
+  font-size:11px;
+  line-height:1;
 }
-.flag .s1{top:6px;left:44px;transform:rotate(20deg)}
-.flag .s2{top:16px;left:52px;transform:rotate(40deg)}
-.flag .s3{top:28px;left:50px;transform:rotate(-20deg)}
-.flag .s4{top:38px;left:42px;transform:rotate(-40deg)}
+/* 第一颗小星：大星右上方 */
+.flag .s1{top:8px;left:52px;transform:rotate(20deg)}
+/* 第二颗小星：大星右方偏上 */
+.flag .s2{top:20px;left:62px;transform:rotate(45deg)}
+/* 第三颗小星：大星右方偏下 */
+.flag .s3{top:34px;left:60px;transform:rotate(-20deg)}
+/* 第四颗小星：大星右下方 */
+.flag .s4{top:46px;left:50px;transform:rotate(-45deg)}
 
 .title{
-  font-size:32px;font-weight:900;
-  background:linear-gradient(135deg,#C41E3A,#DE2910,#FF6B35);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  background-clip:text;
-  margin-bottom:6px;letter-spacing:4px;
+  font-size:34px;font-weight:900;
+  color:#E74C3C;
+  margin-bottom:8px;letter-spacing:6px;
+  text-shadow:0 2px 8px rgba(231,76,60,.3);
 }
 .subtitle{
-  font-size:15px;color:#8B4513;margin-bottom:24px;
-  font-weight:600;letter-spacing:2px;
+  font-size:15px;color:#c9a84c;
+  margin-bottom:24px;font-weight:600;letter-spacing:2px;
+  line-height:1.6;
 }
 
 .divider{
-  width:60px;height:3px;
-  background:linear-gradient(90deg,transparent,#FFD700,transparent);
-  margin:0 auto 24px;border-radius:2px;
+  width:60px;height:2px;
+  background:linear-gradient(90deg,transparent,#c9a84c,transparent);
+  margin:0 auto 28px;
 }
 
 .maint-box{
-  background:linear-gradient(135deg,#FFF8E7,#FFEFC4);
-  border:2px solid #FFD700;border-radius:16px;
-  padding:22px 20px;margin-bottom:20px;
-  position:relative;
+  background:rgba(201,168,76,.08);
+  border:1px solid rgba(201,168,76,.3);
+  border-radius:14px;
+  padding:24px 20px;margin-bottom:8px;
 }
 .maint-icon{
-  font-size:36px;margin-bottom:10px;
-  animation:bounce 2s ease-in-out infinite;
+  font-size:32px;margin-bottom:12px;
 }
-@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 .maint-title{
-  font-size:18px;font-weight:800;color:#8B4513;margin-bottom:8px;
+  font-size:18px;font-weight:800;
+  color:#c9a84c;margin-bottom:12px;
+  letter-spacing:2px;
 }
 .maint-text{
-  font-size:14px;color:#A0522D;line-height:1.8;
+  font-size:14px;color:#bbb;line-height:2;
 }
-.maint-text strong{color:#C41E3A;font-weight:700}
+.maint-text .date{color:#E74C3C;font-weight:700}
 
 .countdown{
-  display:flex;justify-content:center;gap:12px;margin-top:16px;
+  display:flex;justify-content:center;gap:12px;margin-top:20px;
 }
 .countdown-item{
-  background:#fff;border-radius:10px;padding:10px 14px;
-  box-shadow:0 2px 8px rgba(139,69,19,.15);
-  min-width:60px;
+  background:#1a1a1a;
+  border:1px solid rgba(201,168,76,.3);
+  border-radius:10px;padding:10px 12px;
+  min-width:58px;
 }
 .countdown-num{
-  font-size:24px;font-weight:900;color:#C41E3A;
+  font-size:26px;font-weight:900;color:#E74C3C;
   font-variant-numeric:tabular-nums;
 }
 .countdown-label{
-  font-size:11px;color:#8B4513;font-weight:600;margin-top:2px;
+  font-size:11px;color:#888;margin-top:4px;font-weight:600;
 }
 
 .footer-tip{
-  font-size:12px;color:#999;margin-top:18px;line-height:1.7;
+  font-size:12px;color:#666;margin-top:20px;line-height:1.7;
 }
-.footer-tip a{color:#C41E3A;text-decoration:none;font-weight:600}
+
+/* admin登录表单（默认隐藏） */
+.admin-login{
+  display:none;
+  text-align:left;
+}
+.admin-login h2{
+  font-size:20px;color:#c9a84c;text-align:center;
+  margin-bottom:20px;letter-spacing:2px;
+}
+.admin-field{margin-bottom:14px}
+.admin-field label{
+  display:block;font-size:12px;color:#999;
+  margin-bottom:6px;font-weight:600;
+}
+.admin-field input{
+  width:100%;padding:11px 13px;
+  border:1px solid #444;border-radius:8px;
+  font-size:14px;background:#1a1a1a;color:#eee;
+  outline:none;transition:border .15s;
+}
+.admin-field input:focus{border-color:#c9a84c}
+.admin-btn{
+  width:100%;padding:12px;border:none;border-radius:8px;
+  background:linear-gradient(135deg,#c9a84c,#b8941f);
+  color:#1a1a1a;font-size:15px;font-weight:700;
+  cursor:pointer;margin-top:6px;transition:all .15s;
+}
+.admin-btn:hover{filter:brightness(1.1)}
+.admin-back{
+  text-align:center;font-size:12px;color:#666;
+  margin-top:14px;cursor:pointer;
+}
+.admin-back:hover{color:#c9a84c}
+.admin-err{
+  font-size:12px;color:#E74C3C;margin-top:10px;
+  min-height:16px;text-align:center;
+}
 
 /* 响应式 */
 @media(max-width:480px){
-  .main-card{padding:28px 20px;border-radius:18px;margin:16px}
-  .title{font-size:26px;letter-spacing:2px}
-  .flag-wrap{width:100px;height:67px}
+  .main-card{padding:28px 20px;border-radius:16px}
+  .title{font-size:28px;letter-spacing:4px}
+  .flag-wrap{width:120px;height:80px}
+  .flag .big-star{font-size:28px;top:12px;left:14px}
+  .flag .small-star{font-size:10px}
+  .flag .s1{top:7px;left:45px}
+  .flag .s2{top:17px;left:54px}
+  .flag .s3{top:30px;left:52px}
+  .flag .s4{top:40px;left:43px}
   .maint-title{font-size:16px}
   .maint-text{font-size:13px}
-  .countdown-num{font-size:20px}
+  .countdown-num{font-size:22px}
   .countdown-item{padding:8px 10px;min-width:50px}
 }
 </style>
 </head>
 <body>
 
-<!-- 飘落五角星 -->
-<div id="stars"></div>
-
-<div class="main-card">
-  <!-- 国旗 -->
-  <div class="flag-wrap">
+<div class="main-card" id="maintView">
+  <!-- 国旗（连点5次进入admin登录） -->
+  <div class="flag-wrap" id="flag" title="">
     <div class="flag">
       <span class="big-star">★</span>
       <span class="small-star s1">★</span>
@@ -164,7 +194,7 @@ body::before{
   </div>
 
   <div class="title">国庆快乐</div>
-  <div class="subtitle">1949 — 2026 · 庆祝中华人民共和国成立77周年</div>
+  <div class="subtitle">庆祝中华人民共和国成立77周年</div>
 
   <div class="divider"></div>
 
@@ -172,12 +202,11 @@ body::before{
     <div class="maint-icon">🔧</div>
     <div class="maint-title">系统维护通知</div>
     <div class="maint-text">
-      班级积分管理系统正在进行国庆假期维护升级，<br>
-      <strong>维护时间：即日起至 10月4日</strong><br>
-      维护期间<strong>暂停登录服务</strong>，给您带来的不便敬请谅解。
+      维护时间：即日起至 <span class="date">10月4日</span><br>
+      维护期间暂停登录服务<br>
+      给您带来的不便敬请谅解
     </div>
 
-    <!-- 倒计时 -->
     <div class="countdown" id="countdown">
       <div class="countdown-item">
         <div class="countdown-num" id="cd-days">--</div>
@@ -198,30 +227,97 @@ body::before{
     </div>
   </div>
 
-  <div class="footer-tip">
-    祝全体老师和同学国庆快乐、阖家幸福！<br>
-    维护完成后将自动恢复登录，感谢您的耐心等待。
-  </div>
+  <div class="footer-tip">祝全体师生国庆假期愉快</div>
 </div>
 
-<script>
-// 生成飘落五角星
-(function(){
-  const container=document.getElementById('stars');
-  const stars=['★','☆','✦','✧'];
-  for(let i=0;i<20;i++){
-    const s=document.createElement('div');
-    s.className='star';
-    s.textContent=stars[Math.floor(Math.random()*stars.length)];
-    s.style.left=Math.random()*100+'%';
-    s.style.fontSize=(12+Math.random()*20)+'px';
-    s.style.animationDuration=(6+Math.random()*8)+'s';
-    s.style.animationDelay=(Math.random()*10)+'s';
-    container.appendChild(s);
-  }
-})();
+<!-- Admin登录视图 -->
+<div class="main-card admin-login" id="adminView">
+  <h2>管理员登录</h2>
+  <div class="admin-field">
+    <label>用户名</label>
+    <input type="text" id="adminName" placeholder="输入管理员用户名" autocomplete="username">
+  </div>
+  <div class="admin-field">
+    <label>密码</label>
+    <input type="password" id="adminPwd" placeholder="输入密码" autocomplete="current-password" onkeydown="if(event.key==='Enter')doAdminLogin()">
+  </div>
+  <button class="admin-btn" onclick="doAdminLogin()">登 录</button>
+  <div class="admin-err" id="adminErr"></div>
+  <div class="admin-back" onclick="backToMaint()">← 返回维护页面</div>
+</div>
 
-// 倒计时到10月4日 00:00:00
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL='https://zaeijgfuykhkabteqljw.supabase.co';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InphZWlqZ2Z1eWtoa2FidGVxbGp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1ODA5MzgsImV4cCI6MjEwNDE1NjkzOH0.CQ-jqsslzaWpeeXg0OJnQsaW-iMNoCKbJGW_-p1F3D8';
+const SB=window.supabase?window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;
+
+/* 连点5次国旗进入admin登录 */
+let flagClickCount=0;
+let flagClickTimer=null;
+document.getElementById('flag').addEventListener('click',function(){
+  flagClickCount++;
+  clearTimeout(flagClickTimer);
+  flagClickTimer=setTimeout(()=>{flagClickCount=0},1500);
+  if(flagClickCount>=5){
+    flagClickCount=0;
+    document.getElementById('maintView').style.display='none';
+    document.getElementById('adminView').style.display='block';
+  }
+});
+
+function backToMaint(){
+  document.getElementById('adminView').style.display='none';
+  document.getElementById('maintView').style.display='block';
+  document.getElementById('adminErr').textContent='';
+}
+
+/* Admin登录 */
+async function doAdminLogin(){
+  const btn=document.querySelector('.admin-btn');
+  btn.disabled=true;btn.textContent='登录中...';
+  const name=document.getElementById('adminName').value.trim();
+  const pwd=document.getElementById('adminPwd').value;
+  const err=document.getElementById('adminErr');
+  if(!name){btn.disabled=false;btn.textContent='登 录';err.textContent='请输入用户名';return;}
+  if(!pwd){btn.disabled=false;btn.textContent='登 录';err.textContent='请输入密码';return;}
+  if(!SB){btn.disabled=false;btn.textContent='登 录';err.textContent='无法连接服务';return;}
+  
+  const email=(name==='admin'||name==='teacher'||name==='admin2')?name+'@jfz.local':name+'@jfz.local';
+  
+  try{
+    const res=await SB.auth.signInWithPassword({email,password:pwd});
+    if(res.error||!res.data.user){
+      btn.disabled=false;btn.textContent='登 录';
+      err.textContent='用户名或密码错误';
+      return;
+    }
+    // 登录成功，查询角色
+    let role='user',gid=null;
+    try{
+      const rresp=await fetch(SUPABASE_URL+'/rest/v1/users?email=eq.'+encodeURIComponent(email)+'&select=username,role,group_id',{
+        headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+res.data.session.access_token}
+      });
+      const rrows=await rresp.json();
+      if(rrows&&rrows.length){role=rrows[0].role||'user';gid=rrows[0].group_id||null;}
+    }catch(e){}
+    
+    if(role==='user'){
+      btn.disabled=false;btn.textContent='登 录';
+      err.textContent='该账号无管理员权限';
+      await SB.auth.signOut();
+      return;
+    }
+    
+    localStorage.setItem('jfz_session_v1',JSON.stringify({name,role,groupId:gid||undefined}));
+    location.href='group.html';
+  }catch(e){
+    btn.disabled=false;btn.textContent='登 录';
+    err.textContent='网络错误，请重试';
+  }
+}
+
+/* 倒计时 */
 (function(){
   const target=new Date('2026-10-04T00:00:00+08:00').getTime();
   function update(){
@@ -229,9 +325,9 @@ body::before{
     let diff=target-now;
     if(diff<=0){
       document.getElementById('cd-days').textContent='0';
-      document.getElementById('cd-hours').textContent='0';
-      document.getElementById('cd-mins').textContent='0';
-      document.getElementById('cd-secs').textContent='0';
+      document.getElementById('cd-hours').textContent='00';
+      document.getElementById('cd-mins').textContent='00';
+      document.getElementById('cd-secs').textContent='00';
       return;
     }
     const days=Math.floor(diff/86400000);diff%=86400000;
