@@ -1932,12 +1932,28 @@ window.addEventListener('storage',function(ev){
 let sbRealtimeChannel=null;
 let sbRealtimeRetryTimer=null;
 let sbRealtimeRetryCount=0;
+let sbRealtimeConnectTimer=null;
 function subscribeRealtime(gid){
   if(!SB||!SB.channel||!gid)return;
-  // 清除之前的重连定时器
+  // 清除之前的重连定时器和连接超时定时器
   if(sbRealtimeRetryTimer){clearTimeout(sbRealtimeRetryTimer);sbRealtimeRetryTimer=null;}
+  if(sbRealtimeConnectTimer){clearTimeout(sbRealtimeConnectTimer);sbRealtimeConnectTimer=null;}
   try{
     if(sbRealtimeChannel){try{SB.removeChannel(sbRealtimeChannel);}catch(e){}sbRealtimeChannel=null;}
+    // 连接超时检测：12秒内未收到SUBSCRIBED则认为连接失败（握手失败时subscribe回调可能不触发）
+    sbRealtimeConnectTimer=setTimeout(function(){
+      sbRealtimeConnectTimer=null;
+      if(currentGroupId&&String(currentGroupId)===String(gid)){
+        setSyncStatus('⚠️ 实时同步连接超时，重连中...（'+(sbRealtimeRetryCount+1)+'）','#e67e22');
+        if(sbRealtimeRetryCount<10){
+          sbRealtimeRetryCount++;
+          sbRealtimeRetryTimer=setTimeout(function(){
+            sbRealtimeRetryTimer=null;
+            if(currentGroupId&&String(currentGroupId)===String(gid)){subscribeRealtime(gid);}
+          },3000);
+        }
+      }
+    },12000);
     sbRealtimeChannel=SB.channel('grp-'+gid)
       .on('postgres_changes',{event:'UPDATE',schema:'public',table:'group_data',filter:'group_id=eq.'+gid},function(payload){
         if(switchingGroup)return; // 切换组中：忽略旧组的更新通知，防止跳回旧组
@@ -1958,18 +1974,19 @@ function subscribeRealtime(gid){
       })
       .subscribe(function(status){
         if(status==='SUBSCRIBED'){
+          // 连接成功：清除超时定时器
+          if(sbRealtimeConnectTimer){clearTimeout(sbRealtimeConnectTimer);sbRealtimeConnectTimer=null;}
           sbRealtimeRetryCount=0;
           setSyncStatus('☁️ 实时同步已连接','var(--ink-soft)');
         }else if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'||status==='CLOSED'){
+          // 连接失败：清除超时定时器，触发手动重连
+          if(sbRealtimeConnectTimer){clearTimeout(sbRealtimeConnectTimer);sbRealtimeConnectTimer=null;}
           setSyncStatus('⚠️ 实时同步重连中...（'+(sbRealtimeRetryCount+1)+'）','#e67e22');
-          // 手动重连兜底：supabase-js自身重连可能在某些情况下不触发，这里3秒后手动重试
           if(sbRealtimeRetryCount<10){
             sbRealtimeRetryCount++;
             sbRealtimeRetryTimer=setTimeout(function(){
               sbRealtimeRetryTimer=null;
-              if(currentGroupId&&String(currentGroupId)===String(gid)){
-                subscribeRealtime(gid);
-              }
+              if(currentGroupId&&String(currentGroupId)===String(gid)){subscribeRealtime(gid);}
             },3000);
           }
         }
@@ -2261,6 +2278,7 @@ function setSyncStatus(msg,color){
     if(color==='var(--green)'){sb.textContent='☁️ 已同步';sb.style.color='rgba(46,125,50,.7)';}
     else if(color==='var(--red)'){sb.textContent='☁️ 同步失败';sb.style.color='rgba(198,40,40,.7)';}
     else if(color==='#7a6d61'){sb.textContent='☁️ 同步中…';sb.style.color='rgba(247,241,230,.5)';}
+    else if(color==='#e67e22'){sb.textContent='☁️ 实时重连中';sb.style.color='rgba(230,126,34,.8)';}
     else{sb.textContent='☁️ '+(cloudCfg.lastSync?'已同步':'未同步');sb.style.color='rgba(247,241,230,.38)';}
   }
 }
