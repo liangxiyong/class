@@ -231,7 +231,7 @@ body{
   <div class="admin-back" onclick="backToMaint()">← 返回维护页面</div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
 <script>
 const SUPABASE_URL='https://olalgnwkszacavgcqhov.supabase.co';
 const SUPABASE_ANON_KEY='sb_publishable_B5VRNPT7oJaoX-x6IeprIg_bb5LZCJX';
@@ -264,13 +264,14 @@ async function doAdminLogin(){
   const nameLower=name0.toLowerCase();
   const name=(nameLower==='admin'||nameLower==='admin2'||nameLower==='teacher')?nameLower:name0;
   const pwd=document.getElementById('adminPwd').value;
+  const loginPwd=pwd.padStart(6,'0');
   const err=document.getElementById('adminErr');
   if(!name){btn.disabled=false;btn.textContent='登 录';err.textContent='请输入用户名';return;}
   if(!pwd){btn.disabled=false;btn.textContent='登 录';err.textContent='请输入密码';return;}
   if(!SB){btn.disabled=false;btn.textContent='登 录';err.textContent='无法连接服务';return;}
   const email=(name==='admin'||name==='teacher'||name==='admin2')?name+'@jfz.local':name+'@jfz.local';
   try{
-    const res=await SB.auth.signInWithPassword({email,password:pwd});
+    const res=await SB.auth.signInWithPassword({email,password:loginPwd});
     if(res.error||!res.data.user){
       btn.disabled=false;btn.textContent='登 录';
       const msg=res.error?(res.error.message||JSON.stringify(res.error)):'登录失败';
