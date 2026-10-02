@@ -1300,10 +1300,10 @@ const SB=window.supabase?window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON
   },
   realtime:{
     reconnectAfterMs:function(tries){
-      var backoff=[10000,30000,60000,120000,300000];
+      var backoff=[3000,5000,10000,20000,30000];
       return backoff[Math.min(tries-1,backoff.length-1)];
     },
-    timeout:15000,
+    timeout:10000,
     heartbeatIntervalMs:15000
   }
 }):null;
@@ -1930,10 +1930,12 @@ window.addEventListener('storage',function(ev){
 });
 // Supabase Realtime 订阅：跨设备实时同步（需在 Supabase 控制台开启 group_data 表的 Replication）
 let sbRealtimeChannel=null;
+let sbRealtimeRetryTimer=null;
+let sbRealtimeRetryCount=0;
 function subscribeRealtime(gid){
-  // 已改用轮询模式（每3秒），禁用WebSocket实时订阅，避免Supabase Realtime服务不稳定时反复连接失败
-  return;
   if(!SB||!SB.channel||!gid)return;
+  // 清除之前的重连定时器
+  if(sbRealtimeRetryTimer){clearTimeout(sbRealtimeRetryTimer);sbRealtimeRetryTimer=null;}
   try{
     if(sbRealtimeChannel){try{SB.removeChannel(sbRealtimeChannel);}catch(e){}sbRealtimeChannel=null;}
     sbRealtimeChannel=SB.channel('grp-'+gid)
@@ -1956,9 +1958,20 @@ function subscribeRealtime(gid){
       })
       .subscribe(function(status){
         if(status==='SUBSCRIBED'){
+          sbRealtimeRetryCount=0;
           setSyncStatus('☁️ 实时同步已连接','var(--ink-soft)');
-        }else if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'){
-          setSyncStatus('⚠️ 实时同步连接中...','#e67e22');
+        }else if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'||status==='CLOSED'){
+          setSyncStatus('⚠️ 实时同步重连中...（'+(sbRealtimeRetryCount+1)+'）','#e67e22');
+          // 手动重连兜底：supabase-js自身重连可能在某些情况下不触发，这里3秒后手动重试
+          if(sbRealtimeRetryCount<10){
+            sbRealtimeRetryCount++;
+            sbRealtimeRetryTimer=setTimeout(function(){
+              sbRealtimeRetryTimer=null;
+              if(currentGroupId&&String(currentGroupId)===String(gid)){
+                subscribeRealtime(gid);
+              }
+            },3000);
+          }
         }
       });
   }catch(e){}
