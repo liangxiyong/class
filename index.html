@@ -231,7 +231,7 @@ body{
   <div class="admin-back" onclick="backToMaint()">← 返回维护页面</div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.0"></script>
 <script>
 const SUPABASE_URL='https://zaeijgfuykhkabteqljw.supabase.co';
 const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InphZWlqZ2Z1eWtoa2FidGVxbGp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1ODA5MzgsImV4cCI6MjEwNDE1NjkzOH0.CQ-jqsslzaWpeeXg0OJnQsaW-iMNoCKbJGW_-p1F3D8';
@@ -260,7 +260,9 @@ function backToMaint(){
 async function doAdminLogin(){
   const btn=document.querySelector('.admin-btn');
   btn.disabled=true;btn.textContent='登录中...';
-  const name=document.getElementById('adminName').value.trim();
+  const name0=document.getElementById('adminName').value.trim();
+  const nameLower=name0.toLowerCase();
+  const name=(nameLower==='admin'||nameLower==='admin2'||nameLower==='teacher')?nameLower:name0;
   const pwd=document.getElementById('adminPwd').value;
   const err=document.getElementById('adminErr');
   if(!name){btn.disabled=false;btn.textContent='登 录';err.textContent='请输入用户名';return;}
@@ -277,15 +279,30 @@ async function doAdminLogin(){
       return;
     }
     let role='user',gid=null;
-    try{
-      const rresp=await fetch(SUPABASE_URL+'/rest/v1/users?email=eq.'+encodeURIComponent(email)+'&select=username,role,group_id',{
-        headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+res.data.session.access_token}
-      });
-      const rrows=await rresp.json();
-      if(rrows&&rrows.length){role=rrows[0].role||'user';gid=rrows[0].group_id||null;}
-    }catch(e){}
+    let roleFetchOk=false;
+    for(let roleRetry=0;roleRetry<2 && !roleFetchOk;roleRetry++){
+      try{
+        const rresp=await fetch(SUPABASE_URL+'/rest/v1/users?email=eq.'+encodeURIComponent(email)+'&select=username,role,group_id',{
+          headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+res.data.session.access_token}
+        });
+        if(!rresp.ok)throw new Error('HTTP '+rresp.status);
+        const rrows=await rresp.json();
+        if(rrows&&rrows.length){role=rrows[0].role||'user';gid=rrows[0].group_id||null;}
+        roleFetchOk=true;
+      }catch(e){
+        if(roleRetry<1){await new Promise(r=>setTimeout(r,800));}
+      }
+    }
+    if(!roleFetchOk){
+      try{
+        const meta=res.data.user.user_metadata||{};
+        if(meta.role)role=meta.role;
+        if(meta.group_id)gid=meta.group_id;
+      }catch(e){}
+    }
     if(role==='user'){
-      btn.disabled=false;btn.textContent='登 录';err.textContent='该账号无管理员权限';
+      btn.disabled=false;btn.textContent='登 录';
+      err.textContent=roleFetchOk?'该账号无管理员权限':'获取用户信息失败，请检查网络后重试';
       await SB.auth.signOut();return;
     }
     localStorage.setItem('jfz_session_v1',JSON.stringify({name,role,groupId:gid||undefined}));

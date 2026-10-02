@@ -1212,7 +1212,7 @@ td.total-col.zero{color:#cfc4b4}
 <div class="toast" id="toast"></div>
 <div id="printArea"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
 <script>
 // 临时维护提示
 const MAINT_DATE='2026-09-21';
@@ -1287,15 +1287,23 @@ const DEFAULT_STATE = {
   version:2, itemsVer:3, groupName:'', font:'sans', students:[], items:DEFAULT_ITEMS, scores:{}, notes:{}, baseOff:{}
 };
 
-/* ================= Supabase 多组配置 ================= */
+/* ================= Supabase 配置（重写） ================= */
 const SUPABASE_URL='https://zaeijgfuykhkabteqljw.supabase.co';
 const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InphZWlqZ2Z1eWtoa2FidGVxbGp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1ODA5MzgsImV4cCI6MjEwNDE1NjkzOH0.CQ-jqsslzaWpeeXg0OJnQsaW-iMNoCKbJGW_-p1F3D8';
+
 const SB=window.supabase?window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{
+  auth:{
+    persistSession:true,
+    autoRefreshToken:true,
+    detectSessionInUrl:true
+  },
   realtime:{
     reconnectAfterMs:function(tries){
-      const backoff=[10000,30000,60000,120000,300000];
+      var backoff=[10000,30000,60000,120000,300000];
       return backoff[Math.min(tries-1,backoff.length-1)];
-    }
+    },
+    timeout:15000,
+    heartbeatIntervalMs:15000
   }
 }):null;
 let sbAccessToken='';
@@ -1310,25 +1318,25 @@ async function ensureSbToken(){
   return '';
 }
 /* 组长姓名 → 登录邮箱（拼音），与 SQL 种子一致 */
-const LEADER_EMAIL={'张誉俪':'zhangyiming','张益铭':'zhangyiming','董子瑜':'dongziyu','梁锡永':'liangxiyong','杨佳诺':'yangjianuo','马语秋':'mayuqiu','刘亦峻':'liuyijun','冯馨熠':'fengxinyi','黄詩宸':'huangshichen','谭梦瑶':'tanmengyao','张邵宸':'zhangshaochen','李宜锦':'liyijin','刘铠墨':'liukaimo','王沐宇轩':'wangmuyuxuan','张昊群':'zhanghaoqun'};
+const LEADER_EMAIL={'张誉俪':'zhangyiming','张益铭':'zhangyiming','董子瑜':'dongziyu','梁锡永':'liangxiyong','杨佳诺':'yangjianuo','张儒溪':'zhangruxi','马语秋':'mayuqiu','刘亦峻':'liuyijun','冯馨熠':'fengxinyi','黄詩宸':'huangshichen','谭梦瑶':'tanmengyao','张邵宸':'zhangshaochen','李宜锦':'liyijin','刘铠墨':'liukaimo','王沐宇轩':'wangmuyuxuan','张昊群':'zhanghaoqun'};
 function emailOf(name){
   if(name==='admin'||name==='admin2'||name==='teacher')return name+'@jfz.local';
   return (LEADER_EMAIL[name]||name)+'@jfz.local';
 }
 const GROUP_NAMES={'1':'第一组','2':'第二组','3':'第三组','4':'第四组','5':'第五组','6':'第六组','7':'第七组','8':'第八组','9':'第九组','10':'第十组'};
 const GROUP_MEMBERS={
-  '1':['张益铭','谭佑安','李锦馨','王铂乔','张翰伯'],
+  '1':['张益铭','谭佑安','李锦馨','王铂乔'],
   '2':['董子瑜','李子涵','刘一辰','朱桐莹','周钰心'],
   '3':['梁锡永','李宜锦','刘铠墨','王沐宇轩','张昊群'],
   '4':['杨佳诺','平扬','李锦桐','季牧云'],
-  '5':['马语秋','张儒溪','邓泽雨','马雨欣'],
+  '5':['张儒溪','马语秋','邓泽雨','马雨欣'],
   '6':['刘亦峻','郭一涵','章浩宸','梁馨悦'],
   '7':['冯馨熠','李晞玥','盖俊杰','王玺朝'],
-  '8':['黄詩宸','刘若安','李恩','王珮钰','杨译贺'],
+  '8':['黄詩宸','刘若安','李恩','王珮钰'],
   '9':['谭梦瑶','周倾淳','姚静怡','陈浩天'],
   '10':['张邵宸','王仁可','刘相希','张天阳']
 };
-const LEADER_GROUP={'张益铭':'1','董子瑜':'2','梁锡永':'3','杨佳诺':'4','马语秋':'5','刘亦峻':'6','冯馨熠':'7','黄詩宸':'8','谭梦瑶':'9','张邵宸':'10'};
+const LEADER_GROUP={'张益铭':'1','董子瑜':'2','梁锡永':'3','杨佳诺':'4','张儒溪':'5','刘亦峻':'6','冯馨熠':'7','黄詩宸':'8','谭梦瑶':'9','张邵宸':'10'};
 let currentGroupId=null;
 let groupLeaders=[];
 
@@ -1892,7 +1900,7 @@ async function pollRemote(){
     }
   }catch(e){}
 }
-setInterval(pollRemote,8000);
+setInterval(pollRemote,3000);
 // 手动全局刷新：强制从云端重新拉取当前组数据（不允许空覆盖）
 async function forceRefresh(){
   if(!currentGroupId)return;
@@ -2130,8 +2138,8 @@ async function loadGroupIntoState(groupId,allowEmpty){
     }
   }catch(e){}
   // 云端加载失败
-  toast('网络不稳定，正在显示本地缓存数据');
   if(!s){
+    toast('网络不稳定，正在显示本地缓存数据');
     if(!allowEmpty)return state; // 不允许空覆盖：保持当前页面数据不变
     // 云端完全取不到时：本地有备份就恢复本地（防丢数据），否则空状态
     try{
