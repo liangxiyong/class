@@ -2296,6 +2296,9 @@ function setSyncStatus(msg,color){
     else if(color==='var(--red)'){sb.textContent='☁️ 同步失败';sb.style.color='rgba(198,40,40,.7)';}
     else if(color==='#7a6d61'){sb.textContent='☁️ 同步中…';sb.style.color='rgba(247,241,230,.5)';}
     else if(color==='#e67e22'){sb.textContent='☁️ 实时重连中';sb.style.color='rgba(230,126,34,.8)';}
+    else if(msg&&msg.indexOf('实时同步已连接')>=0){sb.textContent='☁️ 实时同步';sb.style.color='rgba(46,125,50,.7)';}
+    else if(msg&&msg.indexOf('轮询同步')>=0){sb.textContent='☁️ 轮询同步';sb.style.color='rgba(247,241,230,.5)';}
+    else if(msg&&msg.indexOf('实时同步 ')>=0){sb.textContent='☁️ 实时同步';sb.style.color='rgba(46,125,50,.7)';}
     else{sb.textContent='☁️ '+(cloudCfg.lastSync?'已同步':'未同步');sb.style.color='rgba(247,241,230,.38)';}
   }
 }
