@@ -1300,11 +1300,11 @@ const SB=window.supabase?window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON
   },
   realtime:{
     reconnectAfterMs:function(tries){
-      var backoff=[3000,5000,10000,20000,30000];
+      var backoff=[5000,8000,12000,20000,30000];
       return backoff[Math.min(tries-1,backoff.length-1)];
     },
-    timeout:10000,
-    heartbeatIntervalMs:15000
+    timeout:15000,
+    heartbeatIntervalMs:8000
   }
 }):null;
 let sbAccessToken='';
@@ -1938,22 +1938,26 @@ function subscribeRealtime(gid){
   // 清除之前的重连定时器和连接超时定时器
   if(sbRealtimeRetryTimer){clearTimeout(sbRealtimeRetryTimer);sbRealtimeRetryTimer=null;}
   if(sbRealtimeConnectTimer){clearTimeout(sbRealtimeConnectTimer);sbRealtimeConnectTimer=null;}
+  // 根据重连次数设置状态：前3次显示橙色"重连中"，超过3次静默降级为灰色"轮询同步中"（不干扰用户）
+  function setRetryStatus(n){
+    if(n<=3){setSyncStatus('⚠️ 实时同步重连中...（'+n+'）','#e67e22');}
+    else{setSyncStatus('☁️ 轮询同步中','var(--ink-soft)');}
+  }
   try{
     if(sbRealtimeChannel){try{SB.removeChannel(sbRealtimeChannel);}catch(e){}sbRealtimeChannel=null;}
-    // 连接超时检测：12秒内未收到SUBSCRIBED则认为连接失败（握手失败时subscribe回调可能不触发）
+    // 连接超时检测：20秒内未收到SUBSCRIBED则认为连接失败（握手失败时subscribe回调可能不触发）
     sbRealtimeConnectTimer=setTimeout(function(){
       sbRealtimeConnectTimer=null;
       if(currentGroupId&&String(currentGroupId)===String(gid)){
-        setSyncStatus('⚠️ 实时同步连接超时，重连中...（'+(sbRealtimeRetryCount+1)+'）','#e67e22');
-        if(sbRealtimeRetryCount<10){
-          sbRealtimeRetryCount++;
-          sbRealtimeRetryTimer=setTimeout(function(){
-            sbRealtimeRetryTimer=null;
-            if(currentGroupId&&String(currentGroupId)===String(gid)){subscribeRealtime(gid);}
-          },3000);
-        }
+        sbRealtimeRetryCount++;
+        setRetryStatus(sbRealtimeRetryCount);
+        // 无限重连：不设上限，后台静默重试，连上自动恢复实时同步
+        sbRealtimeRetryTimer=setTimeout(function(){
+          sbRealtimeRetryTimer=null;
+          if(currentGroupId&&String(currentGroupId)===String(gid)){subscribeRealtime(gid);}
+        },5000);
       }
-    },12000);
+    },20000);
     sbRealtimeChannel=SB.channel('grp-'+gid)
       .on('postgres_changes',{event:'UPDATE',schema:'public',table:'group_data',filter:'group_id=eq.'+gid},function(payload){
         if(switchingGroup)return; // 切换组中：忽略旧组的更新通知，防止跳回旧组
@@ -1974,21 +1978,20 @@ function subscribeRealtime(gid){
       })
       .subscribe(function(status){
         if(status==='SUBSCRIBED'){
-          // 连接成功：清除超时定时器
+          // 连接成功：清除超时定时器，重置重连计数
           if(sbRealtimeConnectTimer){clearTimeout(sbRealtimeConnectTimer);sbRealtimeConnectTimer=null;}
           sbRealtimeRetryCount=0;
           setSyncStatus('☁️ 实时同步已连接','var(--ink-soft)');
         }else if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'||status==='CLOSED'){
-          // 连接失败：清除超时定时器，触发手动重连
+          // 连接失败：清除超时定时器，触发重连
           if(sbRealtimeConnectTimer){clearTimeout(sbRealtimeConnectTimer);sbRealtimeConnectTimer=null;}
-          setSyncStatus('⚠️ 实时同步重连中...（'+(sbRealtimeRetryCount+1)+'）','#e67e22');
-          if(sbRealtimeRetryCount<10){
-            sbRealtimeRetryCount++;
-            sbRealtimeRetryTimer=setTimeout(function(){
-              sbRealtimeRetryTimer=null;
-              if(currentGroupId&&String(currentGroupId)===String(gid)){subscribeRealtime(gid);}
-            },3000);
-          }
+          sbRealtimeRetryCount++;
+          setRetryStatus(sbRealtimeRetryCount);
+          // 无限重连
+          sbRealtimeRetryTimer=setTimeout(function(){
+            sbRealtimeRetryTimer=null;
+            if(currentGroupId&&String(currentGroupId)===String(gid)){subscribeRealtime(gid);}
+          },5000);
         }
       });
   }catch(e){}
@@ -2005,6 +2008,19 @@ if(typeof document!=='undefined'){
     }else{
       // 回到前台：先重传本地未同步数据，再检查云端更新
       retrySyncIfDirty();pollRemote();
+      // 前台恢复时立即检查Realtime连接状态，断开则马上重连（后台标签页定时器被浏览器暂停会导致心跳超时断连）
+      try{
+        if(SB&&SB.realtime&&currentGroupId){
+          var connState=SB.realtime.connectionState();
+          var chOk=false;
+          var chs=SB.getChannels();
+          for(var ci=0;ci<chs.length;ci++){if(chs[ci].state==='joined'){chOk=true;break;}}
+          if(connState!=='connected'||!chOk){
+            if(sbRealtimeRetryTimer){clearTimeout(sbRealtimeRetryTimer);sbRealtimeRetryTimer=null;}
+            subscribeRealtime(currentGroupId);
+          }
+        }
+      }catch(e){}
     }
   });
 }
