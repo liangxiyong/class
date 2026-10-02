@@ -1931,6 +1931,8 @@ window.addEventListener('storage',function(ev){
 // Supabase Realtime 订阅：跨设备实时同步（需在 Supabase 控制台开启 group_data 表的 Replication）
 let sbRealtimeChannel=null;
 function subscribeRealtime(gid){
+  // 已改用轮询模式（每3秒），禁用WebSocket实时订阅，避免Supabase Realtime服务不稳定时反复连接失败
+  return;
   if(!SB||!SB.channel||!gid)return;
   try{
     if(sbRealtimeChannel){try{SB.removeChannel(sbRealtimeChannel);}catch(e){}sbRealtimeChannel=null;}
