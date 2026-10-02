@@ -862,10 +862,6 @@ td.total-col.zero{color:#cfc4b4}
       <div class="panel-title" style="font-size:15px">本月每周总分</div>
       <div class="table-wrap" style="max-height:none;border:none;box-shadow:none" id="monthTable"></div>
     </div>
-    <div class="panel" style="padding:16px;margin-top:18px">
-      <div class="panel-title" style="font-size:15px">本月项目明细</div>
-      <div class="table-wrap" style="max-height:none;border:none;box-shadow:none" id="monthItemTable"></div>
-    </div>
   </section>
 
   <!-- ============ 学期报告（废弃，不显示） ============ -->
@@ -3339,7 +3335,7 @@ function renderMonthly(){
     document.getElementById('monthRange').textContent='数据已归档';
     document.getElementById('monthSummary').innerHTML=`<div class="summary-card" style="grid-column:1/-1"><div class="k">数据已归档</div><div class="v accent">—</div></div>`;
     document.getElementById('monthTable').innerHTML=`<div class="empty-tip"><div class="big">🗄️</div><div class="t">该月数据不可访问</div><div class="s">2026-08-30 及以前的数据已归档，仅可查看 2026-08-31 起的数据</div></div>`;
-    document.getElementById('monthItemTable').innerHTML='';
+    const mitArchived=document.getElementById('monthItemTable');if(mitArchived)mitArchived.innerHTML='';
     return;
   }
   document.getElementById('monthRange').textContent=y+'年'+(m+1)+'月 积分汇总';
@@ -3355,7 +3351,7 @@ function renderMonthly(){
     
     ${best?`<div class="summary-card"><div class="k">本月最高</div><div class="v pos">${esc(best.st.name)} · ${best.t}</div></div>`:''}`;
   document.getElementById('monthTable').innerHTML=buildMonthTable(y,m);
-  document.getElementById('monthItemTable').innerHTML=buildItemTable('month',currentMonth);
+  const mitEl=document.getElementById('monthItemTable');if(mitEl)mitEl.innerHTML=buildItemTable('month',currentMonth);
   drawTrendChart('month',currentMonth);
   drawPieChart('month',currentMonth);
 }
