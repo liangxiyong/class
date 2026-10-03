@@ -1,345 +1,374 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>国庆快乐 - 班级积分管理系统</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🇨🇳</text></svg>">
+<title>班级积分管理系统</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
 <style>
+:root{
+  --paper:#1a0a0a;
+  --card:#2a1010;
+  --ink:#f5e6c8;
+  --ink-soft:#c9a96e;
+  --line:#8b6914;
+  --accent:#c9a227;
+  --accent-soft:#3d2800;
+  --green:#4caf50;
+  --red:#e53935;
+  --font-song:"SimSun","Songti SC","STSong","Noto Serif SC",serif;
+}
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%}
 body{
-  font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;
-  background:#111;
+  font-family:var(--font-song);color:var(--ink);
+  background:var(--paper);
   background-image:
-    radial-gradient(ellipse at left center, rgba(192,30,46,.25) 0%, transparent 50%),
-    radial-gradient(ellipse at right center, rgba(192,30,46,.25) 0%, transparent 50%);
-  display:flex;align-items:center;justify-content:center;
-  min-height:100vh;padding:20px;
+    radial-gradient(1200px 600px at 85% -10%, rgba(201,162,39,.12), transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, rgba(180,30,30,.15), transparent 60%),
+    linear-gradient(160deg,#1a0505 0%,#2d0a0a 50%,#1a0505 100%);
   -webkit-font-smoothing:antialiased;
 }
-
-.main-card{
-  background:#1a1a1a;
-  border:2px solid #b8860b;
-  border-radius:24px;
-  padding:36px 32px 20px;
-  width:100%;max-width:420px;
-  text-align:center;position:relative;
-  box-shadow:0 0 50px rgba(184,134,11,.15);
+button{font-family:var(--font-song);cursor:pointer;border:none;background:none;color:inherit}
+input{font-family:var(--font-song);color:inherit}
+.login-overlay{
+  position:fixed;inset:0;
+  background:linear-gradient(160deg,#1a0505 0%,#2d0a0a 50%,#1a0505 100%);
+  display:flex;align-items:center;justify-content:center;padding:20px;
 }
-
-/* 国旗 */
-.flag-wrap{
-  width:130px;height:87px;
-  margin:0 auto 20px;
-  border-radius:8px;overflow:hidden;
-  cursor:pointer;
-  user-select:none;
-  -webkit-user-select:none;
+.login-box{
+  background:var(--card);border:2px solid var(--accent);border-radius:20px;padding:34px 30px;width:100%;max-width:380px;
+  box-shadow:0 0 40px rgba(201,162,39,.25),0 24px 70px rgba(0,0,0,.5);text-align:center;
+  animation:pop .25s ease;
 }
-.flag{
-  width:100%;height:100%;
-  display:block;
+@keyframes pop{from{opacity:0;transform:scale(.96) translateY(8px)}to{opacity:1;transform:none}}
+.login-mark{
+  width:58px;height:58px;border-radius:16px;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 14px;box-shadow:0 8px 20px rgba(192,57,43,.35);
 }
-
-.title{
-  font-size:36px;font-weight:900;
-  color:#E74C3C;
-  margin-bottom:10px;letter-spacing:4px;
+.login-mark img{width:100%;height:100%;object-fit:cover;display:block}
+.login-title{font-size:20px;font-weight:700;color:var(--accent);margin-bottom:4px;letter-spacing:2px}
+.login-sub{font-size:12.5px;color:var(--ink-soft);margin-bottom:22px}
+.login-field{text-align:left;margin-bottom:14px}
+.login-field label{display:block;font-size:12px;color:var(--ink-soft);margin-bottom:6px;font-weight:400}
+.login-field input{
+  width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:10px;
+  font-size:14px;outline:none;background:#1a0808;color:var(--ink);transition:border .15s;
 }
-.subtitle{
-  font-size:16px;color:#d4a017;
-  margin-bottom:22px;font-weight:600;
-  line-height:1.6;
+.login-field input:focus{border-color:var(--accent)}
+.login-btn{
+  width:100%;padding:12px;border:none;border-radius:10px;background:linear-gradient(135deg,#c9a227,#e8c84a);color:#1a0505;
+  font-size:15px;font-weight:700;cursor:pointer;margin-top:6px;transition:all .15s;letter-spacing:4px;
 }
-
-.divider{
-  width:70px;height:2px;
-  background:linear-gradient(90deg,transparent,#d4a017,transparent);
-  margin:0 auto 24px;
+.login-btn:hover{filter:brightness(1.05)}
+.login-btn:disabled{opacity:.6;cursor:not-allowed}
+.login-err{font-size:12px;color:var(--red);margin-top:10px;min-height:16px}
+.login-tip{font-size:11.5px;color:var(--ink-soft);margin-top:14px;line-height:1.7}
+.choose-box{display:none;margin-top:4px}
+.choose-btn{
+  width:100%;padding:15px;border-radius:12px;border:1.5px solid var(--line);
+  background:#1a0808;font-size:15px;font-weight:400;color:var(--ink);
+  margin-bottom:12px;transition:all .18s;display:flex;align-items:center;justify-content:center;gap:10px;
 }
-
-.maint-box{
-  background:rgba(184,134,11,.08);
-  border:1.5px solid rgba(184,134,11,.4);
-  border-radius:16px;
-  padding:22px 18px 20px;
-  position:relative;
+.choose-btn:hover{border-color:var(--accent);background:var(--accent-soft);transform:translateY(-1px)}
+.choose-btn:disabled{opacity:.45;cursor:not-allowed;transform:none!important;background:#1a0808}
+.choose-btn .ico{font-size:20px}
+.choose-back{font-size:12px;color:var(--ink-soft);cursor:pointer;margin-top:6px}
+.choose-back:hover{color:var(--accent)}
+.role-tag{
+  display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--ink-soft);
+  background:#1a0808;border:1px solid var(--line);border-radius:999px;padding:4px 12px;margin-bottom:18px;
 }
-.maint-icon{
-  font-size:36px;margin-bottom:10px;
+.role-tag b{color:var(--accent)}
+.login-remember{margin:4px 0 10px;font-size:13px;color:#6b5e4a;display:flex;align-items:center;gap:6px}
+.login-remember input{width:16px;height:16px;cursor:pointer}
+.login-remember label{cursor:pointer;display:flex;align-items:center;gap:6px}
+.tip-box{
+  font-size:12px;color:var(--ink-soft);line-height:1.7;margin-top:14px;padding:10px 12px;
+  background:rgba(201,162,39,.08);border:1px solid rgba(201,162,39,.2);border-radius:8px;text-align:left;
 }
-.maint-title{
-  font-size:18px;font-weight:800;
-  color:#d4a017;margin-bottom:14px;
-  letter-spacing:2px;
-}
-.maint-text{
-  font-size:14px;color:#ccc;line-height:2;
-}
-.maint-text .date{color:#E74C3C;font-weight:700}
-.maint-text .stop{color:#E74C3C;font-weight:700}
-
-.countdown{
-  display:flex;justify-content:center;gap:10px;margin-top:18px;
-}
-.countdown-item{
-  background:#111;
-  border:1px solid rgba(184,134,11,.3);
-  border-radius:10px;padding:10px 8px;
-  min-width:56px;
-}
-.countdown-num{
-  font-size:26px;font-weight:900;color:#E74C3C;
-  font-variant-numeric:tabular-nums;
-}
-.countdown-label{
-  font-size:11px;color:#d4a017;margin-top:4px;font-weight:600;
-}
-
-/* 底部天安门剪影装饰 */
-.tiananmen{
-  margin-top:16px;height:30px;opacity:.4;
-  background:linear-gradient(to top,#d4a017,transparent);
-  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 30'%3E%3Cpath d='M10 25 L10 18 L20 18 L20 12 L30 12 L30 8 L40 8 L40 5 L50 5 L50 3 L60 3 L60 5 L70 5 L70 8 L80 8 L80 12 L90 12 L90 18 L100 18 L100 15 L110 15 L110 18 L120 18 L120 12 L130 12 L130 8 L140 8 L140 5 L150 5 L150 3 L160 3 L160 5 L170 5 L170 8 L180 8 L180 12 L190 12 L190 18 L200 18 L200 25 Z' fill='black'/%3E%3C/svg%3E") center/contain no-repeat;
-  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 30'%3E%3Cpath d='M10 25 L10 18 L20 18 L20 12 L30 12 L30 8 L40 8 L40 5 L50 5 L50 3 L60 3 L60 5 L70 5 L70 8 L80 8 L80 12 L90 12 L90 18 L100 18 L100 15 L110 15 L110 18 L120 18 L120 12 L130 12 L130 8 L140 8 L140 5 L150 5 L150 3 L160 3 L160 5 L170 5 L170 8 L180 8 L180 12 L190 12 L190 18 L200 18 L200 25 Z' fill='black'/%3E%3C/svg%3E") center/contain no-repeat;
-}
-
-/* admin登录 */
-.admin-login{display:none;text-align:left}
-.admin-login h2{
-  font-size:20px;color:#d4a017;text-align:center;
-  margin-bottom:20px;letter-spacing:2px;
-}
-.admin-field{margin-bottom:14px}
-.admin-field label{
-  display:block;font-size:12px;color:#999;
-  margin-bottom:6px;font-weight:600;
-}
-.admin-field input{
-  width:100%;padding:11px 13px;
-  border:1px solid #444;border-radius:8px;
-  font-size:14px;background:#111;color:#eee;
-  outline:none;transition:border .15s;
-}
-.admin-field input:focus{border-color:#d4a017}
-.admin-btn{
-  width:100%;padding:12px;border:none;border-radius:8px;
-  background:linear-gradient(135deg,#d4a017,#b8860b);
-  color:#1a1a1a;font-size:15px;font-weight:700;
-  cursor:pointer;margin-top:6px;transition:all .15s;
-}
-.admin-btn:hover{filter:brightness(1.1)}
-.admin-back{
-  text-align:center;font-size:12px;color:#666;
-  margin-top:14px;cursor:pointer;
-}
-.admin-back:hover{color:#d4a017}
-.admin-err{
-  font-size:12px;color:#E74C3C;margin-top:10px;
-  min-height:16px;text-align:center;
-}
+.tip-box .tip-title{font-weight:600;margin-bottom:4px;color:var(--accent)}
 
 @media(max-width:480px){
-  .main-card{padding:28px 20px 16px;border-radius:18px}
-  .title{font-size:30px;letter-spacing:3px}
-  .flag-wrap{width:110px;height:73px}
-  .subtitle{font-size:14px}
-  .maint-title{font-size:16px}
-  .maint-text{font-size:13px}
-  .countdown-num{font-size:22px}
-  .countdown-item{min-width:50px;padding:8px 6px}
+  .login-overlay{padding:14px}
+  .login-box{padding:24px 18px;border-radius:16px}
+  .login-title{font-size:17px}
+  .login-mark{width:44px;height:44px;font-size:21px;border-radius:12px}
+  .choose-btn{padding:12px;font-size:14px}
+  .login-field input{min-height:44px;font-size:15px}
+  .login-btn{min-height:46px;font-size:15px}
+  .choose-btn{min-height:46px}
 }
 </style>
 </head>
 <body>
 
-<div class="main-card" id="maintView">
-  <div class="flag-wrap" id="flag">
-    <svg class="flag" viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg">
-      <rect width="300" height="200" fill="#E60012"/>
-      <!-- 大星：中心(50,50) 半径30 -->
-      <path d="M50,20 L57.5,42.5 L80,42.5 L62.5,56.5 L68.5,79 L50,65 L31.5,79 L37.5,56.5 L20,42.5 L42.5,42.5 Z" fill="#FFE600"/>
-      <!-- 小星1：中心(100,20) 半径10，旋转指向大星 -->
-      <g transform="translate(100,20) rotate(60)">
-        <path d="M0,-10 L2.5,-2.5 L10,-2.5 L4,2 L6.5,9.5 L0,5 L-6.5,9.5 L-4,2 L-10,-2.5 L-2.5,-2.5 Z" fill="#FFE600"/>
-      </g>
-      <!-- 小星2：中心(120,40) 半径10 -->
-      <g transform="translate(120,40) rotate(80)">
-        <path d="M0,-10 L2.5,-2.5 L10,-2.5 L4,2 L6.5,9.5 L0,5 L-6.5,9.5 L-4,2 L-10,-2.5 L-2.5,-2.5 Z" fill="#FFE600"/>
-      </g>
-      <!-- 小星3：中心(120,70) 半径10 -->
-      <g transform="translate(120,70) rotate(-100)">
-        <path d="M0,-10 L2.5,-2.5 L10,-2.5 L4,2 L6.5,9.5 L0,5 L-6.5,9.5 L-4,2 L-10,-2.5 L-2.5,-2.5 Z" fill="#FFE600"/>
-      </g>
-      <!-- 小星4：中心(100,90) 半径10 -->
-      <g transform="translate(100,90) rotate(-60)">
-        <path d="M0,-10 L2.5,-2.5 L10,-2.5 L4,2 L6.5,9.5 L0,5 L-6.5,9.5 L-4,2 L-10,-2.5 L-2.5,-2.5 Z" fill="#FFE600"/>
-      </g>
-    </svg>
-  </div>
+<div class="login-overlay">
+  <div class="login-box">
+    <div class="login-mark"><img src="data:image/jpeg;base64,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" alt="积分图标"></div>
+    <div class="login-title">班级积分管理系统</div>
 
-  <div class="title">国庆快乐</div>
-  <div class="subtitle">庆祝中华人民共和国成立77周年</div>
-
-  <div class="divider"></div>
-
-  <div class="maint-box">
-    <div class="maint-icon">🔧</div>
-    <div class="maint-title">系统维护通知</div>
-    <div class="maint-text">
-      维护时间：即日起至 <span class="date">10月4日</span><br>
-      维护期间<span class="stop">暂停登录服务</span>，给您带来的不便敬请谅解。
-    </div>
-
-    <div class="countdown" id="countdown">
-      <div class="countdown-item">
-        <div class="countdown-num" id="cd-days">--</div>
-        <div class="countdown-label">天</div>
+    <div id="loginFields">
+      <div class="login-field">
+        <label>用户名</label>
+        <input type="text" id="loginName" placeholder="输入用户名" autocomplete="username" oninput="onLoginNameInput()" onkeydown="if(event.key==='Enter')doLogin()">
       </div>
-      <div class="countdown-item">
-        <div class="countdown-num" id="cd-hours">--</div>
-        <div class="countdown-label">时</div>
+      <div class="login-field" id="loginPwdField">
+        <label>密码</label>
+        <input type="password" id="loginPwd" placeholder="输入密码" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
       </div>
-      <div class="countdown-item">
-        <div class="countdown-num" id="cd-mins">--</div>
-        <div class="countdown-label">分</div>
+      <div class="login-remember">
+        <label><input type="checkbox" id="rememberMe"> 记住我，下次自动登录</label>
       </div>
-      <div class="countdown-item">
-        <div class="countdown-num" id="cd-secs">--</div>
-        <div class="countdown-label">秒</div>
+      <button class="login-btn" id="loginBtn" onclick="doLogin()">登 录</button>
+      <div class="login-err" id="loginErr"></div>
+      <div class="tip-box">
+        <div class="tip-title">登录说明</div>
+        <div>· 组长：用户名 = 组长姓名，密码 = 小组号（如第 3 组组长密码为 3）</div>
+        <div>· 老师/管理员：使用分配的账号密码</div>
       </div>
     </div>
-  </div>
 
-  <div class="tiananmen"></div>
+    <div class="choose-box" id="chooseBox">
+      <div class="role-tag">已登录：<b id="chooseName"></b></div>
+      <button class="choose-btn" onclick="go('group.html')"><span class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 20V10M10 20V4M16 20V14M22 20H2" stroke="#d4af37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>小组积分</button>
+      <button class="choose-btn" id="chooseClassV2Btn" style="display:none" onclick="go('class_v2.html')"><span class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 15C16.4183 15 20 12.3137 20 9C20 5.68629 16.4183 3 12 3C7.58172 3 4 5.68629 4 9C4 12.3137 7.58172 15 12 15Z" stroke="#d4af37" stroke-width="2"/><path d="M8 14L6 21L12 18L18 21L16 14" stroke="#d4af37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>班级管理</button>
+      <button class="choose-btn" id="chooseNoticeBtn" style="display:none" onclick="go('notice_admin.html')"><span class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 8A6 6 0 0 0 6 8C6 15 3 17 3 17H21C21 17 18 15 18 8Z" stroke="#d4af37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.73 21A2 2 0 0 1 10.27 21" stroke="#d4af37" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>公告管理</button>
+      <div class="choose-back" onclick="backToLogin()">← 返回重新登录</div>
+    </div>
+  </div>
 </div>
 
-<div class="main-card admin-login" id="adminView">
-  <h2>管理员登录</h2>
-  <div class="admin-field">
-    <label>用户名</label>
-    <input type="text" id="adminName" placeholder="输入管理员用户名" autocomplete="username">
-  </div>
-  <div class="admin-field">
-    <label>密码</label>
-    <input type="password" id="adminPwd" placeholder="输入密码" autocomplete="current-password" onkeydown="if(event.key==='Enter')doAdminLogin()">
-  </div>
-  <button class="admin-btn" onclick="doAdminLogin()">登 录</button>
-  <div class="admin-err" id="adminErr"></div>
-  <div class="admin-back" onclick="backToMaint()">← 返回维护页面</div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.0"></script>
 <script>
-const SUPABASE_URL='https://olalgnwkszacavgcqhov.supabase.co';
-const SUPABASE_ANON_KEY='sb_publishable_B5VRNPT7oJaoX-x6IeprIg_bb5LZCJX';
-const SB=window.supabase?window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;
+/* ================= LZString 压缩库（用于记住我功能） ================= */
+var LZString=function(){var r=String.fromCharCode,o="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",n="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-$",e={};function t(r,o){if(!e[r]){e[r]={};for(var n=0;n<r.length;n++)e[r][r.charAt(n)]=n}return e[r][o]}var i={compressToBase64:function(r){if(null==r)return"";var n=i._compress(r,6,function(r){return o.charAt(r)});switch(n.length%4){default:case 0:return n;case 1:return n+"===";case 2:return n+"==";case 3:return n+"="}},decompressFromBase64:function(r){return null==r?"":""==r?null:i._decompress(r.length,32,function(n){return t(o,r.charAt(n))})},compressToUTF16:function(o){return null==o?"":i._compress(o,15,function(o){return r(o+32)})+" "},decompressFromUTF16:function(r){return null==r?"":""==r?null:i._decompress(r.length,16384,function(o){return r.charCodeAt(o)-32})},compress:function(o){return i._compress(o,16,function(o){return r(o)})},_compress:function(r,o,n){if(null==r)return"";var e,t,i,s={},u={},a="",p="",c="",l=2,f=3,h=2,d=[],m=0,v=0;for(i=0;i<r.length;i+=1)if(a=r.charAt(i),Object.prototype.hasOwnProperty.call(s,a)||(s[a]=f++,u[a]=!0),p=c+a,Object.prototype.hasOwnProperty.call(s,p))c=p;else{if(Object.prototype.hasOwnProperty.call(u,c)){if(c.charCodeAt(0)<256){for(e=0;e<h;e++)m<<=1,v==o-1?(v=0,d.push(n(m)),m=0):v++;for(t=c.charCodeAt(0),e=0;e<8;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1}else{for(t=1,e=0;e<h;e++)m=m<<1|t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t=0;for(t=c.charCodeAt(0),e=0;e<16;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1}0==--l&&(l=Math.pow(2,h),h++),delete u[c]}else for(t=s[c],e=0;e<h;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1;0==--l&&(l=Math.pow(2,h),h++),s[p]=f++,c=String(a)}if(""!==c){if(Object.prototype.hasOwnProperty.call(u,c)){if(c.charCodeAt(0)<256){for(e=0;e<h;e++)m<<=1,v==o-1?(v=0,d.push(n(m)),m=0):v++;for(t=c.charCodeAt(0),e=0;e<8;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1}else{for(t=1,e=0;e<h;e++)m=m<<1|t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t=0;for(t=c.charCodeAt(0),e=0;e<16;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1}0==--l&&(l=Math.pow(2,h),h++),delete u[c]}else for(t=s[c],e=0;e<h;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1;0==--l&&(l=Math.pow(2,h),h++)}for(t=2,e=0;e<h;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1;for(;;){if(m<<=1,v==o-1){d.push(n(m));break}v++}return d.join("")},decompress:function(r){return null==r?"":""==r?null:i._decompress(r.length,32768,function(o){return r.charCodeAt(o)})},_decompress:function(o,n,e){var t,i,s,u,a,p,c,l=[],f=4,h=4,d=3,m="",v=[],g={val:e(0),position:n,index:1};for(t=0;t<3;t+=1)l[t]=t;for(s=0,a=Math.pow(2,2),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;switch(s){case 0:for(s=0,a=Math.pow(2,8),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;c=r(s);break;case 1:for(s=0,a=Math.pow(2,16),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;c=r(s);break;case 2:return""}for(l[3]=c,i=c,v.push(c);;){if(g.index>o)return"";for(s=0,a=Math.pow(2,d),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;switch(c=s){case 0:for(s=0,a=Math.pow(2,8),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;l[h++]=r(s),c=h-1,f--;break;case 1:for(s=0,a=Math.pow(2,16),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;l[h++]=r(s),c=h-1,f--;break;case 2:return v.join("")}if(0==f&&(f=Math.pow(2,d),d++),l[c])m=l[c];else{if(c!==h)return null;m=i+i.charAt(0)}v.push(m),l[h++]=i+m.charAt(0),i=m,0==--f&&(f=Math.pow(2,d),d++)}}};return i}();
 
-/* 连点5次国旗进入admin登录 */
-let flagClickCount=0;
-let flagClickTimer=null;
-document.getElementById('flag').addEventListener('click',function(){
-  flagClickCount++;
-  clearTimeout(flagClickTimer);
-  flagClickTimer=setTimeout(()=>{flagClickCount=0},1500);
-  if(flagClickCount>=5){
-    flagClickCount=0;
-    document.getElementById('maintView').style.display='none';
-    document.getElementById('adminView').style.display='block';
-  }
-});
+/* ================= 配置（双节点：首尔主 + 新加坡备） ================= */
+const SESSION_KEY='jfz_session_v1';
+const NODE_SEOUL={name:'seoul',url:'https://olalgnwkszacavgcqhov.supabase.co',key:'sb_publishable_B5VRNPT7oJaoX-x6IeprIg_bb5LZCJX'};
+const NODE_SG={name:'singapore',url:'https://zaeijgfuykhkabteqljw.supabase.co',key:'sb_publishable_0jO8jlE97WIbfcuntZv8EQ_uaxFXDfr'};
 
-function backToMaint(){
-  document.getElementById('adminView').style.display='none';
-  document.getElementById('maintView').style.display='block';
-  document.getElementById('adminErr').textContent='';
+function makeClient(node){
+  return window.supabase?window.supabase.createClient(node.url,node.key,{
+    auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true},
+    realtime:{
+      reconnectAfterMs:function(tries){
+        var backoff=[5000,8000,12000,20000,30000];
+        return backoff[Math.min(tries-1,backoff.length-1)];
+      },
+      timeout:15000,
+      heartbeatIntervalMs:8000
+    }
+  }):null;
 }
 
-async function doAdminLogin(){
-  const btn=document.querySelector('.admin-btn');
-  btn.disabled=true;btn.textContent='登录中...';
-  const name0=document.getElementById('adminName').value.trim();
+const SB_SEOUL=makeClient(NODE_SEOUL);
+const SB_SG=makeClient(NODE_SG);
+/* 当前激活的客户端，登录成功后指向成功的节点 */
+let SB=SB_SEOUL;
+let activeNode=NODE_SEOUL;
+
+/* ================= 组长姓名 → 拼音邮箱 ================= */
+const LEADER_EMAIL={
+  '张益铭':'zhangyiming','董子瑜':'dongziyu','梁锡永':'liangxiyong',
+  '杨佳诺':'yangjianuo','张儒溪':'zhangruxi','刘亦峻':'liuyijun',
+  '冯馨熠':'fengxinyi','黄詩宸':'huangshichen','谭梦瑶':'tanmengyao',
+  '张邵宸':'zhangshaochen','李宜锦':'liyijin','刘铠墨':'liukaimo',
+  '王沐宇轩':'wangmuyuxuan'
+};
+function emailOf(name){
+  if(name==='admin'||name==='admin2'||name==='teacher')return name+'@jfz.local';
+  return (LEADER_EMAIL[name]||name)+'@jfz.local';
+}
+
+/* 判断是否为组长账号（中文姓名），用于密码补0 */
+function isLeaderName(name){
+  return name!=='admin'&&name!=='admin2'&&name!=='teacher'&&name!=='test';
+}
+
+/* ================= 登录逻辑 ================= */
+function onLoginNameInput(){
+  document.getElementById('loginPwdField').style.display='block';
+  document.getElementById('loginErr').textContent='';
+}
+
+async function doLogin(){
+  const btn=document.getElementById('loginBtn');
+  btn.disabled=true;
+  btn.textContent='登录中...';
+  const redirect=new URLSearchParams(location.search).get('redirect');
+  const name0=document.getElementById('loginName').value.trim();
   const nameLower=name0.toLowerCase();
-  const name=(nameLower==='admin'||nameLower==='admin2'||nameLower==='teacher')?nameLower:name0;
-  const pwd=document.getElementById('adminPwd').value;
-  const loginPwd=pwd.padStart(6,'0');
-  const err=document.getElementById('adminErr');
+  const name=(nameLower==='admin'||nameLower==='admin2'||nameLower==='teacher'||nameLower==='test')?nameLower:name0;
+  let pwd=document.getElementById('loginPwd').value;
+  const err=document.getElementById('loginErr');
+
   if(!name){btn.disabled=false;btn.textContent='登 录';err.textContent='请输入用户名';return;}
   if(!pwd){btn.disabled=false;btn.textContent='登 录';err.textContent='请输入密码';return;}
-  if(!SB){btn.disabled=false;btn.textContent='登 录';err.textContent='无法连接服务';return;}
-  const nameToEmail={'张益铭':'zhangyiming','董子瑜':'dongziyu','梁锡永':'liangxiyong','杨佳诺':'yangjianuo','张儒溪':'zhangruxi','刘亦峻':'liuyijun','冯馨熠':'fengxinyi','黄詩宸':'huangshichen','谭梦瑶':'tanmengyao','张邵宸':'zhangshaochen'};
-  const emailPrefix=nameToEmail[name]||name;
-  const email=emailPrefix+'@jfz.local';
-  try{
-    const res=await SB.auth.signInWithPassword({email,password:loginPwd});
-    if(res.error||!res.data.user){
-      btn.disabled=false;btn.textContent='登 录';
-      const msg=res.error?(res.error.message||JSON.stringify(res.error)):'登录失败';
-      err.textContent='登录失败：'+msg;
-      console.error('admin登录错误:',res.error,'email:',email);
-      return;
-    }
-    let role='user',gid=null;
-    let roleFetchOk=false;
-    for(let roleRetry=0;roleRetry<2 && !roleFetchOk;roleRetry++){
-      try{
-        const rresp=await fetch(SUPABASE_URL+'/rest/v1/users?email=eq.'+encodeURIComponent(email)+'&select=username,role,group_id',{
-          headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+res.data.session.access_token}
-        });
-        if(!rresp.ok)throw new Error('HTTP '+rresp.status);
-        const rrows=await rresp.json();
-        if(rrows&&rrows.length){role=rrows[0].role||'user';gid=rrows[0].group_id||null;}
-        roleFetchOk=true;
-      }catch(e){
-        if(roleRetry<1){await new Promise(r=>setTimeout(r,800));}
-      }
-    }
-    if(!roleFetchOk){
-      try{
-        const meta=res.data.user.user_metadata||{};
-        if(meta.role)role=meta.role;
-        if(meta.group_id)gid=meta.group_id;
-      }catch(e){}
-    }
-    if(role==='user'){
-      btn.disabled=false;btn.textContent='登 录';
-      err.textContent=roleFetchOk?'该账号无管理员权限':'获取用户信息失败，请检查网络后重试';
-      await SB.auth.signOut();return;
-    }
-    localStorage.setItem('jfz_session_v1',JSON.stringify({name,role,groupId:gid||undefined}));
-    location.href='group.html';
-  }catch(e){
-    btn.disabled=false;btn.textContent='登 录';err.textContent='网络错误，请重试';
+  if(!SB){btn.disabled=false;btn.textContent='登 录';err.textContent='无法连接认证服务，请检查网络后重试';return;}
+
+  /* 组长密码自动补0到6位：输入"3" → "000003" */
+  if(isLeaderName(name)){
+    pwd=pwd.padStart(6,'0');
   }
+
+  const email=emailOf(name);
+
+  /* 串行双节点：先试首尔，首尔网络错误才兜底新加坡 */
+  function isNetErr(e){
+    const m=(e&&e.message)||'';
+    return m.includes('fetch')||m.includes('Failed to fetch')||m.includes('Network')||m.includes('network')||m.includes('timeout')||m.includes('Timeout')||(e&&e.name==='TypeError');
+  }
+  async function loginSerial(email,pwd){
+    /* 先试首尔 */
+    try{
+      const res=await SB_SEOUL.auth.signInWithPassword({email,password:pwd});
+      if(!res.error)return {data:res.data,node:NODE_SEOUL,client:SB_SEOUL};
+      /* 账号密码错误直接返回，不试新加坡 */
+      if(!isNetErr(res.error))return {error:res.error};
+      /* 网络错误，继续试新加坡 */
+    }catch(e){
+      if(!isNetErr(e))return {error:{message:e.message}};
+    }
+    /* 首尔网络错误，试新加坡 */
+    try{
+      const res2=await SB_SG.auth.signInWithPassword({email,password:pwd});
+      if(!res2.error)return {data:res2.data,node:NODE_SG,client:SB_SG};
+      return {error:res2.error};
+    }catch(e2){
+      return {error:{message:e2.message}};
+    }
+  }
+
+  let data=null,error=null;
+  const result=await loginSerial(email,pwd);
+  if(result.data){
+    data=result.data;
+    SB=result.client;
+    activeNode=result.node;
+    try{localStorage.setItem('jfz_active_node',JSON.stringify(activeNode));}catch(e){}
+  }else{
+    error=result.error;
+  }
+
+  if(error||!data.user){
+    btn.disabled=false;btn.textContent='登 录';
+    const errMsg=error?error.message||'':'';
+    const isNetworkErr=errMsg.includes('fetch')||errMsg.includes('Failed to fetch')||errMsg.includes('Network')||errMsg.includes('network')||errMsg.includes('timeout')||errMsg.includes('Timeout')||(error&&error.name==='TypeError');
+    if(isNetworkErr){
+      err.textContent='网络连接失败，请检查网络或切换WiFi后重试';
+    }else if(errMsg.includes('Invalid')||errMsg.includes('invalid')||errMsg.includes('credentials')||errMsg.includes('password')||errMsg.includes('Email')){
+      err.textContent='用户名或密码错误，请重试或联系管理员重置';
+    }else{
+      err.textContent='登录失败：'+(errMsg||'未知错误');
+    }
+    return;
+  }
+
+  /* 登录成功后稍等，确保 token 已写入客户端 */
+  await new Promise(r=>setTimeout(r,500));
+  try{await SB.auth.getSession();}catch(e){}
+
+  /* 从 users 表读取权威角色和组号，重试4次，每次前刷新session */
+  let role='user',gid=null,displayName=name;
+  let roleFetchOk=false,roleFetchErr='';
+  for(let roleRetry=0;roleRetry<4 && !roleFetchOk;roleRetry++){
+    try{
+      if(roleRetry>0){try{await SB.auth.getSession();}catch(e){}}
+      const loginEmail=data.user.email||email;
+      const {data:rrows,error:rerr}=await SB.from('users').select('username,role,group_id').eq('email',loginEmail);
+      if(rerr)throw new Error((rerr.code?rerr.code+': ':'')+(rerr.message||'query failed'));
+      if(rrows&&rrows.length){role=rrows[0].role||'user';gid=rrows[0].group_id||null;if(rrows[0].username)displayName=rrows[0].username;}
+      roleFetchOk=true;
+    }catch(e){
+      roleFetchErr=e.message||'';
+      if(roleRetry<3){await new Promise(r=>setTimeout(r,[500,1000,1500][roleRetry]));}
+    }
+  }
+  if(!roleFetchOk){
+    try{
+      const meta=data.user.user_metadata||{};
+      if(meta.role)role=meta.role;
+      if(meta.group_id)gid=meta.group_id;
+    }catch(e){}
+  }
+  if(role==='user'){
+    btn.disabled=false;btn.textContent='登 录';
+    if(roleFetchOk){
+      err.textContent='该账号无权限，请联系管理员';
+    }else if(roleFetchErr.includes('42501')||roleFetchErr.includes('permission')||roleFetchErr.includes('Permission')){
+      err.textContent='数据库权限不足，请在Supabase启用users表RLS并授权';
+    }else if(roleFetchErr.includes('401')||roleFetchErr.includes('403')||roleFetchErr.includes('JWT')||roleFetchErr.includes('jwt')){
+      err.textContent='认证令牌无效，请重新登录';
+    }else{
+      err.textContent='获取用户信息失败：'+(roleFetchErr||'未知错误');
+    }
+    await SB.auth.signOut();return;
+  }
+
+  /* 保存会话 */
+  localStorage.setItem(SESSION_KEY,JSON.stringify({name:displayName,role,groupId:gid||undefined}));
+
+  /* 记住我 */
+  const rm=document.getElementById('rememberMe');
+  if(rm&&rm.checked){
+    try{localStorage.setItem('jfz_remember_me',LZString.compressToBase64(JSON.stringify({name:name0,pwd:document.getElementById('loginPwd').value})));}catch(e){}
+  }else{
+    try{localStorage.removeItem('jfz_remember_me');}catch(e){}
+  }
+
+  /* 按角色跳转 */
+  if(role==='teacher'||role==='leader'){
+    location.href=redirect||'group.html';
+    return;
+  }
+  if(role==='admin'||role==='admin2'){
+    if(redirect){location.href=redirect;return;}
+    document.getElementById('chooseName').textContent=name;
+    document.getElementById('loginFields').style.display='none';
+    document.getElementById('chooseBox').style.display='block';
+    if(role==='admin'){
+      document.getElementById('chooseClassV2Btn').style.display='flex';
+      document.getElementById('chooseNoticeBtn').style.display='flex';
+    }
+    return;
+  }
+  if(!gid){err.textContent='该账号无权限，请联系管理员';await SB.auth.signOut();localStorage.removeItem(SESSION_KEY);return;}
+  location.href=redirect||'group.html';
 }
 
-/* 倒计时 */
-(function(){
-  const target=new Date('2026-10-04T00:00:00+08:00').getTime();
-  function update(){
-    const now=Date.now();
-    let diff=target-now;
-    if(diff<=0){
-      document.getElementById('cd-days').textContent='0';
-      document.getElementById('cd-hours').textContent='00';
-      document.getElementById('cd-mins').textContent='00';
-      document.getElementById('cd-secs').textContent='00';
-      return;
+function go(page){location.href=page;}
+function backToLogin(){
+  document.getElementById('chooseBox').style.display='none';
+  document.getElementById('loginFields').style.display='block';
+  document.getElementById('loginPwd').value='';
+  document.getElementById('loginName').value='';
+  document.getElementById('loginErr').textContent='';
+}
+
+/* 页面显示时恢复表单状态 */
+window.addEventListener('pageshow',function(){
+  document.getElementById('loginFields').style.display='block';
+  document.getElementById('chooseBox').style.display='none';
+  document.getElementById('loginErr').textContent='';
+  try{
+    const raw=localStorage.getItem('jfz_remember_me');
+    if(raw){
+      const cred=JSON.parse(LZString.decompressFromBase64(raw));
+      if(cred&&cred.name&&cred.pwd){
+        document.getElementById('loginName').value=cred.name;
+        document.getElementById('loginPwd').value=cred.pwd;
+        document.getElementById('rememberMe').checked=true;
+        return;
+      }
     }
-    const days=Math.floor(diff/86400000);diff%=86400000;
-    const hours=Math.floor(diff/3600000);diff%=3600000;
-    const mins=Math.floor(diff/60000);diff%=60000;
-    const secs=Math.floor(diff/1000);
-    document.getElementById('cd-days').textContent=days;
-    document.getElementById('cd-hours').textContent=String(hours).padStart(2,'0');
-    document.getElementById('cd-mins').textContent=String(mins).padStart(2,'0');
-    document.getElementById('cd-secs').textContent=String(secs).padStart(2,'0');
-  }
-  update();
-  setInterval(update,1000);
-})();
+  }catch(e){}
+  document.getElementById('loginPwd').value='';
+  document.getElementById('loginName').value='';
+  document.getElementById('rememberMe').checked=false;
+});
 </script>
 </body>
 </html>
