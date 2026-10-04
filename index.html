@@ -2,6 +2,15 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
+<script>
+/* GitHub Pages 自动跳转 Cloudflare Pages */
+(function(){
+  if(location.hostname==='liangxiyong.github.io'){
+    var p=location.pathname.replace(/^\/class\/?/,'/');
+    location.replace('https://class-amv.pages.dev'+p+location.search+location.hash);
+  }
+})();
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>班级积分管理系统</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
