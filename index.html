@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -7,86 +7,90 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
 <style>
 :root{
-  --paper:#1a0a0a;
-  --card:#2a1010;
-  --ink:#f5e6c8;
-  --ink-soft:#c9a96e;
-  --line:#8b6914;
-  --accent:#c9a227;
-  --accent-soft:#3d2800;
+  --paper:#f5f5f5;
+  --card:#ffffff;
+  --ink:#1a1a1a;
+  --ink-soft:#666666;
+  --line:#e8e8e8;
+  --accent:#d32f2f;
+  --accent-soft:#fff0f0;
   --green:#4caf50;
   --red:#e53935;
-  --font-song:"SimSun","Songti SC","STSong","Noto Serif SC",serif;
+  --font-song:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%}
 body{
   font-family:var(--font-song);color:var(--ink);
   background:var(--paper);
-  background-image:
-    radial-gradient(1200px 600px at 85% -10%, rgba(201,162,39,.12), transparent 60%),
-    radial-gradient(900px 500px at -10% 110%, rgba(180,30,30,.15), transparent 60%),
-    linear-gradient(160deg,#1a0505 0%,#2d0a0a 50%,#1a0505 100%);
   -webkit-font-smoothing:antialiased;
 }
 button{font-family:var(--font-song);cursor:pointer;border:none;background:none;color:inherit}
 input{font-family:var(--font-song);color:inherit}
 .login-overlay{
   position:fixed;inset:0;
-  background:linear-gradient(160deg,#1a0505 0%,#2d0a0a 50%,#1a0505 100%);
+  background:
+    radial-gradient(900px 500px at 80% -10%, rgba(211,47,47,.1), transparent 55%),
+    radial-gradient(700px 400px at -5% 105%, rgba(46,125,50,.07), transparent 55%),
+    linear-gradient(160deg,#ece3d2,#f7f1e6 50%,#faf6f0);
   display:flex;align-items:center;justify-content:center;padding:20px;
 }
 .login-box{
-  background:var(--card);border:2px solid var(--accent);border-radius:20px;padding:34px 30px;width:100%;max-width:380px;
-  box-shadow:0 0 40px rgba(201,162,39,.25),0 24px 70px rgba(0,0,0,.5);text-align:center;
+  background:rgba(255,255,255,.78);
+  backdrop-filter:blur(28px) saturate(180%);
+  -webkit-backdrop-filter:blur(28px) saturate(180%);
+  border:1px solid rgba(255,255,255,.7);
+  border-radius:18px;padding:34px 30px;width:100%;max-width:380px;
+  box-shadow:0 28px 80px rgba(60,45,30,.18),0 2px 10px rgba(60,45,30,.06);
+  text-align:center;
   animation:pop .25s ease;
 }
 @keyframes pop{from{opacity:0;transform:scale(.96) translateY(8px)}to{opacity:1;transform:none}}
 .login-mark{
   width:58px;height:58px;border-radius:16px;overflow:hidden;
   display:flex;align-items:center;justify-content:center;
-  margin:0 auto 14px;box-shadow:0 8px 20px rgba(192,57,43,.35);
+  margin:0 auto 14px;background:#ffffff;
 }
-.login-mark img{width:100%;height:100%;object-fit:cover;display:block}
+.login-mark svg{width:100%;height:100%;display:block}
 .login-title{font-size:20px;font-weight:700;color:var(--accent);margin-bottom:4px;letter-spacing:2px}
 .login-sub{font-size:12.5px;color:var(--ink-soft);margin-bottom:22px}
 .login-field{text-align:left;margin-bottom:14px}
 .login-field label{display:block;font-size:12px;color:var(--ink-soft);margin-bottom:6px;font-weight:400}
 .login-field input{
   width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:10px;
-  font-size:14px;outline:none;background:#1a0808;color:var(--ink);transition:border .15s;
+  font-size:14px;outline:none;background:#ffffff;color:var(--ink);transition:border .15s;
 }
-.login-field input:focus{border-color:var(--accent)}
+.login-field input:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(211,47,47,.1)}
 .login-btn{
-  width:100%;padding:12px;border:none;border-radius:10px;background:linear-gradient(135deg,#c9a227,#e8c84a);color:#1a0505;
-  font-size:15px;font-weight:700;cursor:pointer;margin-top:6px;transition:all .15s;letter-spacing:4px;
+  width:100%;padding:12px;border:none;border-radius:8px;background:var(--accent);color:#ffffff;
+  font-size:15px;font-weight:600;cursor:pointer;margin-top:6px;transition:all .15s;letter-spacing:2px;
 }
-.login-btn:hover{filter:brightness(1.05)}
-.login-btn:disabled{opacity:.6;cursor:not-allowed}
+.login-btn:hover{background:#c62828}
+.login-btn:disabled{opacity:.5;cursor:not-allowed;background:#bfbfbf}
 .login-err{font-size:12px;color:var(--red);margin-top:10px;min-height:16px}
 .login-tip{font-size:11.5px;color:var(--ink-soft);margin-top:14px;line-height:1.7}
 .choose-box{display:none;margin-top:4px}
 .choose-btn{
-  width:100%;padding:15px;border-radius:12px;border:1.5px solid var(--line);
-  background:#1a0808;font-size:15px;font-weight:400;color:var(--ink);
+  width:100%;padding:15px;border-radius:12px;border:1px solid var(--line);
+  background:#ffffff;font-size:15px;font-weight:400;color:var(--ink);
   margin-bottom:12px;transition:all .18s;display:flex;align-items:center;justify-content:center;gap:10px;
 }
 .choose-btn:hover{border-color:var(--accent);background:var(--accent-soft);transform:translateY(-1px)}
-.choose-btn:disabled{opacity:.45;cursor:not-allowed;transform:none!important;background:#1a0808}
+.choose-btn:disabled{opacity:.45;cursor:not-allowed;transform:none!important;background:#f5f5f5}
 .choose-btn .ico{font-size:20px}
 .choose-back{font-size:12px;color:var(--ink-soft);cursor:pointer;margin-top:6px}
 .choose-back:hover{color:var(--accent)}
 .role-tag{
   display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--ink-soft);
-  background:#1a0808;border:1px solid var(--line);border-radius:999px;padding:4px 12px;margin-bottom:18px;
+  background:#f5f5f5;border:1px solid var(--line);border-radius:999px;padding:4px 12px;margin-bottom:18px;
 }
 .role-tag b{color:var(--accent)}
-.login-remember{margin:4px 0 10px;font-size:13px;color:#6b5e4a;display:flex;align-items:center;gap:6px}
+.login-remember{margin:4px 0 10px;font-size:13px;color:var(--ink-soft);display:flex;align-items:center;gap:6px}
 .login-remember input{width:16px;height:16px;cursor:pointer}
 .login-remember label{cursor:pointer;display:flex;align-items:center;gap:6px}
 .tip-box{
   font-size:12px;color:var(--ink-soft);line-height:1.7;margin-top:14px;padding:10px 12px;
-  background:rgba(201,162,39,.08);border:1px solid rgba(201,162,39,.2);border-radius:8px;text-align:left;
+  background:var(--accent-soft);border:1px solid rgba(211,47,47,.15);border-radius:8px;text-align:left;
 }
 .tip-box .tip-title{font-weight:600;margin-bottom:4px;color:var(--accent)}
 
@@ -101,12 +105,14 @@ input{font-family:var(--font-song);color:inherit}
   .choose-btn{min-height:46px}
 }
 </style>
+<!-- Cloudflare Turnstile 人机验证 -->
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body>
 
 <div class="login-overlay">
   <div class="login-box">
-    <div class="login-mark"><img src="data:image/jpeg;base64,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" alt="积分图标"></div>
+    <div class="login-mark"><svg width="40" height="40" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 32L20 24L26 28L36 16" stroke="#f5c542" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M32 16H36V20" stroke="#f5c542" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="14" y="28" width="4" height="8" rx="1" fill="#e8a838"/><rect x="22" y="24" width="4" height="12" rx="1" fill="#f5c542"/><rect x="30" y="20" width="4" height="16" rx="1" fill="#e8a838"/></svg></div>
     <div class="login-title">班级积分管理系统</div>
 
     <div id="loginFields">
@@ -121,7 +127,9 @@ input{font-family:var(--font-song);color:inherit}
       <div class="login-remember">
         <label><input type="checkbox" id="rememberMe"> 记住我，下次自动登录</label>
       </div>
-      <button class="login-btn" id="loginBtn" onclick="doLogin()">登 录</button>
+      <!-- Turnstile 人机验证组件 -->
+      <div id="turnstileWidget" style="display:flex;justify-content:center;margin:12px 0;"></div>
+      <button class="login-btn" id="loginBtn" onclick="doLogin()" disabled style="opacity:0.5;cursor:not-allowed;">登 录</button>
       <div class="login-err" id="loginErr"></div>
       <div class="tip-box">
         <div class="tip-title">登录说明</div>
@@ -150,6 +158,71 @@ const SESSION_KEY='jfz_session_v1';
 const SUPABASE_URL='https://jfz-proxy-api.pages.dev';
 const SUPABASE_ANON_KEY='sb_publishable_B5VRNPT7oJaoX-x6IeprIg_bb5LZCJX';
 
+/* 高德地图 IP 定位 Key（Web服务） */
+const AMAP_KEY='8a663ae5117598bc86588e3418cc572e';
+
+/* ================= Cloudflare Turnstile 人机验证 ================= */
+const TURNSTILE_SITE_KEY='0x4AAAAAAFMym-bVxn7VE__p'; // managed模式
+let turnstileWidgetId=null;
+let turnstileVerified=false;
+
+/* Turnstile 验证成功回调 */
+function onTurnstileSuccess(token){
+  console.log('[Turnstile] 验证成功，token前10位=',token.substring(0,10));
+  turnstileVerified=true;
+  const btn=document.getElementById('loginBtn');
+  if(btn){btn.disabled=false;btn.style.opacity='1';btn.style.cursor='pointer';}
+}
+
+/* Turnstile 验证失败回调 */
+function onTurnstileError(errorCode){
+  console.error('[Turnstile] 验证失败：',errorCode);
+  turnstileVerified=false;
+  const btn=document.getElementById('loginBtn');
+  if(btn){btn.disabled=true;btn.style.opacity='0.5';btn.style.cursor='not-allowed';}
+}
+
+/* Turnstile 过期回调 */
+function onTurnstileExpire(){
+  console.log('[Turnstile] 验证已过期，需要重新验证');
+  turnstileVerified=false;
+  const btn=document.getElementById('loginBtn');
+  if(btn){btn.disabled=true;btn.style.opacity='0.5';btn.style.cursor='not-allowed';}
+  // 自动重新渲染
+  if(turnstileWidgetId&&window.turnstile){
+    try{window.turnstile.reset(turnstileWidgetId);}catch(e){}
+  }
+}
+
+/* 初始化 Turnstile（等SDK加载完成后调用） */
+function initTurnstile(){
+  const container=document.getElementById('turnstileWidget');
+  if(!container||!window.turnstile){return;}
+  if(turnstileWidgetId){return;} // 已初始化
+  try{
+    turnstileWidgetId=window.turnstile.render('#turnstileWidget',{
+      sitekey:TURNSTILE_SITE_KEY,
+      callback:onTurnstileSuccess,
+      'error-callback':onTurnstileError,
+      'expired-callback':onTurnstileExpire,
+      theme:'light',
+      language:'zh-CN'
+    });
+    console.log('[Turnstile] 组件初始化成功，widgetId=',turnstileWidgetId);
+  }catch(e){
+    console.error('[Turnstile] 初始化失败：',e);
+  }
+}
+
+/* 轮询等待 Turnstile SDK 加载完成，然后初始化 */
+(function waitForTurnstile(){
+  if(window.turnstile){
+    initTurnstile();
+  }else{
+    setTimeout(waitForTurnstile,200);
+  }
+})();
+
 /* Supabase 客户端：auth + realtime 优化参数 */
 const SB=window.supabase?window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{
   auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true},
@@ -162,6 +235,174 @@ const SB=window.supabase?window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON
     heartbeatIntervalMs:8000
   }
 }):null;
+
+/* ================= 登录 IP 定位与日志记录 ================= */
+let cachedIpInfo=null;  // 缓存的IP信息，页面加载时预获取
+let ipInfoLoading=false; // 是否正在加载IP信息
+
+/* 处理高德返回的字段（可能是"[]"字符串或空数组） */
+function cleanAmapField(v){
+  if(v===null||v===undefined)return '';
+  if(Array.isArray(v))return v.length?v[0]:'';
+  if(typeof v==='string'){
+    if(v==='[]'||v===''||v==='null')return '';
+    return v;
+  }
+  return String(v);
+}
+
+/* 获取用户IP和地理位置（通过Cloudflare代理获取，支持IPv6，稳定可靠） */
+async function getUserIp(){
+  try{
+    // 支持页面URL带 ?debug=省份|城市 调试参数，传递给代理模拟地理位置
+    const debugParam=new URLSearchParams(location.search).get('debug');
+    const url=SUPABASE_URL+'/ip'+(debugParam?'?debug='+encodeURIComponent(debugParam):'');
+    const res=await fetch(url);
+    const data=await res.json();
+    return data||{};
+  }catch(e){
+    console.error('[登录日志] 从代理获取IP失败：',e);
+    return {};
+  }
+}
+
+/* 页面加载时预获取IP信息（不阻塞登录，后台静默执行） */
+async function preloadIpInfo(){
+  if(ipInfoLoading||cachedIpInfo)return;
+  ipInfoLoading=true;
+  try{
+    // 优先从代理获取IP和地理位置（Cloudflare自带，支持IPv6）
+    const proxyData=await getUserIp();
+    let province=cleanAmapField(proxyData.province||'');
+    let city=cleanAmapField(proxyData.city||'');
+    let adcode=cleanAmapField(proxyData.postalCode||'');
+    // 如果代理没有返回省/市，再调用高德作为备选
+    if(!province||!city){
+      try{
+        const amapRes=await fetch('https://restapi.amap.com/v3/ip?key='+AMAP_KEY).then(r=>r.json()).catch(()=>null);
+        console.log('[登录日志] 预加载 - 代理省/市为空，调用高德备选，返回=',amapRes);
+        if(amapRes){
+          province=province||cleanAmapField(amapRes.province||'');
+          city=city||cleanAmapField(amapRes.city||'');
+          adcode=adcode||cleanAmapField(amapRes.adcode||'');
+        }
+      }catch(e){}
+    }
+    console.log('[登录日志] 预加载 - ip=',proxyData.ip||'',' province=',province,' city=',city);
+    cachedIpInfo={
+      ip:proxyData.ip||'',
+      province:province,
+      city:city,
+      adcode:adcode,
+      rectangle:''
+    };
+  }catch(e){
+    console.error('[登录日志] 预加载异常：',e);
+  }finally{
+    ipInfoLoading=false;
+  }
+}
+preloadIpInfo(); // 立即执行
+
+/* ================= 隐藏开发者模式（连续点击图标7次触发） ================= */
+(function(){
+  let devClickCount=0;
+  let devClickTimer=null;
+  const mark=document.querySelector('.login-mark');
+  if(!mark)return;
+  mark.style.cursor='pointer';
+  mark.title='';
+  mark.addEventListener('click',function(){
+    devClickCount++;
+    if(devClickTimer)clearTimeout(devClickTimer);
+    devClickTimer=setTimeout(function(){devClickCount=0;},1500); // 1.5秒内连续点击才算
+    if(devClickCount>=7){
+      devClickCount=0;
+      if(devClickTimer)clearTimeout(devClickTimer);
+      const path=prompt('🔧 隐藏跳转模式\n\n输入跳转路径（如 group、class_v2、notice_admin）：\n→ https://class-amv.pages.dev/路径');
+      if(path&&path.trim()){
+        location.href='https://class-amv.pages.dev/'+path.trim();
+      }
+    }
+  });
+})();
+
+/* 获取IP信息（优先用缓存，缓存为空则实时获取） */
+async function getIpInfo(){
+  if(cachedIpInfo)return cachedIpInfo;
+  try{
+    // 优先从代理获取IP和地理位置（Cloudflare自带，支持IPv6）
+    const proxyData=await getUserIp();
+    let province=cleanAmapField(proxyData.province||'');
+    let city=cleanAmapField(proxyData.city||'');
+    let adcode=cleanAmapField(proxyData.postalCode||'');
+    // 如果代理没有返回省/市，再调用高德作为备选
+    if(!province||!city){
+      try{
+        const res=await fetch('https://restapi.amap.com/v3/ip?key='+AMAP_KEY);
+        const amapData=await res.json();
+        console.log('[登录日志] 实时获取 - 代理省/市为空，调用高德备选，返回：',amapData);
+        if(amapData){
+          province=province||cleanAmapField(amapData.province||'');
+          city=city||cleanAmapField(amapData.city||'');
+          adcode=adcode||cleanAmapField(amapData.adcode||'');
+        }
+      }catch(e){}
+    }
+    cachedIpInfo={
+      ip:proxyData.ip||'',
+      province:province,
+      city:city,
+      adcode:adcode,
+      rectangle:''
+    };
+    return cachedIpInfo;
+  }catch(e){
+    console.error('[登录日志] 获取IP信息异常：',e);
+  }
+  return {ip:'',province:'',city:'',adcode:'',rectangle:''};
+}
+
+/* 异步记录登录日志 */
+async function logLogin(success,userEmail,username,role,groupId,failReason){
+  console.log('[登录日志] 开始记录，success=',success,'user=',userEmail);
+  try{
+    const ipInfo=await getIpInfo();
+    console.log('[登录日志] IP信息获取完成，ip=',ipInfo.ip,'province=',ipInfo.province,'city=',ipInfo.city);
+    const log={
+      user_email:userEmail||'',
+      username:username||'',
+      role:role||'',
+      group_id:groupId||null,
+      ip:ipInfo.ip||'',
+      province:ipInfo.province||'',
+      city:ipInfo.city||'',
+      adcode:ipInfo.adcode||'',
+      user_agent:navigator.userAgent||'',
+      success:!!success,
+      fail_reason:failReason||null
+    };
+    console.log('[登录日志] 准备插入数据库，log=',log);
+    // 插入login_logs表，失败重试1次，再失败就放弃
+    try{
+      const {data,error}=await SB.from('login_logs').insert([log]);
+      if(error){
+        console.error('[登录日志] 插入失败（第1次）：',error.message);
+        try{
+          const {data:d2,error:e2}=await SB.from('login_logs').insert([log]);
+          if(e2){console.error('[登录日志] 插入失败（第2次）：',e2.message);}
+          else{console.log('[登录日志] 插入成功（重试后）');}
+        }catch(e2){console.error('[登录日志] 重试异常：',e2);}
+      }else{
+        console.log('[登录日志] 插入成功！');
+      }
+    }catch(e){
+      console.error('[登录日志] 插入异常：',e);
+    }
+  }catch(e){
+    console.error('[登录日志] 整体异常：',e);
+  }
+}
 
 /* ================= 组长姓名 → 拼音邮箱 ================= */
 const LEADER_EMAIL={
@@ -202,6 +443,14 @@ async function doLogin(){
   if(!pwd){btn.disabled=false;btn.textContent='登 录';err.textContent='请输入密码';return;}
   if(!SB){btn.disabled=false;btn.textContent='登 录';err.textContent='无法连接认证服务，请检查网络后重试';return;}
 
+  /* Turnstile 人机验证检查 */
+  if(!turnstileVerified){
+    btn.disabled=false;
+    btn.textContent='登 录';
+    err.textContent='请先完成人机验证';
+    return;
+  }
+
   /* 组长密码自动补0到6位：输入"3" → "000003" */
   if(isLeaderName(name)){
     pwd=pwd.padStart(6,'0');
@@ -240,13 +489,19 @@ async function doLogin(){
     btn.disabled=false;btn.textContent='登 录';
     const errMsg=error?error.message||'':'';
     const isNetworkErr=errMsg.includes('fetch')||errMsg.includes('Failed to fetch')||errMsg.includes('Network')||errMsg.includes('network')||errMsg.includes('timeout')||errMsg.includes('Timeout')||(error&&error.name==='TypeError');
+    let failReason='';
     if(isNetworkErr){
       err.textContent='网络连接失败，请检查网络或切换WiFi后重试';
+      failReason='网络连接失败';
     }else if(errMsg.includes('Invalid')||errMsg.includes('invalid')||errMsg.includes('credentials')||errMsg.includes('password')||errMsg.includes('Email')){
       err.textContent='用户名或密码错误，请重试或联系管理员重置';
+      failReason='用户名或密码错误';
     }else{
       err.textContent='登录失败：'+(errMsg||'未知错误');
+      failReason=errMsg||'未知错误';
     }
+    /* 异步记录登录失败日志 */
+    logLogin(false,email,name,null,null,failReason);
     return;
   }
 
@@ -284,20 +539,29 @@ async function doLogin(){
   }
   if(role==='user'){
     btn.disabled=false;btn.textContent='登 录';
+    let failReason='该账号无权限';
     if(roleFetchOk){
       err.textContent='该账号无权限，请联系管理员';
     }else if(roleFetchErr.includes('42501')||roleFetchErr.includes('permission')||roleFetchErr.includes('Permission')){
       err.textContent='数据库权限不足，请在Supabase启用users表RLS并授权';
+      failReason='数据库权限不足';
     }else if(roleFetchErr.includes('401')||roleFetchErr.includes('403')||roleFetchErr.includes('JWT')||roleFetchErr.includes('jwt')){
       err.textContent='认证令牌无效，请重新登录';
+      failReason='认证令牌无效';
     }else{
       err.textContent='获取用户信息失败：'+(roleFetchErr||'未知错误');
+      failReason='获取用户信息失败：'+(roleFetchErr||'未知错误');
     }
+    /* 异步记录登录失败日志（无权限） */
+    logLogin(false,data.user.email||email,displayName,role,gid,failReason);
     await SB.auth.signOut();return;
   }
 
   /* 保存会话 */
   localStorage.setItem(SESSION_KEY,JSON.stringify({name:displayName,role,groupId:gid||undefined}));
+
+  /* 记录登录成功日志（等待完成后再跳转，避免跳转取消请求） */
+  await logLogin(true,data.user.email||email,displayName,role,gid,null);
 
   /* 记住我 */
   const rm=document.getElementById('rememberMe');
@@ -318,8 +582,10 @@ async function doLogin(){
     document.getElementById('loginFields').style.display='none';
     document.getElementById('chooseBox').style.display='block';
     if(role==='admin'){
-      document.getElementById('chooseClassV2Btn').style.display='flex';
       document.getElementById('chooseNoticeBtn').style.display='flex';
+    }
+    if(role==='admin'||role==='admin2'){
+      document.getElementById('chooseClassV2Btn').style.display='flex';
     }
     return;
   }

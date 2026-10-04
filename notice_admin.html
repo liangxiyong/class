@@ -68,8 +68,8 @@ body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:var(--pap
 <div class="toast" id="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const SB_URL='https://zaeijgfuykhkabteqljw.supabase.co';
-const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InphZWlqZ2Z1eWtoa2FidGVxbGp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg1ODA5MzgsImV4cCI6MjEwNDE1NjkzOH0.CQ-jqsslzaWpeeXg0OJnQsaW-iMNoCKbJGW_-p1F3D8';
+const SB_URL='https://jfz-proxy-api.pages.dev';
+const SB_KEY='sb_publishable_B5VRNPT7oJaoX-x6IeprIg_bb5LZCJX';
 const sb=supabase.createClient(SB_URL,SB_KEY);
 let accessToken='';
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800);}

@@ -25,14 +25,23 @@
   --font-display:"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;
   --font-body:"PingFang SC","Microsoft YaHei","Noto Sans SC","Hiragino Sans GB",sans-serif;
   --font-mono:"Cascadia Code","JetBrains Mono",Consolas,"Courier New",monospace;
+  --ease-standard:cubic-bezier(0.4,0,0.2,1);
+  --ease-decel:cubic-bezier(0,0,0.2,1);
+  --ease-accel:cubic-bezier(0.4,0,1,1);
+  --ease-spring:cubic-bezier(0.34,1.56,0.64,1);
 }
 body[data-font="sans"]{--font-display:"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;--font-body:"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif}
-*{margin:0;padding:0;box-sizing:border-box}
+*{margin:0;padding:0;box-sizing:border-box;transition-timing-function:var(--ease-standard);scroll-behavior:smooth}
+::selection{background:rgba(192,57,43,.15)}
 html,body{height:100%}
 body{
   font-family:var(--font-body);
   color:var(--ink);
-  background:var(--paper);
+  background-color:#f6f1e8;
+  background-image:
+    radial-gradient(700px 300px at 70% 0%, rgba(192,57,43,.4), transparent 60%),
+    radial-gradient(500px 250px at 20% 0%, rgba(191,149,63,.3), transparent 55%),
+    linear-gradient(180deg,#d8c9a8 0%,#e8dcc4 80px,#f0e8d8 160px,transparent 300px);
   /* 阻止横向过度滚动触发浏览器返回手势（手机左滑误退出） */
   overscroll-behavior-x:contain;
   /* 隐藏滚动条但保留滚动功能 */
@@ -57,45 +66,68 @@ body::-webkit-scrollbar{display:none}
 /* ---------- Sidebar (桌面端顶栏) ---------- */
 .sidebar{
   position:fixed;top:0;left:0;right:0;bottom:auto;width:100%;height:auto;z-index:50;
-  background:linear-gradient(90deg,var(--sidebar),var(--sidebar-2));
-  color:var(--stext);display:flex;flex-direction:row;align-items:center;
-  box-shadow:0 2px 24px rgba(30,24,20,.18);
-  padding:0 20px;
+  background:transparent;
+  color:var(--ink);display:flex;flex-direction:row;align-items:center;
+  padding:0 16px;gap:0;
 }
-.brand{padding:10px 16px 10px 0;border-bottom:none;border-right:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:10px;flex:none}
+.brand{padding:8px 14px 8px 0;border-bottom:none;border-right:1px solid rgba(227,217,201,.6);display:flex;align-items:center;gap:10px;flex:none;order:1}
 .brand .mark{
-  width:34px;height:34px;border-radius:10px;background:var(--accent);
+  width:32px;height:32px;border-radius:9px;background:var(--accent);
   display:flex;align-items:center;justify-content:center;
-  font-family:var(--font-display);font-size:17px;font-weight:700;color:#fff;
-  margin-bottom:0;box-shadow:0 4px 14px rgba(192,57,43,.35);flex:none;
+  font-family:var(--font-display);font-size:16px;font-weight:700;color:#fff;
+  margin-bottom:0;box-shadow:0 4px 14px rgba(192,57,43,.3);flex:none;
 }
-.brand-info{flex:1;min-width:0;padding-top:0;display:flex;align-items:center;gap:8px}
-.brand-info .sub{font-size:12px;color:rgba(247,241,230,.6);margin-top:0;letter-spacing:1px;white-space:nowrap}
-.nav{flex:1;padding:0 16px;display:flex;flex-direction:row;align-items:center;gap:2px;overflow-x:auto}
+.brand-info{flex:none;min-width:0;padding-top:0;display:flex;align-items:center;gap:8px}
+.brand-info .sub{font-size:12px;color:var(--ink-soft);margin-top:0;letter-spacing:1px;white-space:nowrap;display:none}
+/* 桌面端隐藏品牌区组名（当前组选择器已显示），仅移动端显示 */
+@media(max-width:768px){
+  .brand-info .sub{display:block}
+}
+.admin-btn{
+  display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border-radius:8px;
+  background:var(--accent-soft);color:var(--accent);font-size:12px;font-weight:700;
+  cursor:pointer;border:1px solid rgba(192,57,43,.15);transition:all .15s;
+  flex:none;margin-left:8px;
+}
+.admin-btn:hover{background:rgba(192,57,43,.15)}
+.group-switch{padding:6px 12px;margin:6px 0;display:flex;align-items:center;gap:8px;border-left:none;border-radius:10px;background:transparent;flex:none;order:3}
+.group-switch-label{font-size:11px;color:var(--ink);white-space:nowrap;font-weight:700;text-shadow:0 1px 2px rgba(255,255,255,.9)}
+.group-switch select{
+  padding:7px 28px 7px 10px;border-radius:8px;border:1px solid rgba(0,0,0,.3);
+  background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5L6 7.5L9 4.5' stroke='%23333' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 10px center;
+  -webkit-appearance:none;appearance:none;
+  color:#111!important;font-size:13px;outline:none;cursor:pointer;min-width:100px;font-weight:700;
+}
+.group-switch select option{background:#fff;color:var(--ink)}
+.nav{flex:1;padding:0 14px;display:flex;flex-direction:row;align-items:center;gap:2px;overflow-x:auto;order:2;min-width:0}
+.mobile-nav{display:none}
 .nav-item{
-  display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:9px;
-  color:rgba(247,241,230,.68);font-size:13.5px;cursor:pointer;
+  display:flex;align-items:center;gap:6px;padding:7px 11px;border-radius:9px;
+  color:var(--ink-soft);font-size:13px;cursor:pointer;
   transition:all .18s ease;margin-bottom:0;user-select:none;white-space:nowrap;
 }
 .nav-item .ico{width:16px;text-align:center;font-size:14px;flex:none}
-.nav-item:hover{background:rgba(255,255,255,.06);color:#fff}
-.nav-item.active{background:var(--accent);color:#fff;font-weight:600;box-shadow:0 4px 14px rgba(192,57,43,.35)}
-.sidebar-user{margin:0;padding:0 0 0 8px;background:none;color:#f7f1e6;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;user-select:none;display:block;border-left:1px solid rgba(255,255,255,.15)}
-.sidebar-user:hover{opacity:.85;background:none}
+.nav-item:hover{background:var(--paper-2);color:var(--ink)}
+.nav-item.active{background:var(--accent);color:#fff;font-weight:600;box-shadow:0 4px 14px rgba(192,57,43,.3)}
+.sidebar-user{margin:0;padding:0 0 0 10px;background:none;color:var(--ink);font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;user-select:none;display:block;border-left:1px solid rgba(227,217,201,.6);max-width:120px}
+.sidebar-user:hover{opacity:.7;background:none}
 .sidebar-foot{display:none}
-.sidebar-logout{margin:0 0 0 12px;padding:8px 14px;border-radius:9px;background:rgba(255,255,255,.08);color:#f7f1e6;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;border:none;font-family:inherit;white-space:nowrap;flex:none}
-.sidebar-logout:hover{background:var(--red)}
+.sidebar-logout{margin:0 0 0 12px;padding:7px 12px;border-radius:9px;background:var(--paper-2);color:var(--ink-soft);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;border:none;font-family:inherit;white-space:nowrap;flex:none;order:4}
+.sidebar-logout:hover{background:var(--red);color:#fff}
 /* 桌面端隐藏上传按钮 */
 .desktop-hide{display:none!important}
 
 /* ---------- Main ---------- */
-.main{margin-left:0;min-height:100vh;padding:70px 40px 80px}
+.main{margin-left:0;min-height:100vh;padding:64px 40px 80px;
+  background:
+    linear-gradient(180deg,rgba(120,90,50,.35) 0%,rgba(180,150,100,.2) 40px,rgba(210,190,150,.1) 80px,transparent 160px);
+}
 .view-head{margin-bottom:20px}
 .view-title{font-family:var(--font-display);font-size:27px;color:var(--ink);letter-spacing:1px}
 .view-sub{color:var(--ink-soft);font-size:13px;margin-top:6px}
-.view{display:none;animation:fade .25s ease}
+.view{display:none;animation:fade .32s var(--ease-decel)}
 .view.active{display:block}
-@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 
 /* ---------- Toolbar ---------- */
 .toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
@@ -115,14 +147,14 @@ body::-webkit-scrollbar{display:none}
 .nav-btn:hover{background:var(--paper-2);color:var(--ink)}
 .btn{
   display:inline-flex;align-items:center;gap:7px;padding:9px 16px;border-radius:10px;
-  font-size:13.5px;font-weight:600;transition:all .18s;border:1px solid transparent;
+  font-size:13.5px;font-weight:600;transition:all .2s var(--ease-standard);border:1px solid transparent;
 }
 .btn-primary{background:var(--accent);color:#fff;box-shadow:0 3px 10px rgba(192,57,43,.25)}
-.btn-primary:hover{background:#a93226;transform:translateY(-1px)}
+.btn-primary:hover{background:#a93226;transform:translateY(-2px);box-shadow:0 6px 18px rgba(192,57,43,.35)}
 .btn-ghost{background:var(--card);border-color:var(--line);color:var(--ink)}
-.btn-ghost:hover{border-color:#c9bba6;background:#fff}
+.btn-ghost:hover{border-color:#c9bba6;background:#fff;transform:translateY(-1px)}
 .btn-soft{background:var(--accent-soft);color:var(--accent)}
-.btn-soft:hover{background:#f0d6d0}
+.btn-soft:hover{background:#f0d6d0;transform:translateY(-1px)}
 .btn-sm{padding:6px 12px;font-size:12.5px;border-radius:8px}
 .btn-danger{background:#fbe9e7;color:var(--red)}
 .btn-danger:hover{background:#f7d8d4}
@@ -133,11 +165,11 @@ body::-webkit-scrollbar{display:none}
   color:var(--ink-soft);transition:all .18s;user-select:none;
 }
 .batch-toggle .switch{
-  width:36px;height:20px;border-radius:999px;background:#d9cfc0;position:relative;transition:background .2s;flex:none;
+  width:36px;height:20px;border-radius:999px;background:#d9cfc0;position:relative;transition:background .25s var(--ease-standard);flex:none;
 }
 .batch-toggle .switch::after{
   content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;
-  transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2);
+  transition:transform .3s var(--ease-spring);box-shadow:0 1px 3px rgba(0,0,0,.2);
 }
 .batch-toggle.on{color:var(--accent);border-color:var(--accent)}
 .batch-toggle.on .switch{background:var(--accent)}
@@ -208,10 +240,10 @@ td.total-col.zero{color:#cfc4b4}
 }
 .modal{
   background:var(--card);border-radius:18px;width:500px;max-width:calc(100vw - 40px);
-  box-shadow:0 24px 70px rgba(0,0,0,.28);overflow:hidden;animation:pop .2s ease;
+  box-shadow:0 24px 70px rgba(0,0,0,.28);overflow:hidden;animation:pop .3s var(--ease-spring);
   max-height:calc(100vh - 60px);display:flex;flex-direction:column;
 }
-@keyframes pop{from{opacity:0;transform:scale(.96) translateY(8px)}to{opacity:1;transform:none}}
+@keyframes pop{from{opacity:0;transform:scale(.94) translateY(12px)}to{opacity:1;transform:none}}
 .modal-head{
   display:flex;align-items:flex-start;justify-content:space-between;
   padding:16px 18px 10px;border-bottom:1px solid var(--line-soft);
@@ -269,18 +301,20 @@ td.total-col.zero{color:#cfc4b4}
 .brand{position:relative}
 .admin-btn{
   display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border-radius:8px;
-  background:rgba(255,255,255,.1);color:#f7f1e6;font-size:12px;font-weight:700;
-  cursor:pointer;border:1px solid rgba(255,255,255,.15);transition:all .15s;
+  background:var(--accent-soft);color:var(--accent);font-size:12px;font-weight:700;
+  cursor:pointer;border:1px solid rgba(192,57,43,.15);transition:all .15s;
   flex:none;margin-left:8px;
 }
-.admin-btn:hover{background:rgba(255,255,255,.2)}
-.group-switch{padding:0 16px;display:flex;align-items:center;gap:8px;border-left:1px solid rgba(255,255,255,.07);flex:none}
-.group-switch-label{font-size:11px;color:rgba(247,241,230,.5);white-space:nowrap}
+.admin-btn:hover{background:rgba(192,57,43,.15)}
+.group-switch{padding:6px 12px;margin:6px 0;display:flex;align-items:center;gap:8px;border-left:none;border-radius:10px;background:transparent;flex:none}
+.group-switch-label{font-size:11px;color:var(--ink);white-space:nowrap;font-weight:700;text-shadow:0 1px 2px rgba(255,255,255,.9)}
 .group-switch select{
-  padding:7px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.15);
-  background:rgba(255,255,255,.08);color:#f7f1e6;font-size:13px;outline:none;cursor:pointer;min-width:100px;
+  padding:7px 28px 7px 10px;border-radius:8px;border:1px solid rgba(0,0,0,.3);
+  background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5L6 7.5L9 4.5' stroke='%23333' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 10px center;
+  -webkit-appearance:none;appearance:none;
+  color:#111!important;font-size:13px;outline:none;cursor:pointer;min-width:100px;font-weight:700;
 }
-.group-switch select option{background:#3a2f28;color:#f7f1e6}
+.group-switch select option{background:#fff;color:var(--ink)}
 .admin-switch-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--paper)}
 .admin-switch-title{font-size:14px;font-weight:700}
 .admin-switch-sub{font-size:11.5px;color:var(--ink-soft);margin-top:4px;line-height:1.5}
@@ -288,8 +322,8 @@ td.total-col.zero{color:#cfc4b4}
 .admin-switch.on{background:var(--green)}
 .admin-switch .admin-switch-knob{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
 .admin-switch.on .admin-switch-knob{transform:translateX(20px)}
-.icon-btn{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--ink-soft);transition:all .15s;font-size:14px;line-height:1;flex-shrink:0}
-.icon-btn:hover{background:var(--paper-2);color:var(--ink)}
+.icon-btn{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--ink-soft);transition:all .18s var(--ease-standard);font-size:14px;line-height:1;flex-shrink:0}
+.icon-btn:hover{background:var(--paper-2);color:var(--ink);transform:scale(1.1)}
 .admin-section{margin-top:14px;border:1px solid var(--line);border-radius:12px;background:var(--paper);padding:14px}
 .admin-section-title{font-size:14px;font-weight:700;margin-bottom:4px}
 .admin-section-sub{font-size:11.5px;color:var(--ink-soft);line-height:1.6;margin-bottom:10px}
@@ -318,7 +352,7 @@ td.total-col.zero{color:#cfc4b4}
 .student-item-bar{display:flex;align-items:center;gap:10px;margin-bottom:8px}
 .sib-label{width:88px;font-size:12.5px;color:var(--ink);flex:none;text-align:right}
 .sib-track{flex:1;height:22px;background:var(--paper);border-radius:6px;overflow:hidden;position:relative}
-.sib-fill{height:100%;border-radius:6px;transition:width .4s ease;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;font-family:var(--font-mono);font-size:11px;font-weight:700;color:#fff;min-width:0}
+.sib-fill{height:100%;border-radius:6px;transition:width .5s var(--ease-decel);display:flex;align-items:center;justify-content:flex-end;padding-right:8px;font-family:var(--font-mono);font-size:11px;font-weight:700;color:#fff;min-width:0}
 .sib-fill.pos{background:linear-gradient(90deg,#66a06a,#2e7d32)}
 .sib-fill.neg{background:linear-gradient(90deg,#e07a6e,#c0392b)}
 .sib-val{width:44px;font-family:var(--font-mono);font-size:12.5px;font-weight:700;flex:none;text-align:left}
@@ -388,9 +422,9 @@ td.total-col.zero{color:#cfc4b4}
 .member-card{
   background:var(--card);border:1px solid var(--line);border-radius:13px;padding:15px 18px;
   display:flex;align-items:center;justify-content:space-between;gap:10px;
-  box-shadow:0 1px 3px rgba(43,36,32,.05);transition:all .18s;
+  box-shadow:0 1px 3px rgba(43,36,32,.05);transition:all .22s var(--ease-standard);
 }
-.member-card:hover{box-shadow:0 4px 14px rgba(43,36,32,.08);transform:translateY(-1px)}
+.member-card:hover{box-shadow:0 8px 24px rgba(43,36,32,.1);transform:translateY(-3px)}
 .member-card .info{display:flex;align-items:center;gap:12px;min-width:0}
 .member-card .avatar{
   width:36px;height:36px;border-radius:50%;background:var(--accent-soft);color:var(--accent);
@@ -459,9 +493,9 @@ td.total-col.zero{color:#cfc4b4}
 
 /* ---------- Toast ---------- */
 .toast{
-  position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(10px);
+  position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(16px);
   background:var(--ink);color:#fff;padding:11px 20px;border-radius:999px;font-size:13.5px;
-  z-index:300;opacity:0;transition:all .25s ease;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.2);
+  z-index:300;opacity:0;transition:all .3s var(--ease-spring);pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.2);
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
@@ -560,37 +594,40 @@ td.total-col.zero{color:#cfc4b4}
   .sidebar{
     position:fixed;top:0;left:0;right:0;bottom:auto;width:100%;height:auto;
     flex-direction:row;align-items:center;padding:7px 8px;
-    box-shadow:0 2px 14px rgba(30,24,20,.2);
+    box-shadow:0 1px 12px rgba(30,24,20,.08);
     z-index:120;
   }
-  .brand{padding:4px 6px;border-bottom:none;display:flex;align-items:center;gap:7px;flex:none}
+  .brand{padding:4px 6px;border-bottom:none;border-right:none;display:flex;align-items:center;gap:7px;flex:none}
   .brand .mark{width:28px;height:28px;font-size:15px;margin-bottom:0;border-radius:8px}
   .brand .title{font-size:15px;letter-spacing:1px}
   .brand .sub{display:none}
-  /* 手机端顶部栏横排：组名+用户名一行，退出登录在右 */
-  .brand-info{display:flex;align-items:center;gap:6px;flex:1;min-width:0}
-  .brand-info .sub{display:block;font-size:12px;color:rgba(247,241,230,.72);white-space:nowrap}
-  .brand-info .sidebar-user{font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px;margin:0}
-  .group-switch{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:4px;padding:0 4px;border-bottom:none}
+  /* 手机端顶部栏：logo + 用户名 + 管理按钮，组名由下拉框显示 */
+  .brand-info{display:flex;align-items:center;gap:6px;flex:none;min-width:0}
+  .brand-info .sub{display:none}
+  .brand-info .sidebar-user{font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100px;margin:0;padding:0;border-left:none}
+  .admin-btn{margin-left:6px;padding:5px 8px;font-size:11px;gap:4px;flex:none}
+  .group-switch{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:4px;padding:4px 8px;margin:4px 0;border-bottom:none;border-left:none;border-radius:8px;background:transparent}
   .group-switch-label{display:none}
-  .group-switch select{max-width:130px;font-size:13px;padding:6px 8px}
+  .group-switch select{max-width:120px;font-size:13px;padding:6px 24px 6px 8px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5L6 7.5L9 4.5' stroke='%23333' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 8px center;color:#111!important;font-weight:700;border:1px solid rgba(0,0,0,.3);-webkit-appearance:none;appearance:none}
   /* 手机端独立 UI：底部固定 Tab 栏（App 风格） */
   /* 6 项必须全部可见（含"设置"），禁止横向溢出把"设置"挤出屏外 */
-  .nav{
+  .desktop-nav{display:none!important}
+  .mobile-nav{
+    display:flex!important;
     position:fixed;bottom:0;left:0;right:0;top:auto;flex:none;
-    width:100%;display:flex;justify-content:space-around;align-items:stretch;
+    width:100%;justify-content:space-around;align-items:stretch;
     gap:1px;padding:5px 2px calc(5px + env(safe-area-inset-bottom));
     overflow-x:hidden;overflow-y:hidden;-webkit-overflow-scrolling:touch;
-    background:rgba(255,255,255,.98);
-    border-top:1px solid var(--line);
-    box-shadow:0 -3px 14px rgba(30,24,20,.1);
+    background:transparent;
+    border-top:1px solid rgba(227,217,201,.4);
+    box-shadow:0 -2px 14px rgba(30,24,20,.08);
     z-index:120;
   }
   .nav-item{
     flex:1 1 0;flex-direction:column;gap:1px;
     padding:5px 1px;font-size:10px;white-space:nowrap;
     text-align:center;border-radius:8px;min-width:0;
-    transition:background .15s;
+    transition:background .15s;color:var(--ink-soft);
   }
   .nav-item .ico{font-size:15px;width:auto}
   .nav-item.active{
@@ -602,7 +639,7 @@ td.total-col.zero{color:#cfc4b4}
   .sidebar-foot{display:none}
   .sidebar-logout{
     display:block;margin:0 2px 0 4px;padding:6px 8px;border-radius:7px;
-    background:rgba(255,255,255,.08);color:#f7f1e6;font-size:11px;
+    background:var(--paper-2);color:var(--ink-soft);font-size:11px;
     flex:none;white-space:nowrap;
   }
   .admin-btn{top:6px;right:8px;padding:5px 8px;font-size:11px;gap:4px}
@@ -730,6 +767,19 @@ td.total-col.zero{color:#cfc4b4}
   .modal-body input[type=text],.modal-body input[type=password],.modal-body input[type=number],.modal-body select{min-height:40px;font-size:15px}
   .empty-tip{padding:26px 14px}
 }
+/* 浅色模式：顶栏底栏加一点点毛玻璃，保证文字清晰；深色模式保持纯透明 */
+@media (prefers-color-scheme: light){
+  .sidebar{
+    background:rgba(255,255,255,.18);
+    backdrop-filter:blur(10px) saturate(180%);
+    -webkit-backdrop-filter:blur(10px) saturate(180%);
+  }
+  .mobile-nav{
+    background:rgba(255,255,255,.18);
+    backdrop-filter:blur(10px) saturate(180%);
+    -webkit-backdrop-filter:blur(10px) saturate(180%);
+  }
+}
 /* 启动加载屏 */
 </style>
 </head>
@@ -751,7 +801,7 @@ td.total-col.zero{color:#cfc4b4}
     <div class="group-switch-label">当前组</div>
     <select id="adminGroupSelect" onchange="switchAdminGroup(this.value)"></select>
   </div>
-  <nav class="nav">
+  <nav class="nav desktop-nav">
     <div class="nav-item active" data-view="daily" onclick="switchView('daily')"><span class="ico">📝</span>每日评分</div>
     <div class="nav-item" data-view="weekly" onclick="switchView('weekly')"><span class="ico">📅</span>周统计</div>
     <div class="nav-item" data-view="monthly" onclick="switchView('monthly')"><span class="ico">🗓️</span>月统计</div>
@@ -1860,6 +1910,19 @@ document.addEventListener('keydown',e=>{
   else if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='y'){e.preventDefault();redo();}
 });
 
+/* ================= 统一彩色日志系统 ================= */
+const _LOG_C={init:'#9b59b6',net:'#3498db',ws:'#1abc9c',poll:'#f39c12',save:'#e74c3c',sync:'#2ecc71',token:'#95a5a6',keep:'#8e44ad',maint:'#e67e22',auth:'#2980b9',default:'#7f8c8d'};
+function _ts(){const n=new Date();return n.toTimeString().slice(0,8)+'.'+String(n.getMilliseconds()).padStart(3,'0');}
+function log(mod,msg,lvl){
+  const c=_LOG_C[mod]||_LOG_C.default;
+  const ic=lvl==='error'?'❌':lvl==='warn'?'⚠️':lvl==='ok'?'✅':lvl==='info'?'ℹ️':'▸';
+  console.log(`%c[${_ts()}] ${ic} [${mod}] ${msg}`,`color:${c};font-weight:500`);
+}
+function logErr(mod,msg,err){
+  const c=_LOG_C[mod]||_LOG_C.default;
+  console.error(`%c[${_ts()}] ❌ [${mod}] ${msg}`,`color:${c};font-weight:600`,err&&err.message?err.message:err||'');
+}
+
 /* ================= Supabase 存储 ================= */
 async function sbFetch(path,options,retried){
   const token=await ensureSbToken();
@@ -1921,27 +1984,45 @@ let lastRemoteUpdatedAt=0;
 let pollCount=0;
 async function pollRemote(){
   pollCount++;
-  if(typeof document!=='undefined'&&document.hidden){if(pollCount%20===0)console.log('[轮询] #'+pollCount+': 页面隐藏，跳过');return;}
-  if(switchingGroup){console.log('[轮询] #'+pollCount+': 切换组中，跳过');return;}
-  if(!currentGroupId){console.log('[轮询] #'+pollCount+': currentGroupId为空，跳过');return;}
-  if(localDirty){console.log('[轮询] #'+pollCount+': 本地有未同步数据，触发重传');retrySyncIfDirty();return;}
-  if(sbSavePending){console.log('[轮询] #'+pollCount+': 正在保存中，跳过');return;}
+  // 各种跳过情况
+  if(typeof document!=='undefined'&&document.hidden){
+    if(pollCount%20===0)log('poll',`#${pollCount} 页面隐藏，跳过（每20次报一次）`,'info');
+    return;
+  }
+  if(switchingGroup){log('poll',`#${pollCount} 切换组中，跳过`,'info');return;}
+  if(!currentGroupId){log('poll',`#${pollCount} currentGroupId为空，跳过`,'warn');return;}
+  if(localDirty){log('poll',`#${pollCount} 本地有未同步数据，触发重传`,'info');retrySyncIfDirty();return;}
+  if(sbSavePending){log('poll',`#${pollCount} 正在保存中，跳过`,'info');return;}
+  // 正常轮询
   try{
     const row=await loadGroupData(currentGroupId);
     if(row&&row.updated_at&&row.updated_at!==lastRemoteUpdatedAt){
-      console.log('[轮询] #'+pollCount+': 检测到云端更新，updated_at=',row.updated_at,'，lastRemoteUpdatedAt=',lastRemoteUpdatedAt,'，开始拉取最新数据');
+      log('poll',`#${pollCount} 🔄 检测到云端更新！old=${lastRemoteUpdatedAt} new=${row.updated_at}，开始拉取`,'ok');
       lastRemoteUpdatedAt=row.updated_at;
       await loadGroupIntoState(currentGroupId,false);
       render();
       setSyncStatus('☁️ 已自动同步 '+new Date().toLocaleTimeString('zh-CN'),'var(--ink-soft)');
-      console.log('[轮询] #'+pollCount+': 云端数据已同步到本地');
+      log('poll',`#${pollCount} ✅ 云端数据已同步到本地`,'ok');
     }else{
-      if(pollCount%10===0)console.log('[轮询] #'+pollCount+': 云端数据无变化，updated_at=',row?row.updated_at:'(空)');
+      // 正常无变化，每10次汇总一次
+      if(pollCount%10===0)log('poll',`#${pollCount} 运行正常，数据无变化（最近10次均无变化）`,'info');
     }
-  }catch(e){console.error('[轮询] #'+pollCount+': 异常:',e.message);}
+  }catch(e){logErr('poll',`#${pollCount} 轮询异常: ${e.message}`,e);}
 }
-console.log('[轮询] 已启动 setInterval(pollRemote, 3000)，每3秒轮询一次');
-setInterval(pollRemote,3000);
+let pollTimer=null; // 轮询定时器ID，用于离线暂停/恢复
+function startPolling(){
+  if(pollTimer){clearInterval(pollTimer);}
+  let wsOk=false;
+  try{ wsOk=!!(sbRealtimeCurrentGid&&sbRealtimeChannel); }catch(e){ wsOk=false; } // 变量未初始化时默认false
+  const interval=wsOk?30000:3000; // WS正常→30秒（1分钟2次），WS断开→3秒高频兜底
+  pollTimer=setInterval(pollRemote,interval);
+  log('poll',`✅ 轮询已启动，间隔${interval/1000}秒${wsOk?'（WebSocket正常，低频兜底）':'（WebSocket未连接，高频兜底）'}`,'ok');
+}
+function stopPolling(){
+  if(pollTimer){clearInterval(pollTimer);pollTimer=null;log('poll','⏸️ 轮询已暂停（网络离线）','warn');}
+}
+log('poll','🚀 轮询系统初始化','init');
+startPolling();
 // 手动全局刷新：强制从云端重新拉取当前组数据（不允许空覆盖）
 async function forceRefresh(){
   if(!currentGroupId)return;
@@ -1975,80 +2056,89 @@ let sbRealtimeRetryCount=0;
 let sbRealtimeConnectTimer=null;
 let sbRealtimeManualClose=false; // 主动关闭标志：移除旧频道时设为true，CLOSED回调中不触发重连
 let sbRealtimeCurrentGid=null; // 当前已订阅的gid，用于防重复订阅判断
+let isOffline=false; // 网络断开标志：offline事件设为true，online事件设为false；离线时不被重连逻辑覆盖状态
 function subscribeRealtime(gid){
-  console.log('[WebSocket] subscribeRealtime 被调用，gid=',gid,'，sbRealtimeRetryCount=',sbRealtimeRetryCount,'，sbRealtimeCurrentGid=',sbRealtimeCurrentGid);
-  if(!SB||!SB.channel||!gid){console.log('[WebSocket] 跳过：SB或channel或gid为空');return;}
-  // 防重复：同一个gid已经订阅过且频道存在，不要重新订阅（避免loadGroupIntoState被频繁调用导致每次更新都断开重连）
+  log('ws',`🔗 subscribeRealtime 被调用，gid=${gid}，重试次数=${sbRealtimeRetryCount}，当前已订阅=${sbRealtimeCurrentGid||'(无)'}`,'info');
+  if(!SB||!SB.channel||!gid){log('ws','跳过：SB/channel/gid 为空','warn');return;}
+  // 防重复：同一个gid已经订阅过且频道存在，不要重新订阅
   if(sbRealtimeCurrentGid===String(gid) && sbRealtimeChannel){
-    console.log('[WebSocket] 频道 grp-'+gid+' 已订阅，跳过重复订阅');
+    log('ws',`频道 grp-${gid} 已订阅，跳过重复订阅`,'info');
     return;
   }
-  if(sbRealtimeRetryTimer){console.log('[WebSocket] 清除旧的重连定时器');clearTimeout(sbRealtimeRetryTimer);sbRealtimeRetryTimer=null;}
-  if(sbRealtimeConnectTimer){console.log('[WebSocket] 清除旧的连接超时定时器');clearTimeout(sbRealtimeConnectTimer);sbRealtimeConnectTimer=null;}
+  if(sbRealtimeRetryTimer){log('ws','清除旧的重连定时器','info');clearTimeout(sbRealtimeRetryTimer);sbRealtimeRetryTimer=null;}
+  if(sbRealtimeConnectTimer){log('ws','清除旧的连接超时定时器','info');clearTimeout(sbRealtimeConnectTimer);sbRealtimeConnectTimer=null;}
   function setRetryStatus(n){
+    if(isOffline){log('ws','离线状态，不覆盖"网络已断开"状态','info');return;}
     if(n<=3){setSyncStatus('⚠️ 实时同步重连中...（'+n+'）','#e67e22');}
     else{setSyncStatus('☁️ 轮询同步中','var(--ink-soft)');}
   }
   try{
-    if(sbRealtimeChannel){console.log('[WebSocket] 移除旧频道（主动关闭，不触发重连）');sbRealtimeManualClose=true;sbRealtimeCurrentGid=null;try{SB.removeChannel(sbRealtimeChannel);}catch(e){console.error('[WebSocket] 移除旧频道失败:',e.message);}sbRealtimeChannel=null;}
-    console.log('[WebSocket] 开始连接，频道名=grp-'+gid+'，超时=20秒');
+    if(sbRealtimeChannel){log('ws','移除旧频道（主动关闭，不触发重连）','info');sbRealtimeManualClose=true;sbRealtimeCurrentGid=null;try{SB.removeChannel(sbRealtimeChannel);}catch(e){logErr('ws','移除旧频道失败',e);}sbRealtimeChannel=null;}
+    log('ws',`🚀 开始连接 WebSocket，频道=grp-${gid}，超时=20秒`,'info');
     sbRealtimeConnectTimer=setTimeout(function(){
       sbRealtimeConnectTimer=null;
       if(currentGroupId&&String(currentGroupId)===String(gid)){
         sbRealtimeRetryCount++;
-        console.log('[WebSocket] 连接超时（20秒未收到SUBSCRIBED），sbRealtimeRetryCount=',sbRealtimeRetryCount);
+        log('ws',`⏰ 连接超时（20秒未收到SUBSCRIBED），重试次数=${sbRealtimeRetryCount}`,'warn');
         setRetryStatus(sbRealtimeRetryCount);
-        console.log('[WebSocket] 5秒后重连');
+        log('ws','5秒后自动重连...','info');
         sbRealtimeRetryTimer=setTimeout(function(){
           sbRealtimeRetryTimer=null;
-          if(currentGroupId&&String(currentGroupId)===String(gid)){console.log('[WebSocket] 重连定时器触发，开始重连');subscribeRealtime(gid);}
+          if(isOffline){log('ws','重连定时器触发，但当前离线，跳过重连','warn');return;}
+          if(currentGroupId&&String(currentGroupId)===String(gid)){log('ws','重连定时器触发，开始重连','info');subscribeRealtime(gid);}
         },5000);
       }
     },20000);
     sbRealtimeChannel=SB.channel('grp-'+gid)
       .on('postgres_changes',{event:'UPDATE',schema:'public',table:'group_data',filter:'group_id=eq.'+gid},function(payload){
-        console.log('[WebSocket] 收到 postgres_changes 事件，gid=',gid,'，updated_at=',payload.new&&payload.new.updated_at);
-        if(switchingGroup){console.log('[WebSocket] 切换组中，忽略');return;}
-        if(!currentGroupId||String(currentGroupId)!==String(gid)){console.log('[WebSocket] 当前组不匹配，忽略');return;}
-        if(typeof document!=='undefined'&&document.hidden){console.log('[WebSocket] 页面隐藏，忽略');return;}
-        if(localDirty||sbSavePending){console.log('[WebSocket] 本地有未保存修改，忽略');return;}
+        log('ws',`📨 收到 postgres_changes 事件，gid=${gid}，updated_at=${payload.new&&payload.new.updated_at}`,'info');
+        if(switchingGroup){log('ws','切换组中，忽略','info');return;}
+        if(!currentGroupId||String(currentGroupId)!==String(gid)){log('ws','当前组不匹配，忽略','info');return;}
+        if(typeof document!=='undefined'&&document.hidden){log('ws','页面隐藏，忽略','info');return;}
+        if(localDirty||sbSavePending){log('ws','本地有未保存修改，忽略推送（避免覆盖本地数据）','warn');return;}
         const newAt=payload.new&&payload.new.updated_at;
         if(newAt&&newAt!==lastRemoteUpdatedAt){
-          console.log('[WebSocket] 云端有更新，开始拉取最新数据');
-          loadGroupData(gid).then(function(row){
-            if(row&&row.data&&row.data.items&&row.data.items.length){
-              loadGroupIntoState(gid,false).then(function(){render();setSyncStatus('☁️ 实时同步 '+new Date().toLocaleTimeString('zh-CN'),'var(--ink-soft)');console.log('[WebSocket] 实时同步完成');}).catch(function(e){console.error('[WebSocket] loadGroupIntoState失败:',e.message);});
-            }else{
-              console.log('[WebSocket] 云端数据无效（无items），忽略');
-            }
-          }).catch(function(e){console.error('[WebSocket] loadGroupData失败:',e.message);});
+          if(payload.new&&payload.new.data&&payload.new.data.items&&payload.new.data.items.length){
+            log('ws','🔄 云端有更新，直接用推送数据更新（零HTTP往返）','ok');
+            loadGroupIntoState(gid,false,payload.new).then(function(){render();setSyncStatus('☁️ 实时同步 '+new Date().toLocaleTimeString('zh-CN'),'var(--ink-soft)');log('ws','✅ 实时同步完成','ok');}).catch(function(e){logErr('ws','loadGroupIntoState失败',e);});
+          }else{
+            log('ws','推送数据无效（无items），降级为HTTP拉取','warn');
+            loadGroupData(gid).then(function(row){
+              if(row&&row.data&&row.data.items&&row.data.items.length){
+                loadGroupIntoState(gid,false).then(function(){render();setSyncStatus('☁️ 实时同步 '+new Date().toLocaleTimeString('zh-CN'),'var(--ink-soft)');log('ws','✅ 实时同步完成（降级拉取）','ok');}).catch(function(e){logErr('ws','loadGroupIntoState失败',e);});
+              }
+            }).catch(function(e){logErr('ws','loadGroupData失败',e);});
+          }
         }else{
-          console.log('[WebSocket] updated_at无变化，忽略');
+          log('ws','updated_at无变化，忽略（可能是重复推送）','info');
         }
       })
       .subscribe(function(status){
-        console.log('[WebSocket] subscribe 状态变化:',status);
+        log('ws',`📡 subscribe 状态变化: ${status}`,'info');
         if(status==='SUBSCRIBED'){
           if(sbRealtimeConnectTimer){clearTimeout(sbRealtimeConnectTimer);sbRealtimeConnectTimer=null;}
           sbRealtimeRetryCount=0;
-          sbRealtimeCurrentGid=String(gid); // 记录当前已订阅的gid，用于防重复
-          console.log('[WebSocket] 连接成功！已订阅频道 grp-'+gid+'，sbRealtimeCurrentGid=',sbRealtimeCurrentGid);
+          sbRealtimeCurrentGid=String(gid);
+          log('ws',`✅ 连接成功！已订阅频道 grp-${gid}，实时同步已就绪`,'ok');
           setSyncStatus('☁️ 实时同步已连接','var(--ink-soft)');
+          startPolling(); // WebSocket连上，开发者模式下降频轮询（30秒）
         }else if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'||status==='CLOSED'){
           // 主动关闭（移除旧频道）时不触发重连，避免无限循环
           if(sbRealtimeManualClose){
-            console.log('[WebSocket] 频道',status,'（主动关闭，不触发重连）');
+            log('ws',`频道 ${status}（主动关闭，不触发重连）`,'info');
             sbRealtimeManualClose=false;
             return;
           }
           if(sbRealtimeConnectTimer){clearTimeout(sbRealtimeConnectTimer);sbRealtimeConnectTimer=null;}
           sbRealtimeRetryCount++;
-          console.log('[WebSocket] 连接失败，状态=',status,'，sbRealtimeRetryCount=',sbRealtimeRetryCount);
+          log('ws',`❌ 连接失败，状态=${status}，重试次数=${sbRealtimeRetryCount}`,'error');
           setRetryStatus(sbRealtimeRetryCount);
-          console.log('[WebSocket] 5秒后重连');
+          startPolling(); // WebSocket断了，恢复高频轮询兜底（3秒）
+          log('ws','5秒后自动重连...','info');
           sbRealtimeRetryTimer=setTimeout(function(){
             sbRealtimeRetryTimer=null;
-            if(currentGroupId&&String(currentGroupId)===String(gid)){console.log('[WebSocket] 重连定时器触发，开始重连');subscribeRealtime(gid);}
+            if(isOffline){log('ws','重连定时器触发，但当前离线，跳过重连','warn');return;}
+            if(currentGroupId&&String(currentGroupId)===String(gid)){log('ws','重连定时器触发，开始重连','info');subscribeRealtime(gid);}
           },5000);
         }
       });
@@ -2087,10 +2177,51 @@ if(typeof document!=='undefined'){
   });
 }
 window.addEventListener('pageshow',function(ev){
-  if(ev&&ev.persisted){console.log('[可见性] pageshow 从 bfcache 恢复，触发重传');retrySyncIfDirty();}
+  if(ev&&ev.persisted){log('sync','📄 pageshow 从 bfcache 恢复，触发重传','info');retrySyncIfDirty();}
 });
 if(typeof window!=='undefined'){
-  window.addEventListener('online',function(){console.log('[网络] online 事件触发，网络已恢复，触发重传');retrySyncIfDirty();});
+  // 网络恢复：恢复轮询 + 重连 WebSocket + 重传本地数据
+  window.addEventListener('online',function(){
+    log('net','🌐 网络已恢复！开始恢复同步链路...','ok');
+    isOffline=false;
+    setSyncStatus('☁️ 实时同步重连中...','#e67e22');
+    log('net','  ├─ 恢复轮询（3秒间隔兜底）','info');
+    startPolling();
+    log('net','  ├─ 检查本地是否有未同步数据需要重传','info');
+    retrySyncIfDirty();
+    try{
+      if(SB&&SB.realtime&&currentGroupId){
+        if(sbRealtimeRetryTimer){clearTimeout(sbRealtimeRetryTimer);sbRealtimeRetryTimer=null;}
+        sbRealtimeCurrentGid=null; // 强制重新订阅
+        log('net','  └─ 重连 WebSocket 实时频道（强制重新订阅）','info');
+        subscribeRealtime(currentGroupId);
+      }else{
+        log('net','  └─ WebSocket 条件不满足（SB/realtime/currentGroupId缺失），跳过','warn');
+      }
+    }catch(e){logErr('net','重连WebSocket异常',e);}
+  });
+  // 网络断开：暂停轮询 + 暂停WebSocket重连 + 显示离线状态
+  window.addEventListener('offline',function(){
+    log('net','🚫 网络已断开！立即暂停所有网络操作...','error');
+    isOffline=true;
+    setSyncStatus('❌ 网络已断开','#c0392b');
+    log('net','  ├─ 暂停轮询（避免离线时反复发失败请求）','info');
+    stopPolling();
+    if(sbRealtimeRetryTimer){
+      clearTimeout(sbRealtimeRetryTimer);sbRealtimeRetryTimer=null;
+      log('net','  ├─ 清除 WebSocket 重连定时器（离线时不重连）','info');
+    }
+    log('net','  └─ 状态锁定为"网络已断开"，等待 online 事件恢复','info');
+  });
+  // 页面加载时检查初始网络状态
+  if(navigator.onLine===false){
+    log('net','⚠️ 页面加载时检测到初始状态为离线','warn');
+    isOffline=true;
+    stopPolling();
+    setTimeout(function(){setSyncStatus('❌ 网络已断开','#c0392b');},500);
+  }else{
+    log('net','✅ 初始网络状态正常（在线）','ok');
+  }
 }
 async function loadLeaders(){
   try{
@@ -2223,15 +2354,16 @@ function normalizeGroupData(s,groupId){
   });
   return fixed;
 }
-async function loadGroupIntoState(groupId,allowEmpty){
+async function loadGroupIntoState(groupId,allowEmpty,preloadedRow){
   // allowEmpty: 页面初始化时传true（默认），允许云端失败时用空数据兜底；
   // Realtime/轮询/手动刷新时传false，云端失败时保持当前state绝不覆盖
+  // preloadedRow: 可选，WebSocket推送时直接传入payload.new，省去一次HTTP拉取
   if(allowEmpty===undefined)allowEmpty=true;
   let s=null;
   let fixedPollution=false;
   let needUpload=false; // 用本地备份恢复（且本地更新）时回传云端
   try{
-    const row=await loadGroupData(groupId);
+    const row=preloadedRow||await loadGroupData(groupId);
     if(row&&row.data&&row.data.items){
       s=row.data;
       fixedPollution=normalizeGroupData(s,groupId);
@@ -2269,7 +2401,7 @@ async function loadGroupIntoState(groupId,allowEmpty){
   if(needUpload||fixedPollution)queueSbSave(); // 本地恢复或问号修复后写回云端
   subscribeRealtime(groupId);
   const sub=document.getElementById('sidebarGroup');
-  if(sub){sub.textContent=(GROUP_NAMES[groupId]||s.groupName)+(isPersonalMode()?' · 我的分数':'');sub.style.display='block';}
+  if(sub){sub.textContent=(GROUP_NAMES[groupId]||s.groupName)+(isPersonalMode()?' · 我的分数':'');sub.style.display=isAdmin()?'none':'block';}
   return s;
 }
 function renderAdminGroupBar(){
@@ -2301,7 +2433,7 @@ async function switchAdminGroup(gid){
     renderAdminGroupBar();
     // 显式更新侧边栏组名，防止被renderSettings覆盖
     const sub=document.getElementById('sidebarGroup');
-    if(sub){sub.textContent=GROUP_NAMES[gid]||('第'+gid+'组');sub.style.display='block';}
+    if(sub){sub.textContent=GROUP_NAMES[gid]||('第'+gid+'组');sub.style.display=isAdmin()?'none':'block';}
     toast('已切换到 '+GROUP_NAMES[gid]);
   }catch(e){
     toast('切换失败：'+errMsg(e));
@@ -2350,6 +2482,11 @@ function loadCloudCfg(){
 }
 function saveCloudCfg(){localStorage.setItem(CLOUD_KEY,JSON.stringify(cloudCfg));}
 function setSyncStatus(msg,color){
+  // 离线时只允许"网络已断开"状态更新，其他状态全部忽略（防止被重连/轮询逻辑覆盖）
+  if(isOffline && msg && msg.indexOf('网络已断开')<0){
+    console.log('[状态] 离线中，忽略状态更新：',msg);
+    return;
+  }
   const el=document.getElementById('syncStatus');
   if(el){el.textContent=msg;el.style.color=color||'var(--ink-soft)';}
   const sb=document.getElementById('sidebarSync');
@@ -2358,6 +2495,7 @@ function setSyncStatus(msg,color){
     else if(color==='var(--red)'){sb.textContent='☁️ 同步失败';sb.style.color='rgba(198,40,40,.7)';}
     else if(color==='#7a6d61'){sb.textContent='☁️ 同步中…';sb.style.color='rgba(247,241,230,.5)';}
     else if(color==='#e67e22'){sb.textContent='☁️ 实时重连中';sb.style.color='rgba(230,126,34,.8)';}
+    else if(color==='#c0392b'){sb.textContent='❌ 网络断开';sb.style.color='rgba(192,57,43,.9)';}
     else if(msg&&msg.indexOf('实时同步已连接')>=0){sb.textContent='☁️ 实时同步';sb.style.color='rgba(46,125,50,.7)';}
     else if(msg&&msg.indexOf('轮询同步')>=0){sb.textContent='☁️ 轮询同步';sb.style.color='rgba(247,241,230,.5)';}
     else if(msg&&msg.indexOf('实时同步 ')>=0){sb.textContent='☁️ 实时同步';sb.style.color='rgba(46,125,50,.7)';}
@@ -2369,6 +2507,7 @@ function setSyncStatus(msg,color){
     else if(color==='var(--red)'){vs.textContent='❌ 同步失败';vs.style.color='rgba(198,40,40,.8)';}
     else if(color==='#7a6d61'){vs.textContent='⏳ 同步中…';vs.style.color='rgba(247,241,230,.6)';}
     else if(color==='#e67e22'){vs.textContent='⚠️ 重连中';vs.style.color='rgba(230,126,34,.8)';}
+    else if(color==='#c0392b'){vs.textContent='❌ 网络断开';vs.style.color='rgba(192,57,43,.9)';}
     else if(msg&&msg.indexOf('实时同步已连接')>=0){vs.textContent='☁️ 实时同步';vs.style.color='rgba(46,125,50,.8)';}
     else if(msg&&msg.indexOf('实时同步 ')>=0){vs.textContent='☁️ 实时同步';vs.style.color='rgba(46,125,50,.8)';}
     else if(msg&&msg.indexOf('轮询同步')>=0){vs.textContent='☁️ 轮询同步';vs.style.color='rgba(247,241,230,.6)';}
@@ -2558,9 +2697,6 @@ async function autoSyncOnce(){
   if(!currentUser||cloudSyncing)return;
   await cloudPullMerge(true);
   await cloudPush(true);
-}
-function startPolling(){
-  // 自动同步已关闭：仅在打开页面时拉取一次，退出时手动上传
 }
 window.addEventListener('pagehide',()=>{});
 document.addEventListener('visibilitychange',()=>{});
@@ -3939,7 +4075,7 @@ function renderSettings(){
   document.getElementById('fontSelect').value=state.font||'sans';
   const sub=document.getElementById('sidebarGroup');
   // 用GROUP_NAMES强制显示正确组名，防止state.groupName被污染
-  if(sub){sub.textContent=(GROUP_NAMES[currentGroupId]||state.groupName||'')+(isPersonalMode()?' · 我的分数':'');sub.style.display='block';}
+  if(sub){sub.textContent=(GROUP_NAMES[currentGroupId]||state.groupName||'')+(isPersonalMode()?' · 我的分数':'');sub.style.display=isAdmin()?'none':'block';}
   const cp=document.getElementById('cloudPanel');
   if(cp)cp.style.display=canAccessCloud()?'':'none';
   const dp=document.getElementById('dangerPanel');
@@ -3994,7 +4130,7 @@ function renderSettings(){
     </div>`;
   }).join('');
 }
-function saveGroupName(v){state.groupName=v.trim();save();const sub=document.getElementById('sidebarGroup');if(state.groupName){sub.textContent=state.groupName;sub.style.display='block';}else{sub.style.display='none';}toast('已保存');}
+function saveGroupName(v){state.groupName=v.trim();save();const sub=document.getElementById('sidebarGroup');if(state.groupName){sub.textContent=state.groupName;sub.style.display=isAdmin()?'none':'block';}else{sub.style.display='none';}toast('已保存');}
 function saveFont(v){state.font=v;save();applyFont();toast('字体已更新');}
 function applyFont(){document.body.dataset.font='sans';}
 function renameItem(id,v){const it=state.items.find(i=>i.id===id);if(it&&v.trim()){it.name=v.trim();save();toast('已保存');}}
@@ -4841,9 +4977,9 @@ if(currentUser)render();
     updateNavForRole();
     if(isAdmin())renderAdminGroupBar();
     toast('已加载 '+GROUP_NAMES[gid]);
-    console.log('[初始化] 启动维护检测定时器（每30秒）');
+    console.log('[初始化] 启动维护检测定时器（每60秒）');
     checkMaintenance();
-    setInterval(checkMaintenance,30000);
+    setInterval(checkMaintenance,60000);
     console.log('[初始化] 页面加载完成！');
   }catch(e){
     console.error('[初始化] 异常:',e.message,e.stack);
@@ -5008,6 +5144,18 @@ loadNotice();
 if(typeof document!=='undefined'){
 }
 </script>
+
+<!-- 移动端底部独立导航（避免顶栏 backdrop-filter 影响 fixed 定位） -->
+<nav class="nav mobile-nav">
+  <div class="nav-item active" data-view="daily" onclick="switchView('daily')"><span class="ico">📝</span>每日评分</div>
+  <div class="nav-item" data-view="weekly" onclick="switchView('weekly')"><span class="ico">📅</span>周统计</div>
+  <div class="nav-item" data-view="monthly" onclick="switchView('monthly')"><span class="ico">🗓️</span>月统计</div>
+  <div class="nav-item" data-view="semester" onclick="switchView('semester')" style="display:none"><span class="ico">📊</span>学期报告</div>
+  <div class="nav-item" data-view="myrecords" onclick="switchView('myrecords')"><span class="ico">📋</span>我的记录</div>
+  <div class="nav-item" data-view="members" onclick="switchView('members')"><span class="ico">👥</span>成员管理</div>
+  <div class="nav-item" data-view="settings" onclick="switchView('settings')"><span class="ico">⚙️</span>设置</div>
+</nav>
+
 </body>
 </html>
 
