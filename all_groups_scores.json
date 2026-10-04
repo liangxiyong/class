@@ -1,0 +1,544 @@
+﻿{
+    "7":  {
+              "students":  {
+                               "王玺朝":  {
+                                           "baseScore":  280,
+                                           "totalWithBase":  280,
+                                           "rawScore":  0,
+                                           "dailyCount":  0,
+                                           "dailyBreakdown":  {
+
+                                                              }
+                                       },
+                               "李晞玥":  {
+                                           "baseScore":  280,
+                                           "totalWithBase":  280,
+                                           "rawScore":  0,
+                                           "dailyCount":  0,
+                                           "dailyBreakdown":  {
+
+                                                              }
+                                       },
+                               "冯馨熠":  {
+                                           "baseScore":  280,
+                                           "totalWithBase":  280,
+                                           "rawScore":  0,
+                                           "dailyCount":  0,
+                                           "dailyBreakdown":  {
+
+                                                              }
+                                       },
+                               "盖俊杰":  {
+                                           "baseScore":  280,
+                                           "totalWithBase":  280,
+                                           "rawScore":  0,
+                                           "dailyCount":  0,
+                                           "dailyBreakdown":  {
+
+                                                              }
+                                       }
+                           },
+              "groupName":  "第七组"
+          },
+    "9":  {
+              "students":  {
+                               "周倾淳":  {
+                                           "baseScore":  280,
+                                           "totalWithBase":  324,
+                                           "rawScore":  44,
+                                           "dailyCount":  7,
+                                           "dailyBreakdown":  {
+                                                                  "2026-09-07":  8,
+                                                                  "2026-09-08":  -4,
+                                                                  "2026-09-03":  22,
+                                                                  "2026-09-11":  4,
+                                                                  "2026-09-04":  6,
+                                                                  "2026-09-10":  6,
+                                                                  "2026-09-09":  2
+                                                              }
+                                       },
+                               "陈浩天":  {
+                                           "baseScore":  280,
+                                           "totalWithBase":  291,
+                                           "rawScore":  11,
+                                           "dailyCount":  6,
+                                           "dailyBreakdown":  {
+                                                                  "2026-09-07":  -6,
+                                                                  "2026-09-03":  12,
+                                                                  "2026-09-11":  -7,
+                                                                  "2026-09-04":  8,
+                                                                  "2026-09-10":  6,
+                                                                  "2026-09-08":  -2
+                                                              }
+                                       },
+                               "谭梦瑶":  {
+                                           "baseScore":  280,
+                                           "totalWithBase":  336,
+                                           "rawScore":  56,
+                                           "dailyCount":  7,
+                                           "dailyBreakdown":  {
+                                                                  "2026-09-07":  8,
+                                                                  "2026-09-08":  4,
+                                                                  "2026-09-03":  22,
+                                                                  "2026-09-11":  4,
+                                                                  "2026-09-04":  6,
+                                                                  "2026-09-10":  10,
+                                                                  "2026-09-09":  2
+                                                              }
+                                       },
+                               "姚静怡":  {
+                                           "baseScore":  280,
+                                           "totalWithBase":  331,
+                                           "rawScore":  51,
+                                           "dailyCount":  6,
+                                           "dailyBreakdown":  {
+                                                                  "2026-09-07":  8,
+                                                                  "2026-09-03":  14,
+                                                                  "2026-09-11":  4,
+                                                                  "2026-09-04":  14,
+                                                                  "2026-09-10":  8,
+                                                                  "2026-09-09":  3
+                                                              }
+                                       }
+                           },
+              "groupName":  "第九组"
+          },
+    "10":  {
+               "students":  {
+                                "张邵宸":  {
+                                            "baseScore":  280,
+                                            "totalWithBase":  280,
+                                            "rawScore":  0,
+                                            "dailyCount":  0,
+                                            "dailyBreakdown":  {
+
+                                                               }
+                                        },
+                                "张天阳":  {
+                                            "baseScore":  280,
+                                            "totalWithBase":  280,
+                                            "rawScore":  0,
+                                            "dailyCount":  0,
+                                            "dailyBreakdown":  {
+
+                                                               }
+                                        },
+                                "王仁可":  {
+                                            "baseScore":  280,
+                                            "totalWithBase":  280,
+                                            "rawScore":  0,
+                                            "dailyCount":  0,
+                                            "dailyBreakdown":  {
+
+                                                               }
+                                        },
+                                "刘相希":  {
+                                            "baseScore":  280,
+                                            "totalWithBase":  280,
+                                            "rawScore":  0,
+                                            "dailyCount":  0,
+                                            "dailyBreakdown":  {
+
+                                                               }
+                                        }
+                            },
+               "groupName":  "第十组"
+           },
+    "3":  {
+              "students":  {
+                               "李宜锦":  {
+                                           "baseScore":  280,
+                                           "totalWithBase":  360,
+                                           "rawScore":  80,
+                                           "dailyCount":  7,
+                                           "dailyBreakdown":  {
+                                                                  "2026-09-07":  12,
+                                                                  "2026-09-08":  16,
+                                                                  "2026-09-03":  28,
+                                                                  "2026-09-11":  2,
+                                                                  "2026-09-04":  10,
+                                                                  "2026-09-10":  6,
+                                                                  "2026-09-09":  6
+                                                              }
+                                       },
+                               "王沐宇轩":  {
+                                            "baseScore":  280,
+                                            "totalWithBase":  300,
+                                            "rawScore":  20,
+                                            "dailyCount":  6,
+                                            "dailyBreakdown":  {
+                                                                   "2026-09-07":  6,
+                                                                   "2026-09-08":  2,
+                                                                   "2026-09-03":  8,
+                                                                   "2026-09-11":  2,
+                                                                   "2026-09-04":  -8,
+                                                                   "2026-09-09":  10
+                                                               }
+                                        },
+                               "刘铠墨":  {
+                                           "baseScore":  280,
+                                           "totalWithBase":  340,
+                                           "rawScore":  60,
+                                           "dailyCount":  6,
+                                           "dailyBreakdown":  {
+                                                                  "2026-09-07":  8,
+                                                                  "2026-09-08":  4,
+                                                                  "2026-09-03":  16,
+                                                                  "2026-09-11":  4,
+                                                                  "2026-09-04":  14,
+                                                                  "2026-09-09":  14
+                                                              }
+                                       },
+                               "梁锡永":  {
+                                           "baseScore":  280,
+                                           "totalWithBase":  354,
+                                           "rawScore":  74,
+                                           "dailyCount":  6,
+                                           "dailyBreakdown":  {
+                                                                  "2026-09-07":  6,
+                                                                  "2026-09-08":  22,
+                                                                  "2026-09-03":  26,
+                                                                  "2026-09-11":  4,
+                                                                  "2026-09-04":  14,
+                                                                  "2026-09-09":  2
+                                                              }
+                                       },
+                               "张昊群":  {
+                                           "baseScore":  280,
+                                           "totalWithBase":  288,
+                                           "rawScore":  8,
+                                           "dailyCount":  4,
+                                           "dailyBreakdown":  {
+                                                                  "2026-09-08":  -4,
+                                                                  "2026-09-09":  2,
+                                                                  "2026-09-03":  8,
+                                                                  "2026-09-04":  2
+                                                              }
+                                       }
+                           },
+              "groupName":  "第三组"
+          },
+    "2":  {
+              "students":  {
+                               "周钰心":  {
+                                           "baseScore":  280,
+                                           "totalWithBase":  298,
+                                           "rawScore":  18,
+                                           "dailyCount":  8,
+                                           "dailyBreakdown":  {
+                                                                  "2026-09-07":  6,
+                                                                  "2026-09-03":  4,
+                                                                  "2026-09-02":  12,
+                                                                  "2026-09-11":  -2,
+                                                                  "2026-09-04":  -14,
+                                                                  "2026-09-09":  8,
+                                                                  "2026-09-10":  -6,
+                                                                  "2026-09-08":  10
+                                                              }
+                                       },
+                               "董子瑜":  {
+                                           "baseScore":  280,
+                                           "totalWithBase":  364,
+                                           "rawScore":  84,
+                                           "dailyCount":  7,
+                                           "dailyBreakdown":  {
+                                                                  "2026-09-07":  8,
+                                                                  "2026-09-03":  4,
+                                                                  "2026-09-02":  22,
+                                                                  "2026-09-11":  6,
+                                                                  "2026-09-04":  12,
+                                                                  "2026-09-10":  22,
+                                                                  "2026-09-08":  10
+                                                              }
+                                       },
+                               "李子涵":  {
+                                           "baseScore":  280,
+                                           "totalWithBase":  350,
+                                           "rawScore":  70,
+                                           "dailyCount":  8,
+                                           "dailyBreakdown":  {
+                                                                  "2026-09-07":  10,
+                                                                  "2026-09-03":  2,
+                                                                  "2026-09-02":  22,
+                                                                  "2026-09-11":  8,
+                                                                  "2026-09-04":  6,
+                                                                  "2026-09-09":  4,
+                                                                  "2026-09-10":  12,
+                                                                  "2026-09-08":  6
+                                                              }
+                                       },
+                               "刘一辰":  {
+                                           "baseScore":  280,
+                                           "totalWithBase":  288,
+                                           "rawScore":  8,
+                                           "dailyCount":  6,
+                                           "dailyBreakdown":  {
+                                                                  "2026-09-07":  2,
+                                                                  "2026-09-03":  4,
+                                                                  "2026-09-02":  8,
+                                                                  "2026-09-11":  -8,
+                                                                  "2026-09-04":  -4,
+                                                                  "2026-09-10":  6
+                                                              }
+                                       },
+                               "朱桐莹":  {
+                                           "baseScore":  280,
+                                           "totalWithBase":  298,
+                                           "rawScore":  18,
+                                           "dailyCount":  7,
+                                           "dailyBreakdown":  {
+                                                                  "2026-09-07":  2,
+                                                                  "2026-09-03":  4,
+                                                                  "2026-09-02":  8,
+                                                                  "2026-09-04":  6,
+                                                                  "2026-09-09":  -2,
+                                                                  "2026-09-10":  -2,
+                                                                  "2026-09-08":  2
+                                                              }
+                                       }
+                           },
+              "groupName":  "第二组"
+          },
+    "1":  {
+              "students":  {
+                               "张翰伯":  {
+                                           "baseScore":  280,
+                                           "totalWithBase":  280,
+                                           "rawScore":  0,
+                                           "dailyCount":  0,
+                                           "dailyBreakdown":  {
+
+                                                              }
+                                       },
+                               "李锦馨":  {
+                                           "baseScore":  280,
+                                           "totalWithBase":  280,
+                                           "rawScore":  0,
+                                           "dailyCount":  0,
+                                           "dailyBreakdown":  {
+
+                                                              }
+                                       },
+                               "王铂乔":  {
+                                           "baseScore":  280,
+                                           "totalWithBase":  280,
+                                           "rawScore":  0,
+                                           "dailyCount":  0,
+                                           "dailyBreakdown":  {
+
+                                                              }
+                                       },
+                               "谭佑安":  {
+                                           "baseScore":  280,
+                                           "totalWithBase":  280,
+                                           "rawScore":  0,
+                                           "dailyCount":  0,
+                                           "dailyBreakdown":  {
+
+                                                              }
+                                       },
+                               "张益铭":  {
+                                           "baseScore":  280,
+                                           "totalWithBase":  280,
+                                           "rawScore":  0,
+                                           "dailyCount":  0,
+                                           "dailyBreakdown":  {
+
+                                                              }
+                                       }
+                           },
+              "groupName":  "第一组"
+          },
+    "4":  {
+              "students":  {
+                               "季牧云":  {
+                                           "baseScore":  280,
+                                           "totalWithBase":  280,
+                                           "rawScore":  0,
+                                           "dailyCount":  0,
+                                           "dailyBreakdown":  {
+
+                                                              }
+                                       },
+                               "杨佳诺":  {
+                                           "baseScore":  280,
+                                           "totalWithBase":  280,
+                                           "rawScore":  0,
+                                           "dailyCount":  0,
+                                           "dailyBreakdown":  {
+
+                                                              }
+                                       },
+                               "平扬":  {
+                                          "baseScore":  280,
+                                          "totalWithBase":  280,
+                                          "rawScore":  0,
+                                          "dailyCount":  0,
+                                          "dailyBreakdown":  {
+
+                                                             }
+                                      },
+                               "李锦桐":  {
+                                           "baseScore":  280,
+                                           "totalWithBase":  280,
+                                           "rawScore":  0,
+                                           "dailyCount":  0,
+                                           "dailyBreakdown":  {
+
+                                                              }
+                                       }
+                           },
+              "groupName":  "第四组"
+          },
+    "6":  {
+              "students":  {
+                               "梁馨悦":  {
+                                           "baseScore":  280,
+                                           "totalWithBase":  280,
+                                           "rawScore":  0,
+                                           "dailyCount":  0,
+                                           "dailyBreakdown":  {
+
+                                                              }
+                                       },
+                               "章浩宸":  {
+                                           "baseScore":  280,
+                                           "totalWithBase":  280,
+                                           "rawScore":  0,
+                                           "dailyCount":  0,
+                                           "dailyBreakdown":  {
+
+                                                              }
+                                       },
+                               "郭一涵":  {
+                                           "baseScore":  280,
+                                           "totalWithBase":  280,
+                                           "rawScore":  0,
+                                           "dailyCount":  0,
+                                           "dailyBreakdown":  {
+
+                                                              }
+                                       },
+                               "刘亦峻":  {
+                                           "baseScore":  280,
+                                           "totalWithBase":  280,
+                                           "rawScore":  0,
+                                           "dailyCount":  0,
+                                           "dailyBreakdown":  {
+
+                                                              }
+                                       }
+                           },
+              "groupName":  "第六组"
+          },
+    "5":  {
+              "students":  {
+                               "马雨欣":  {
+                                           "baseScore":  280,
+                                           "totalWithBase":  314,
+                                           "rawScore":  34,
+                                           "dailyCount":  3,
+                                           "dailyBreakdown":  {
+                                                                  "2026-09-03":  20,
+                                                                  "2026-09-07":  7,
+                                                                  "2026-09-04":  7
+                                                              }
+                                       },
+                               "邓泽雨":  {
+                                           "baseScore":  280,
+                                           "totalWithBase":  334,
+                                           "rawScore":  54,
+                                           "dailyCount":  3,
+                                           "dailyBreakdown":  {
+                                                                  "2026-09-03":  27,
+                                                                  "2026-09-07":  9,
+                                                                  "2026-09-04":  18
+                                                              }
+                                       },
+                               "马语秋":  {
+                                           "baseScore":  280,
+                                           "totalWithBase":  327,
+                                           "rawScore":  47,
+                                           "dailyCount":  3,
+                                           "dailyBreakdown":  {
+                                                                  "2026-09-03":  26,
+                                                                  "2026-09-07":  15,
+                                                                  "2026-09-04":  6
+                                                              }
+                                       },
+                               "张儒溪":  {
+                                           "baseScore":  280,
+                                           "totalWithBase":  277,
+                                           "rawScore":  -3,
+                                           "dailyCount":  3,
+                                           "dailyBreakdown":  {
+                                                                  "2026-09-03":  -1,
+                                                                  "2026-09-07":  2,
+                                                                  "2026-09-04":  -4
+                                                              }
+                                       },
+                               "刘乐祺":  {
+                                           "baseScore":  280,
+                                           "totalWithBase":  296,
+                                           "rawScore":  16,
+                                           "dailyCount":  3,
+                                           "dailyBreakdown":  {
+                                                                  "2026-09-03":  14,
+                                                                  "2026-09-07":  -8,
+                                                                  "2026-09-04":  10
+                                                              }
+                                       }
+                           },
+              "groupName":  "第五组"
+          },
+    "8":  {
+              "students":  {
+                               "李恩":  {
+                                          "baseScore":  280,
+                                          "totalWithBase":  280,
+                                          "rawScore":  0,
+                                          "dailyCount":  0,
+                                          "dailyBreakdown":  {
+
+                                                             }
+                                      },
+                               "王珮钰":  {
+                                           "baseScore":  280,
+                                           "totalWithBase":  280,
+                                           "rawScore":  0,
+                                           "dailyCount":  0,
+                                           "dailyBreakdown":  {
+
+                                                              }
+                                       },
+                               "黄詩宸":  {
+                                           "baseScore":  280,
+                                           "totalWithBase":  280,
+                                           "rawScore":  0,
+                                           "dailyCount":  0,
+                                           "dailyBreakdown":  {
+
+                                                              }
+                                       },
+                               "杨译贺":  {
+                                           "baseScore":  280,
+                                           "totalWithBase":  280,
+                                           "rawScore":  0,
+                                           "dailyCount":  0,
+                                           "dailyBreakdown":  {
+
+                                                              }
+                                       },
+                               "刘若安":  {
+                                           "baseScore":  280,
+                                           "totalWithBase":  280,
+                                           "rawScore":  0,
+                                           "dailyCount":  0,
+                                           "dailyBreakdown":  {
+
+                                                              }
+                                       }
+                           },
+              "groupName":  "第八组"
+          }
+}

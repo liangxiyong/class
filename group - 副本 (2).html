@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -35,9 +35,6 @@ body{
   background:var(--paper);
   /* 阻止横向过度滚动触发浏览器返回手势（手机左滑误退出） */
   overscroll-behavior-x:contain;
-  /* 隐藏滚动条但保留滚动功能 */
-  scrollbar-width:none;
-  -ms-overflow-style:none;
   background-image:
     radial-gradient(1200px 600px at 85% -10%, rgba(192,57,43,.05), transparent 60%),
     radial-gradient(900px 500px at -10% 110%, rgba(46,125,50,.04), transparent 60%);
@@ -48,48 +45,41 @@ input,select{font-family:inherit;color:inherit}
 ::-webkit-scrollbar{width:10px;height:10px}
 ::-webkit-scrollbar-thumb{background:#d5c9b6;border-radius:6px;border:2px solid var(--paper)}
 ::-webkit-scrollbar-track{background:transparent}
-/* 所有端隐藏滚动条但保留滚动功能 */
-body::-webkit-scrollbar{display:none}
-.main::-webkit-scrollbar{display:none}
-.nav::-webkit-scrollbar{display:none}
-*::-webkit-scrollbar{display:none}
 
-/* ---------- Sidebar (桌面端顶栏) ---------- */
+/* ---------- Sidebar ---------- */
 .sidebar{
-  position:fixed;top:0;left:0;right:0;bottom:auto;width:100%;height:auto;z-index:50;
-  background:linear-gradient(90deg,var(--sidebar),var(--sidebar-2));
-  color:var(--stext);display:flex;flex-direction:row;align-items:center;
-  box-shadow:0 2px 24px rgba(30,24,20,.18);
-  padding:0 20px;
+  position:fixed;top:0;bottom:0;left:0;width:236px;z-index:50;
+  background:linear-gradient(180deg,var(--sidebar),var(--sidebar-2));
+  color:var(--stext);display:flex;flex-direction:column;
+  box-shadow:2px 0 24px rgba(30,24,20,.18);
 }
-.brand{padding:10px 16px 10px 0;border-bottom:none;border-right:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:10px;flex:none}
+.brand{padding:20px 18px 14px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:flex-start;gap:12px}
 .brand .mark{
-  width:34px;height:34px;border-radius:10px;background:var(--accent);
+  width:38px;height:38px;border-radius:10px;background:var(--accent);
   display:flex;align-items:center;justify-content:center;
-  font-family:var(--font-display);font-size:17px;font-weight:700;color:#fff;
+  font-family:var(--font-display);font-size:20px;font-weight:700;color:#fff;
   margin-bottom:0;box-shadow:0 4px 14px rgba(192,57,43,.35);flex:none;
 }
-.brand-info{flex:1;min-width:0;padding-top:0;display:flex;align-items:center;gap:8px}
-.brand-info .sub{font-size:12px;color:rgba(247,241,230,.6);margin-top:0;letter-spacing:1px;white-space:nowrap}
-.nav{flex:1;padding:0 16px;display:flex;flex-direction:row;align-items:center;gap:2px;overflow-x:auto}
+.brand-info{flex:1;min-width:0;padding-top:3px}
+.brand-info .sub{font-size:12px;color:rgba(247,241,230,.5);margin-top:0;letter-spacing:1px}
+.nav{flex:1;padding:18px 14px}
 .nav-item{
-  display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:9px;
-  color:rgba(247,241,230,.68);font-size:13.5px;cursor:pointer;
-  transition:all .18s ease;margin-bottom:0;user-select:none;white-space:nowrap;
+  display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:9px;
+  color:rgba(247,241,230,.68);font-size:15px;cursor:pointer;
+  transition:all .18s ease;margin-bottom:3px;user-select:none;
 }
-.nav-item .ico{width:16px;text-align:center;font-size:14px;flex:none}
+.nav-item .ico{width:20px;text-align:center;font-size:16px;flex:none}
 .nav-item:hover{background:rgba(255,255,255,.06);color:#fff}
 .nav-item.active{background:var(--accent);color:#fff;font-weight:600;box-shadow:0 4px 14px rgba(192,57,43,.35)}
-.sidebar-user{margin:0;padding:0 0 0 8px;background:none;color:#f7f1e6;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;user-select:none;display:block;border-left:1px solid rgba(255,255,255,.15)}
+.sidebar-user{margin:8px 0 0;padding:0;background:none;color:#f7f1e6;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;user-select:none;display:block}
 .sidebar-user:hover{opacity:.85;background:none}
-.sidebar-foot{display:none}
-.sidebar-logout{margin:0 0 0 12px;padding:8px 14px;border-radius:9px;background:rgba(255,255,255,.08);color:#f7f1e6;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;border:none;font-family:inherit;white-space:nowrap;flex:none}
+.sidebar-foot{padding:16px 26px;font-size:11px;color:rgba(247,241,230,.38);border-top:1px solid rgba(255,255,255,.07);line-height:1.7}
+.sidebar-foot b{color:rgba(247,241,230,.6);font-weight:600}
+.sidebar-logout{margin:0 26px 18px;padding:10px;border-radius:9px;background:rgba(255,255,255,.08);color:#f7f1e6;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;border:none;font-family:inherit}
 .sidebar-logout:hover{background:var(--red)}
-/* 桌面端隐藏上传按钮 */
-.desktop-hide{display:none!important}
 
 /* ---------- Main ---------- */
-.main{margin-left:0;min-height:100vh;padding:70px 40px 80px}
+.main{margin-left:236px;min-height:100vh;padding:30px 40px 80px}
 .view-head{margin-bottom:20px}
 .view-title{font-family:var(--font-display);font-size:27px;color:var(--ink);letter-spacing:1px}
 .view-sub{color:var(--ink-soft);font-size:13px;margin-top:6px}
@@ -268,17 +258,17 @@ td.total-col.zero{color:#cfc4b4}
 /* ---------- 管理面板 ---------- */
 .brand{position:relative}
 .admin-btn{
+  position:absolute;top:16px;right:16px;
   display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border-radius:8px;
   background:rgba(255,255,255,.1);color:#f7f1e6;font-size:12px;font-weight:700;
   cursor:pointer;border:1px solid rgba(255,255,255,.15);transition:all .15s;
-  flex:none;margin-left:8px;
 }
 .admin-btn:hover{background:rgba(255,255,255,.2)}
-.group-switch{padding:0 16px;display:flex;align-items:center;gap:8px;border-left:1px solid rgba(255,255,255,.07);flex:none}
-.group-switch-label{font-size:11px;color:rgba(247,241,230,.5);white-space:nowrap}
+.group-switch{padding:12px 16px 4px;border-bottom:1px solid rgba(255,255,255,.07)}
+.group-switch-label{font-size:11px;color:rgba(247,241,230,.5);margin-bottom:6px}
 .group-switch select{
-  padding:7px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.15);
-  background:rgba(255,255,255,.08);color:#f7f1e6;font-size:13px;outline:none;cursor:pointer;min-width:100px;
+  width:100%;padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.15);
+  background:rgba(255,255,255,.08);color:#f7f1e6;font-size:13px;outline:none;cursor:pointer;
 }
 .group-switch select option{background:#3a2f28;color:#f7f1e6}
 .admin-switch-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px;border:1px solid var(--line);border-radius:12px;background:var(--paper)}
@@ -771,7 +761,6 @@ td.total-col.zero{color:#cfc4b4}
   <section class="view active" id="view-daily">
     <div class="view-head">
       <div class="view-title">每日评分</div>
-      <span id="viewSyncStatus" style="font-size:12px;color:rgba(247,241,230,.4);margin-left:8px;white-space:nowrap">☁️ 未同步</span>
     </div>
     <div class="toolbar">
       <div class="date-nav">
@@ -997,7 +986,7 @@ td.total-col.zero{color:#cfc4b4}
             <div id="syncStatus" style="font-size:13px;color:var(--ink-soft)"></div>
           </div>
           <div class="backup-row" style="margin-top:14px">
-            <button class="btn btn-primary desktop-hide" onclick="cloudPush()" id="btnCloudPush">⬆️ 立即上传</button>
+            <button class="btn btn-primary" onclick="cloudPush()" id="btnCloudPush">⬆️ 立即上传</button>
             <button class="btn btn-ghost" onclick="cloudPull()" id="btnCloudPull">⬇️ 从云端拉取</button>
           </div>
         </div>
@@ -1300,8 +1289,7 @@ const DEFAULT_STATE = {
 };
 
 /* ================= Supabase 配置（重写） ================= */
-const SUPABASE_URL='https://jfz-proxy-api.pages.dev';
-
+const SUPABASE_URL='https://olalgnwkszacavgcqhov.supabase.co';
 const SUPABASE_ANON_KEY='sb_publishable_B5VRNPT7oJaoX-x6IeprIg_bb5LZCJX';
 
 const SB=window.supabase?window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{
@@ -1320,21 +1308,13 @@ const SB=window.supabase?window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON
   }
 }):null;
 let sbAccessToken='';
-var ensureSbTokenCallCount=0;
 async function ensureSbToken(){
-  ensureSbTokenCallCount++;
-  if(!SB){console.log('[Token] ensureSbToken #'+ensureSbTokenCallCount+': SB为空，跳登录');requireLogin();return '';}
+  if(!SB){requireLogin();return '';}
   try{
+    // 每次都取会话：SDK 会自行刷新过期 token，避免缓存旧 token 导致云端请求 401
     const {data}=await SB.auth.getSession();
-    if(data&&data.session){
-      var newToken=data.session.access_token;
-      var tokenChanged=(sbAccessToken!==newToken);
-      if(tokenChanged){console.log('[Token] ensureSbToken #'+ensureSbTokenCallCount+': token已更新，前10位=',newToken?newToken.substring(0,10)+'...':'(空)');}
-      sbAccessToken=newToken;
-      return sbAccessToken;
-    }
-    console.log('[Token] ensureSbToken #'+ensureSbTokenCallCount+': session为空，跳登录');
-  }catch(e){console.error('[Token] ensureSbToken #'+ensureSbTokenCallCount+': 异常:',e.message);}
+    if(data&&data.session){sbAccessToken=data.session.access_token;return sbAccessToken;}
+  }catch(e){}
   requireLogin();
   return '';
 }
@@ -1752,35 +1732,32 @@ function queueSbSave(){
   },150);
 }
 function doSbSave(){
-  console.log('[保存] doSbSave 被调用，currentGroupId=',currentGroupId,'，sbRetryCount=',sbRetryCount,'，localDirty=',localDirty);
-  if(!currentGroupId){console.log('[保存] 跳过：currentGroupId为空');sbSavePending=false;return;}
+  if(!currentGroupId){sbSavePending=false;return;}
   setSyncStatus('⏳ 正在同步到云端...','#7a6d61');
   saveGroupData(currentGroupId,state).then(()=>{
     localDirty=false;
     sbSavePending=false;
     sbRetryCount=0;
-    console.log('[保存] 保存成功，组=',currentGroupId,'，lastModified=',state.lastModified);
     setSyncStatus('✅ 已同步 '+new Date().toLocaleTimeString('zh-CN'),'var(--green)');
-    try{localStorage.setItem('jfz_sync_broadcast',JSON.stringify({gid:currentGroupId,ts:Date.now()}));console.log('[保存] 已发送跨标签页广播');}catch(e){console.error('[保存] 跨标签页广播失败:',e.message);}
+    // 跨标签页广播：同一浏览器其他标签页收到后立即刷新
+    try{localStorage.setItem('jfz_sync_broadcast',JSON.stringify({gid:currentGroupId,ts:Date.now()}));}catch(e){}
   }).catch(err=>{
     sbSavePending=false;
     const msg=(err&&err.message)?err.message:'网络错误';
-    console.error('[保存] 保存失败，组=',currentGroupId,'，错误:',msg,'，sbRetryCount=',sbRetryCount);
+    // 自动重试 3 次：1s、2s、4s
     if(sbRetryCount<3){
       sbRetryCount++;
       const delay=1000*Math.pow(2,sbRetryCount-1);
-      console.log('[保存] 将在 '+(delay/1000)+' 秒后自动重试（'+sbRetryCount+'/3）');
       setSyncStatus('同步失败，'+(delay/1000)+' 秒后自动重试（'+sbRetryCount+'/3）','#c98a3a');
       sbRetryTimer=setTimeout(doSbSave,delay);
     }else{
-      console.log('[保存] 已达最大重试次数（3次），保持localDirty=true，等待联网后自动重试');
       setSyncStatus('❌ 暂未同步（已保存在本机），联网后自动重试','var(--red)');
     }
   });
 }
+// 兜底重传：本地有未同步修改、且当前没有保存动作在进行时，立即重新上传
 function retrySyncIfDirty(){
   if(localDirty&&!sbSavePending&&!sbSaveTimer&&!sbRetryTimer&&currentGroupId&&state){
-    console.log('[保存] retrySyncIfDirty 触发：本地有未同步数据，立即重传，sbRetryCount重置为0');
     sbRetryCount=0;
     doSbSave();
   }
@@ -1802,36 +1779,21 @@ async function flushSbSave(){
   }
 }
 // 页面关闭/刷新前立即同步，避免 300ms 防抖未触发导致云端丢失
-async function sendSbKeepalive(){
-  console.log('[Keepalive] sendSbKeepalive 被调用，currentGroupId=',currentGroupId,'，state存在=',!!state,'，localDirty=',localDirty);
-  if(!currentGroupId||!state){console.log('[Keepalive] 跳过：currentGroupId或state为空');return;}
-  var token=sbAccessToken;
-  var tokenRefreshed=false;
-  try{
-    console.log('[Keepalive] 开始刷新token...');
-    token=await ensureSbToken();
-    tokenRefreshed=true;
-    console.log('[Keepalive] token刷新成功，token前10位:',token?token.substring(0,10)+'...':'(空)');
-  }catch(e){console.error('[Keepalive] token刷新失败，使用旧token:',e.message);}
-  if(!token){console.log('[Keepalive] 跳过：token为空');return;}
+function sendSbKeepalive(){
+  if(!currentGroupId||!state||!sbAccessToken)return;
   const out=Object.assign({},state);
   delete out._allStudents;
-  if(!out.students||!out.students.length){console.log('[Keepalive] 跳过：学生名单为空');return;}
+  if(!out.students||!out.students.length)return;
   const body={group_id:currentGroupId,group_name:GROUP_NAMES[currentGroupId]||('第'+currentGroupId+'组'),data:out,updated_at:new Date().toISOString()};
-  var bodySize=JSON.stringify(body).length;
-  console.log('[Keepalive] 准备发送：组=',currentGroupId,'，数据大小=',bodySize,'字节，token已刷新=',tokenRefreshed);
   try{
     fetch(SUPABASE_URL+'/rest/v1/group_data?on_conflict=group_id',{
       method:'POST',keepalive:true,
-      headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+token,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'},
+      headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'},
       body:JSON.stringify(body)
-    }).then(function(resp){
-      console.log('[Keepalive] 请求完成，状态码=',resp.status,resp.statusText);
-    }).catch(function(e){console.error('[Keepalive] 请求失败:',e.message);});
-    console.log('[Keepalive] fetch已发起（keepalive=true，页面关闭前会保证发出）');
-  }catch(e){console.error('[Keepalive] 发起fetch异常:',e.message);}
+    }).catch(()=>{});
+  }catch(e){}
 }
-window.addEventListener('pagehide',function(){console.log('[Keepalive] pagehide事件触发');sendSbKeepalive();});
+window.addEventListener('pagehide',sendSbKeepalive);
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function escJs(s){return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'");}
 
@@ -1918,29 +1880,27 @@ async function saveGroupData(groupId,data){
   lastRemoteUpdatedAt=body.updated_at;
 }
 let lastRemoteUpdatedAt=0;
-let pollCount=0;
+// 云端实时同步：检测他人（admin 批量关闭等）对当前组的修改，自动刷新
 async function pollRemote(){
-  pollCount++;
-  if(typeof document!=='undefined'&&document.hidden){if(pollCount%20===0)console.log('[轮询] #'+pollCount+': 页面隐藏，跳过');return;}
-  if(switchingGroup){console.log('[轮询] #'+pollCount+': 切换组中，跳过');return;}
-  if(!currentGroupId){console.log('[轮询] #'+pollCount+': currentGroupId为空，跳过');return;}
-  if(localDirty){console.log('[轮询] #'+pollCount+': 本地有未同步数据，触发重传');retrySyncIfDirty();return;}
-  if(sbSavePending){console.log('[轮询] #'+pollCount+': 正在保存中，跳过');return;}
+  // 页面不可见（切后台/锁屏）时跳过，降低手机端内存与电量压力，避免浏览器自动回收页面
+  if(typeof document!=='undefined'&&document.hidden)return;
+  if(switchingGroup)return; // 切换组中：跳过轮询，防止拉取旧组数据覆盖新组
+  if(!currentGroupId)return;
+  // 本地有未同步修改时优先重传，避免弱网下分数只留在本机
+  if(localDirty){retrySyncIfDirty();return;}
+  if(sbSavePending)return;
   try{
     const row=await loadGroupData(currentGroupId);
     if(row&&row.updated_at&&row.updated_at!==lastRemoteUpdatedAt){
-      console.log('[轮询] #'+pollCount+': 检测到云端更新，updated_at=',row.updated_at,'，lastRemoteUpdatedAt=',lastRemoteUpdatedAt,'，开始拉取最新数据');
       lastRemoteUpdatedAt=row.updated_at;
+      // localDirty/sbSavePending 已在上方检查过，这里直接拉取云端最新数据
+      // 传false：云端加载失败时保持当前页面，绝不用空数据覆盖
       await loadGroupIntoState(currentGroupId,false);
       render();
       setSyncStatus('☁️ 已自动同步 '+new Date().toLocaleTimeString('zh-CN'),'var(--ink-soft)');
-      console.log('[轮询] #'+pollCount+': 云端数据已同步到本地');
-    }else{
-      if(pollCount%10===0)console.log('[轮询] #'+pollCount+': 云端数据无变化，updated_at=',row?row.updated_at:'(空)');
     }
-  }catch(e){console.error('[轮询] #'+pollCount+': 异常:',e.message);}
+  }catch(e){}
 }
-console.log('[轮询] 已启动 setInterval(pollRemote, 3000)，每3秒轮询一次');
 setInterval(pollRemote,3000);
 // 手动全局刷新：强制从云端重新拉取当前组数据（不允许空覆盖）
 async function forceRefresh(){
@@ -1973,124 +1933,102 @@ let sbRealtimeChannel=null;
 let sbRealtimeRetryTimer=null;
 let sbRealtimeRetryCount=0;
 let sbRealtimeConnectTimer=null;
-let sbRealtimeManualClose=false; // 主动关闭标志：移除旧频道时设为true，CLOSED回调中不触发重连
-let sbRealtimeCurrentGid=null; // 当前已订阅的gid，用于防重复订阅判断
 function subscribeRealtime(gid){
-  console.log('[WebSocket] subscribeRealtime 被调用，gid=',gid,'，sbRealtimeRetryCount=',sbRealtimeRetryCount,'，sbRealtimeCurrentGid=',sbRealtimeCurrentGid);
-  if(!SB||!SB.channel||!gid){console.log('[WebSocket] 跳过：SB或channel或gid为空');return;}
-  // 防重复：同一个gid已经订阅过且频道存在，不要重新订阅（避免loadGroupIntoState被频繁调用导致每次更新都断开重连）
-  if(sbRealtimeCurrentGid===String(gid) && sbRealtimeChannel){
-    console.log('[WebSocket] 频道 grp-'+gid+' 已订阅，跳过重复订阅');
-    return;
-  }
-  if(sbRealtimeRetryTimer){console.log('[WebSocket] 清除旧的重连定时器');clearTimeout(sbRealtimeRetryTimer);sbRealtimeRetryTimer=null;}
-  if(sbRealtimeConnectTimer){console.log('[WebSocket] 清除旧的连接超时定时器');clearTimeout(sbRealtimeConnectTimer);sbRealtimeConnectTimer=null;}
+  if(!SB||!SB.channel||!gid)return;
+  // 清除之前的重连定时器和连接超时定时器
+  if(sbRealtimeRetryTimer){clearTimeout(sbRealtimeRetryTimer);sbRealtimeRetryTimer=null;}
+  if(sbRealtimeConnectTimer){clearTimeout(sbRealtimeConnectTimer);sbRealtimeConnectTimer=null;}
+  // 根据重连次数设置状态：前3次显示橙色"重连中"，超过3次静默降级为灰色"轮询同步中"（不干扰用户）
   function setRetryStatus(n){
     if(n<=3){setSyncStatus('⚠️ 实时同步重连中...（'+n+'）','#e67e22');}
     else{setSyncStatus('☁️ 轮询同步中','var(--ink-soft)');}
   }
   try{
-    if(sbRealtimeChannel){console.log('[WebSocket] 移除旧频道（主动关闭，不触发重连）');sbRealtimeManualClose=true;sbRealtimeCurrentGid=null;try{SB.removeChannel(sbRealtimeChannel);}catch(e){console.error('[WebSocket] 移除旧频道失败:',e.message);}sbRealtimeChannel=null;}
-    console.log('[WebSocket] 开始连接，频道名=grp-'+gid+'，超时=20秒');
+    if(sbRealtimeChannel){try{SB.removeChannel(sbRealtimeChannel);}catch(e){}sbRealtimeChannel=null;}
+    // 连接超时检测：20秒内未收到SUBSCRIBED则认为连接失败（握手失败时subscribe回调可能不触发）
     sbRealtimeConnectTimer=setTimeout(function(){
       sbRealtimeConnectTimer=null;
       if(currentGroupId&&String(currentGroupId)===String(gid)){
         sbRealtimeRetryCount++;
-        console.log('[WebSocket] 连接超时（20秒未收到SUBSCRIBED），sbRealtimeRetryCount=',sbRealtimeRetryCount);
         setRetryStatus(sbRealtimeRetryCount);
-        console.log('[WebSocket] 5秒后重连');
+        // 无限重连：不设上限，后台静默重试，连上自动恢复实时同步
         sbRealtimeRetryTimer=setTimeout(function(){
           sbRealtimeRetryTimer=null;
-          if(currentGroupId&&String(currentGroupId)===String(gid)){console.log('[WebSocket] 重连定时器触发，开始重连');subscribeRealtime(gid);}
+          if(currentGroupId&&String(currentGroupId)===String(gid)){subscribeRealtime(gid);}
         },5000);
       }
     },20000);
     sbRealtimeChannel=SB.channel('grp-'+gid)
       .on('postgres_changes',{event:'UPDATE',schema:'public',table:'group_data',filter:'group_id=eq.'+gid},function(payload){
-        console.log('[WebSocket] 收到 postgres_changes 事件，gid=',gid,'，updated_at=',payload.new&&payload.new.updated_at);
-        if(switchingGroup){console.log('[WebSocket] 切换组中，忽略');return;}
-        if(!currentGroupId||String(currentGroupId)!==String(gid)){console.log('[WebSocket] 当前组不匹配，忽略');return;}
-        if(typeof document!=='undefined'&&document.hidden){console.log('[WebSocket] 页面隐藏，忽略');return;}
-        if(localDirty||sbSavePending){console.log('[WebSocket] 本地有未保存修改，忽略');return;}
+        if(switchingGroup)return; // 切换组中：忽略旧组的更新通知，防止跳回旧组
+        if(!currentGroupId||String(currentGroupId)!==String(gid))return;
+        if(typeof document!=='undefined'&&document.hidden)return;
+        if(localDirty||sbSavePending)return; // 本地有未保存修改时不覆盖
         const newAt=payload.new&&payload.new.updated_at;
         if(newAt&&newAt!==lastRemoteUpdatedAt){
-          console.log('[WebSocket] 云端有更新，开始拉取最新数据');
+          // 关键防护：先验证云端数据有效（有items），有效才覆盖当前state；
+          // 无效则忽略，绝不能让Realtime触发时把页面清空成默认空数据
           loadGroupData(gid).then(function(row){
             if(row&&row.data&&row.data.items&&row.data.items.length){
-              loadGroupIntoState(gid,false).then(function(){render();setSyncStatus('☁️ 实时同步 '+new Date().toLocaleTimeString('zh-CN'),'var(--ink-soft)');console.log('[WebSocket] 实时同步完成');}).catch(function(e){console.error('[WebSocket] loadGroupIntoState失败:',e.message);});
-            }else{
-              console.log('[WebSocket] 云端数据无效（无items），忽略');
+              // 传false：云端加载失败时保持当前页面，绝不用空数据覆盖
+              loadGroupIntoState(gid,false).then(function(){render();setSyncStatus('☁️ 实时同步 '+new Date().toLocaleTimeString('zh-CN'),'var(--ink-soft)');}).catch(function(){});
             }
-          }).catch(function(e){console.error('[WebSocket] loadGroupData失败:',e.message);});
-        }else{
-          console.log('[WebSocket] updated_at无变化，忽略');
+          }).catch(function(){});
         }
       })
       .subscribe(function(status){
-        console.log('[WebSocket] subscribe 状态变化:',status);
         if(status==='SUBSCRIBED'){
+          // 连接成功：清除超时定时器，重置重连计数
           if(sbRealtimeConnectTimer){clearTimeout(sbRealtimeConnectTimer);sbRealtimeConnectTimer=null;}
           sbRealtimeRetryCount=0;
-          sbRealtimeCurrentGid=String(gid); // 记录当前已订阅的gid，用于防重复
-          console.log('[WebSocket] 连接成功！已订阅频道 grp-'+gid+'，sbRealtimeCurrentGid=',sbRealtimeCurrentGid);
           setSyncStatus('☁️ 实时同步已连接','var(--ink-soft)');
         }else if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'||status==='CLOSED'){
-          // 主动关闭（移除旧频道）时不触发重连，避免无限循环
-          if(sbRealtimeManualClose){
-            console.log('[WebSocket] 频道',status,'（主动关闭，不触发重连）');
-            sbRealtimeManualClose=false;
-            return;
-          }
+          // 连接失败：清除超时定时器，触发重连
           if(sbRealtimeConnectTimer){clearTimeout(sbRealtimeConnectTimer);sbRealtimeConnectTimer=null;}
           sbRealtimeRetryCount++;
-          console.log('[WebSocket] 连接失败，状态=',status,'，sbRealtimeRetryCount=',sbRealtimeRetryCount);
           setRetryStatus(sbRealtimeRetryCount);
-          console.log('[WebSocket] 5秒后重连');
+          // 无限重连
           sbRealtimeRetryTimer=setTimeout(function(){
             sbRealtimeRetryTimer=null;
-            if(currentGroupId&&String(currentGroupId)===String(gid)){console.log('[WebSocket] 重连定时器触发，开始重连');subscribeRealtime(gid);}
+            if(currentGroupId&&String(currentGroupId)===String(gid)){subscribeRealtime(gid);}
           },5000);
         }
       });
-  }catch(e){console.error('[WebSocket] subscribeRealtime 异常:',e.message);}
+  }catch(e){}
 }
 if(typeof document!=='undefined'){
   document.addEventListener('visibilitychange',function(){
-    console.log('[可见性] visibilitychange 触发，document.hidden=',document.hidden);
     if(document.hidden){
-      console.log('[可见性] 页面切后台/锁屏，localDirty=',localDirty,'，sbSavePending=',sbSavePending);
+      // 切后台/锁屏/切标签页瞬间立即上传：手机切标签页不触发 pagehide，且后台定时器会被浏览器暂停，
+      // 若不在此时抢发，刚打的分数可能只留在本机
       if(localDirty||sbSavePending){
-        console.log('[可见性] 有未保存数据，立即抢存（flushSbSave + sendSbKeepalive）');
-        try{flushSbSave();}catch(e){console.error('[可见性] flushSbSave失败:',e.message);}
-        try{sendSbKeepalive();}catch(e){console.error('[可见性] sendSbKeepalive失败:',e.message);}
+        try{flushSbSave();}catch(e){}
+        try{sendSbKeepalive();}catch(e){}
       }
     }else{
-      console.log('[可见性] 页面回到前台，先重传本地数据，再检查云端更新');
+      // 回到前台：先重传本地未同步数据，再检查云端更新
       retrySyncIfDirty();pollRemote();
+      // 前台恢复时立即检查Realtime连接状态，断开则马上重连（后台标签页定时器被浏览器暂停会导致心跳超时断连）
       try{
         if(SB&&SB.realtime&&currentGroupId){
           var connState=SB.realtime.connectionState();
           var chOk=false;
           var chs=SB.getChannels();
           for(var ci=0;ci<chs.length;ci++){if(chs[ci].state==='joined'){chOk=true;break;}}
-          console.log('[可见性] WebSocket连接状态: connState=',connState,'，频道已加入=',chOk);
           if(connState!=='connected'||!chOk){
-            console.log('[可见性] WebSocket未连接，立即重连');
             if(sbRealtimeRetryTimer){clearTimeout(sbRealtimeRetryTimer);sbRealtimeRetryTimer=null;}
             subscribeRealtime(currentGroupId);
-          }else{
-            console.log('[可见性] WebSocket已连接，无需重连');
           }
         }
-      }catch(e){console.error('[可见性] 检查WebSocket状态失败:',e.message);}
+      }catch(e){}
     }
   });
 }
-window.addEventListener('pageshow',function(ev){
-  if(ev&&ev.persisted){console.log('[可见性] pageshow 从 bfcache 恢复，触发重传');retrySyncIfDirty();}
-});
+// 从 bfcache 恢复（手机前进/后退）时也兜底重传
+window.addEventListener('pageshow',function(ev){if(ev&&ev.persisted)retrySyncIfDirty();});
 if(typeof window!=='undefined'){
-  window.addEventListener('online',function(){console.log('[网络] online 事件触发，网络已恢复，触发重传');retrySyncIfDirty();});
+  // 网络从断开恢复时立即重传
+  window.addEventListener('online',function(){retrySyncIfDirty();});
 }
 async function loadLeaders(){
   try{
@@ -2362,17 +2300,6 @@ function setSyncStatus(msg,color){
     else if(msg&&msg.indexOf('轮询同步')>=0){sb.textContent='☁️ 轮询同步';sb.style.color='rgba(247,241,230,.5)';}
     else if(msg&&msg.indexOf('实时同步 ')>=0){sb.textContent='☁️ 实时同步';sb.style.color='rgba(46,125,50,.7)';}
     else{sb.textContent='☁️ '+(cloudCfg.lastSync?'已同步':'未同步');sb.style.color='rgba(247,241,230,.38)';}
-  }
-  const vs=document.getElementById('viewSyncStatus');
-  if(vs){
-    if(color==='var(--green)'){vs.textContent='✅ 已同步';vs.style.color='rgba(46,125,50,.8)';}
-    else if(color==='var(--red)'){vs.textContent='❌ 同步失败';vs.style.color='rgba(198,40,40,.8)';}
-    else if(color==='#7a6d61'){vs.textContent='⏳ 同步中…';vs.style.color='rgba(247,241,230,.6)';}
-    else if(color==='#e67e22'){vs.textContent='⚠️ 重连中';vs.style.color='rgba(230,126,34,.8)';}
-    else if(msg&&msg.indexOf('实时同步已连接')>=0){vs.textContent='☁️ 实时同步';vs.style.color='rgba(46,125,50,.8)';}
-    else if(msg&&msg.indexOf('实时同步 ')>=0){vs.textContent='☁️ 实时同步';vs.style.color='rgba(46,125,50,.8)';}
-    else if(msg&&msg.indexOf('轮询同步')>=0){vs.textContent='☁️ 轮询同步';vs.style.color='rgba(247,241,230,.6)';}
-    else{vs.textContent=msg||('☁️ '+(cloudCfg.lastSync?'已同步':'未同步'));vs.style.color=color||'rgba(247,241,230,.4)';}
   }
 }
 async function cloudPush(silent){
@@ -4776,101 +4703,57 @@ if(currentUser)render();
   }catch(e){}
 })();
 (async function(){
-  console.log('[初始化] 页面加载开始，时间:',new Date().toLocaleString('zh-CN'));
   try{
-    console.log('[初始化] 检查 SB 对象...');
-    if(!SB){console.log('[初始化] SB为空，跳登录页');requireLogin();return;}
-    console.log('[初始化] 获取会话...');
+    // 会话检查：无有效 JWT 会话直接回登录页
+    if(!SB){requireLogin();return;}
     const {data:sd}=await SB.auth.getSession();
-    if(!sd||!sd.session){console.log('[初始化] 无有效会话，跳登录页');requireLogin();return;}
+    if(!sd||!sd.session){requireLogin();return;}
     sbAccessToken=sd.session.access_token;
-    console.log('[初始化] 会话有效，用户邮箱=',sd.session.user&&sd.session.user.email,'，token前10位=',sbAccessToken?sbAccessToken.substring(0,10)+'...':'(空)');
+    // 从 users 表重建 currentUser（权威角色；user_metadata 用户可改，仅作兜底）
     let cu=null;
     if(!currentUser){
       try{
         const em=(sd.session.user&&sd.session.user.email)||'';
         if(em){
-          console.log('[初始化] 从 users 表查询用户信息，email=',em);
           const rresp=await sbFetch('users?email=eq.'+encodeURIComponent(em)+'&select=username,role,group_id');
           const rrows=await rresp.json();
-          if(rrows&&rrows.length){cu={name:rrows[0].username||'',role:rrows[0].role||'user',groupId:rrows[0].group_id||null};console.log('[初始化] 从 users 表获取用户信息成功:',cu);}
-          else{console.log('[初始化] users 表未找到该用户，使用 user_metadata 兜底');}
+          if(rrows&&rrows.length)cu={name:rrows[0].username||'',role:rrows[0].role||'user',groupId:rrows[0].group_id||null};
         }
-      }catch(e){console.error('[初始化] 从 users 表查询失败:',e.message);}
+      }catch(e){}
       if(!cu){
         const meta=(sd.session.user&&sd.session.user.user_metadata)||{};
         cu={name:meta.username||'',role:meta.role||'user',groupId:meta.group_id||null};
-        console.log('[初始化] 使用 user_metadata 兜底:',cu);
       }
       currentUser=cu;
-      try{saveSession();console.log('[初始化] 会话已保存到 localStorage');}catch(e){console.error('[初始化] 保存会话失败:',e.message);}
-    }else{
-      console.log('[初始化] currentUser 已存在，跳过重建:',currentUser);
+      try{saveSession();}catch(e){}
     }
-    console.log('[初始化] 加载组长列表...');
     await loadLeaders();
-    console.log('[初始化] 组长列表加载完成，共',groupLeaders.length,'人');
-    if(!currentUser){console.log('[初始化] currentUser为空，跳登录页');requireLogin();return;}
+    if(!currentUser){
+      requireLogin();
+      return;
+    }
+    // 维护时间检查：禁止使用小组积分V1
     var nowD=new Date();
-    console.log('[初始化] 维护时间检查，当前时间=',nowD.toLocaleTimeString('zh-CN'));
     if(nowD.getHours()===0 && nowD.getMinutes()<30){
-      console.log('[初始化] 处于维护时间（0:00-0:30），localDirty=',localDirty);
-      if(localDirty){
-        try{
-          var sess=loadSession();
-          if(sess&&sess.groupId){console.log('[初始化] 本地有未保存数据，先抢存到云端，groupId=',sess.groupId);currentGroupId=sess.groupId;sendSbKeepalive();}
-        }catch(e){console.error('[初始化] 抢存失败:',e.message);}
-      }
-      console.log('[初始化] 显示维护页');
       document.body.innerHTML='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background:#f6f1e8;text-align:center;padding:20px"><div style="font-size:60px;margin-bottom:20px">🔧</div><div style="font-size:20px;font-weight:700;color:#c0392b;margin-bottom:10px">小组积分维护中</div><div style="font-size:14px;color:#7a6d61;line-height:1.8">每天 0:00 - 0:30 为系统维护时间<br>维护期间小组积分V1暂不可用<br>请使用小组积分V2或在 0:30 后重新访问</div><div style="margin-top:24px"><a href="index.html" style="display:inline-block;padding:10px 24px;background:#c0392b;color:#fff;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600">返回登录页</a></div></div>';
       return;
     }
-    console.log('[初始化] 正常时段，确定加载组...');
     let gid=null;
     if(currentUser.role==='admin')gid=currentGroupId||'3';
     else if(currentUser.role==='teacher')gid=currentGroupId||'1';
     else if(currentUser.role==='admin2')gid='1';
     else if(currentUser.role==='leader')gid=currentUser.groupId||leaderGroupOf(currentUser.name);
-    console.log('[初始化] 用户角色=',currentUser.role,'，加载组 gid=',gid);
-    if(!gid){console.log('[初始化] gid为空，跳登录页');requireLogin();return;}
-    console.log('[初始化] 开始 loadGroupIntoState...');
+    if(!gid){requireLogin();return;}
     await loadGroupIntoState(gid);
-    console.log('[初始化] loadGroupIntoState 完成');
     render();
     renderSidebarUser();
     updateNavForRole();
     if(isAdmin())renderAdminGroupBar();
     toast('已加载 '+GROUP_NAMES[gid]);
-    console.log('[初始化] 启动维护检测定时器（每30秒）');
-    checkMaintenance();
-    setInterval(checkMaintenance,30000);
-    console.log('[初始化] 页面加载完成！');
   }catch(e){
-    console.error('[初始化] 异常:',e.message,e.stack);
     render();
     toast('加载数据失败：'+errMsg(e));
   }
-})();
-
-/* 电脑端自动全屏：用户第一次点击时进入全屏（浏览器安全策略要求必须由用户手势触发） */
-(function(){
-  try{
-    if(window.innerWidth>=769){
-      console.log('[全屏] 电脑端已启用自动全屏，点击任意位置进入全屏');
-      var enterFullscreenOnce=function(){
-        try{
-          if(!document.fullscreenElement&&!document.webkitFullscreenElement){
-            var el=document.documentElement;
-            if(el.requestFullscreen){var p=el.requestFullscreen();if(p&&p.catch)p.catch(function(){});}
-            else if(el.webkitRequestFullscreen)el.webkitRequestFullscreen();
-            else if(el.msRequestFullscreen)el.msRequestFullscreen();
-          }
-        }catch(e){console.error('[全屏] 进入全屏失败:',e.message);}
-        document.removeEventListener('click',enterFullscreenOnce);
-      };
-      document.addEventListener('click',enterFullscreenOnce);
-    }
-  }catch(e){console.error('[全屏] 初始化失败:',e.message);}
 })();
 
 /* ================= 系统维护：23:50提示、0:00自动保存退出 ================= */
@@ -4913,40 +4796,27 @@ function showMaintBanner(msg,color,showSaveBtn){
 }
 function hideMaintBanner(){if(maintBanner)maintBanner.style.display='none';}
 function maintKickOut(){
-  if(maintKicked){console.log('[维护] maintKickOut 已触发过，跳过重复执行');return;}
+  if(maintKicked)return;
   maintKicked=true;
-  console.log('[维护] 检测到维护时间（0:00-0:30），开始自动保存并退出，当前时间:',new Date().toLocaleString('zh-CN'));
   showMaintBanner('🔧 系统维护开始，正在保存数据并退出...','#c0392b');
   // 自动保存后退出
   const doExit=async function(){
-    try{
-      console.log('[维护] 开始 flushSbSave 保存本地数据...');
-      if(typeof flushSbSave==='function')await flushSbSave();
-      console.log('[维护] flushSbSave 完成');
-    }catch(e){console.error('[维护] flushSbSave 失败:',e.message);}
+    try{if(typeof flushSbSave==='function')await flushSbSave();}catch(e){}
     clearSession();
-    console.log('[维护] 已清除本地会话');
-    if(SB){try{await SB.auth.signOut();console.log('[维护] 已登出 Supabase');}catch(e){console.error('[维护] 登出失败:',e.message);}}
+    if(SB){try{await SB.auth.signOut();}catch(e){}}
     showMaintBanner('系统维护中（0:00-0:30），已自动退出','#c0392b');
-    console.log('[维护] 1.5秒后跳转到登录页');
     setTimeout(function(){location.href='index.html';},1500);
   };
   doExit();
 }
 function checkMaintenance(){
-  var nowStr=new Date().toLocaleTimeString('zh-CN');
-  if(isMaintTime()){
-    console.log('[维护检查] '+nowStr+' - 处于维护时间（0:00-0:30），触发 maintKickOut');
-    maintKickOut();return;
-  }
+  if(isMaintTime()){maintKickOut();return;}
   if(isWarnTime()){
     var m=nowMins();
-    var mins=(24*60)-m;
-    console.log('[维护检查] '+nowStr+' - 处于预警时间（23:50-23:59），距维护还有 '+mins+' 分钟，显示预警横幅');
+    var mins=(24*60)-m; // 到0:00的分钟数
     showMaintBanner('🔔 系统将于 '+mins+' 分钟后（0:00）进入维护，请及时保存数据','#f39c12',true);
     return;
   }
-  console.log('[维护检查] '+nowStr+' - 正常时段，隐藏维护横幅');
   hideMaintBanner();
 }
 /* ================= 公告弹窗 ================= */
