@@ -1202,6 +1202,17 @@ td.total-col.zero{color:#cfc4b4}
         </div>
         <div id="resetPwdErr" style="font-size:12px;color:var(--red);margin-top:6px"></div>
       </div>
+
+      <div class="admin-section">
+        <div class="admin-section-title">👥 账号管理</div>
+        <div id="accList" style="max-height:200px;overflow-y:auto;border:1px solid var(--line);border-radius:8px;padding:8px;margin-bottom:8px;"></div>
+        <button class="btn btn-ghost btn-sm" id="btnShowAddAcc" onclick="toggleAddAcc()">＋ 添加账号</button>
+        <div id="addAccForm" style="display:none;margin-top:8px;gap:8px;align-items:center;">
+          <input type="text" id="newAccName" placeholder="用户名（成员姓名）" style="flex:1;min-width:100px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;outline:none">
+          <input type="text" id="newAccPwd" placeholder="密码" style="width:100px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;outline:none">
+          <button class="btn btn-primary btn-sm" onclick="addAccount()">添加</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -1509,6 +1520,7 @@ async function loadAdmin2Enabled(){
 function openAdminModal(){
   if(!isAdmin()&&!isAdmin2())return;
   renderAdminModal();
+  renderAccounts();
   document.getElementById('adminModal').style.display='flex';
   const es=document.getElementById('batchExportStart');
   if(es&&!es.value)setBatchRangeToday('batchExport');
