@@ -486,9 +486,17 @@ async function doLogin(){
   }
 
   if(error||!data.user){
-    btn.disabled=false;btn.textContent='登 录';
     const errMsg=error?error.message||'':'';
     const isNetworkErr=errMsg.includes('fetch')||errMsg.includes('Failed to fetch')||errMsg.includes('Network')||errMsg.includes('network')||errMsg.includes('timeout')||errMsg.includes('Timeout')||(error&&error.name==='TypeError');
+    /* 非网络错误时，尝试本地账号登录（组员账号存在 group_data 里） */
+    if(!isNetworkErr){
+      try{
+        localStorage.setItem('jfz_local_login',JSON.stringify({name,pwd,ts:Date.now()}));
+        location.href='group.html';
+        return;
+      }catch(e){}
+    }
+    btn.disabled=false;btn.textContent='登 录';
     let failReason='';
     if(isNetworkErr){
       err.textContent='网络连接失败，请检查网络或切换WiFi后重试';
