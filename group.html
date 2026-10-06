@@ -1960,11 +1960,11 @@ async function sbFetch(path,options,retried){
   const ctrl=new AbortController();
   const timer=setTimeout(()=>ctrl.abort(),8000);
   try{
+    const hdrs=Object.assign({'apikey':SUPABASE_ANON_KEY,'Content-Type':'application/json'},(options&&options.headers)||{});
+    if(token)hdrs['Authorization']='Bearer '+token;
     const resp=await fetch(SUPABASE_URL+'/rest/v1/'+path,Object.assign({
       signal:ctrl.signal
-    },options||{},{
-      headers:Object.assign({'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+token,'Content-Type':'application/json'},(options&&options.headers)||{})
-    }));
+    },options||{},{headers:hdrs}));
     if(resp.status===401&&!retried&&SB){
       // token 过期：先尝试刷新会话后重试一次，避免误踢用户且丢失本次写入
       try{
@@ -5039,7 +5039,8 @@ if(currentUser)render();
           let gid=null;
           for(const g in GROUP_MEMBERS){if(GROUP_MEMBERS[g].includes(li.name)){gid=g;break;}}
           if(!gid){console.log('[本地登录] 未找到该成员所在组');requireLogin();return;}
-          const resp=await sbFetch('group_data?group_id=eq.'+gid+'&select=data');
+          const resp=await fetch(SUPABASE_URL+'/rest/v1/group_data?group_id=eq.'+gid+'&select=data',{headers:{'apikey':SUPABASE_ANON_KEY,'Content-Type':'application/json'}});
+          if(!resp.ok){console.log('[本地登录] 加载组数据失败 HTTP',resp.status);requireLogin();return;}
           const rows=await resp.json();
           if(!rows||!rows.length){console.log('[本地登录] 组数据为空');requireLogin();return;}
           const st=typeof rows[0].data==='string'?JSON.parse(rows[0].data):rows[0].data;
