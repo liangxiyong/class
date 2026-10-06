@@ -4256,9 +4256,7 @@ function renderWeekWeightList(){
   const dks=Object.keys(state.scores||{}).filter(dk=>/^\d{4}-\d{2}-\d{2}$/.test(dk)).sort();
   if(!dks.length){list.innerHTML='<div style="text-align:center;color:var(--ink-soft);font-size:12px;padding:20px;">暂无数据</div>';return;}
   const first=getMonday(parseDate(dks[0]));
-  const lastDate=parseDate(dks[dks.length-1]);
-  const today=new Date();
-  const end=lastDate>today?lastDate:today;
+  const end=addDays(first,24*7-1);
   const weeks=[];
   for(let d=new Date(first);d<=end;d=addDays(d,7)){
     const monday=new Date(d);
