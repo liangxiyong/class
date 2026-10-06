@@ -1561,9 +1561,20 @@ async function toggleAdmin2(){
     toast('操作失败：无法连接云端');
   }
 }
-function ensureStudentAccount(name){
+async function ensureStudentAccount(name){
   if(!name)return;
   if(findAccount(name))return;
+  try{
+    const email=emailOf(name);
+    const gid=memberGroupOf(name);
+    const resp=await fetch(SUPABASE_URL+'/rest/v1/rpc/admin_create_user',{
+      method:'POST',
+      headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken,'Content-Type':'application/json'},
+      body:JSON.stringify({p_email:email,p_password:'123456',p_username:name,p_role:'user',p_group_id:gid})
+    });
+    const result=await resp.text();
+    if(!resp.ok||!result.includes('ok')){console.error('创建云端账号失败:',result);}
+  }catch(e){console.error('创建云端账号异常:',e.message);}
   const salt=genSalt();
   state.accounts=state.accounts||[];
   state.accounts.push({name,pwdHash:hashPwd('123456',salt),salt,role:'user',createdAt:Date.now()});
@@ -2807,12 +2818,26 @@ function toggleAddAcc(){
   row.style.display=show?'flex':'none';
   document.getElementById('btnShowAddAcc').textContent=show?'取消添加':'＋ 添加账号';
 }
-function addAccount(){
+async function addAccount(){
   try{
   const name=document.getElementById('newAccName').value.trim();
   const pwd=document.getElementById('newAccPwd').value;
   if(!name||!pwd){toast('请输入用户名和密码');return;}
   if(findAccount(name)){toast('该用户名已存在');return;}
+  /* 调用 Supabase RPC 创建云端账号 */
+  const email=emailOf(name);
+  const gid=memberGroupOf(name);
+  const resp=await fetch(SUPABASE_URL+'/rest/v1/rpc/admin_create_user',{
+    method:'POST',
+    headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken,'Content-Type':'application/json'},
+    body:JSON.stringify({p_email:email,p_password:pwd,p_username:name,p_role:'user',p_group_id:gid})
+  });
+  const result=await resp.text();
+  if(!resp.ok||!result.includes('ok')){
+    toast('创建云端账号失败：'+result.substring(0,80));
+    return;
+  }
+  /* 保存到本地 state.accounts（用于显示账号列表） */
   const salt=genSalt();
   state.accounts=state.accounts||[];
   state.accounts.push({name,pwdHash:hashPwd(pwd,salt),salt,role:'user',createdAt:Date.now()});
@@ -4087,14 +4112,14 @@ function renderMembers(){
     </div>`;
   }).join('');
 }
-function addMember(){
+async function addMember(){
   if(!canManageMembers()){toast('仅组长或管理员可添加成员');return;}
   const input=document.getElementById('newMemberName');
   const name=input.value.trim();
   if(!name){toast('请输入姓名');return;}
   if(state.students.some(s=>s.name===name)){toast('该成员已存在');return;}
   state.students.push({id:uid(),name});
-  ensureStudentAccount(name);
+  await ensureStudentAccount(name);
   save();input.value='';renderMembers();
   if(!cloudSyncing)cloudPush(true);
   toast('已添加成员：'+name);
