@@ -1211,22 +1211,30 @@ td.total-col.zero{color:#cfc4b4}
     <div class="modal-head">
       <div>
         <div class="modal-title">⚖️ 数据加权</div>
-        <div class="modal-sub">对全组总分按百分比加成（0%~12%）</div>
+        <div class="modal-sub">全局默认 + 按周独立设置（0%~12%）</div>
       </div>
       <button class="icon-btn" onclick="closeWeightModal()">✕</button>
     </div>
     <div class="modal-body">
       <div class="weight-group">
-        <span style="font-size:13px;color:var(--ink-soft)">加权百分比（0%-12%）</span>
+        <span style="font-size:13px;color:var(--ink-soft);font-weight:600;">全局默认系数</span>
         <div style="display:flex;align-items:center;gap:12px;width:100%">
           <input type="range" id="weightPercent" min="0" max="12" step="1" value="4" style="flex:1;height:6px;accent-color:var(--primary)" oninput="document.getElementById('weightPercentVal').textContent=this.value+'%'">
           <span id="weightPercentVal" style="font-size:16px;font-weight:700;color:var(--primary);min-width:45px;text-align:right">4%</span>
         </div>
       </div>
-      <div style="font-size:12px;color:var(--ink-soft);line-height:1.7">
-        对全组<b>所有日期的个人总分</b>（含基础分10、默认分、加减分记录）统一加权。<br>
+      <div style="margin-top:12px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <span style="font-size:12.5px;color:var(--ink-soft);font-weight:600;">按周设置（选"默认"=跟随全局）</span>
+          <button class="btn btn-ghost btn-sm" onclick="clearAllWeekWeights()" style="font-size:11px;padding:4px 10px;">全部恢复默认</button>
+        </div>
+        <div id="weekWeightList" style="max-height:260px;overflow-y:auto;border:1px solid var(--line);border-radius:10px;padding:6px 10px;">
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--ink-soft);line-height:1.7;margin-top:10px;">
+        对全组<b>个人总分</b>（含基础分10、默认分、加减分）按周加权。<br>
         加权 = 总分 × (1+百分比/100)，范围0%-12%。<br>
-        当前加权系数：<b id="weightFactorNow">×1</b>
+        当前全局系数：<b id="weightFactorNow">×1</b>
       </div>
     </div>
     <div class="modal-foot">
@@ -2863,20 +2871,33 @@ function isSchoolDay(d,dk){
   const wd=d.getDay();
   return wd>=1&&wd<=5;
 }
-function weightF(){return (state&&state.weightFactor&&state.weightFactor>0)?state.weightFactor:1;}
+function getMonday(d){
+  const x=new Date(d);
+  const day=x.getDay()||7;
+  x.setDate(x.getDate()-day+1);
+  x.setHours(0,0,0,0);
+  return x;
+}
+function weightF(dk){
+  if(dk&&state.weekWeights){
+    const mk=fmt(getMonday(parseDate(dk)));
+    if(state.weekWeights[mk]>0)return state.weekWeights[mk];
+  }
+  return (state&&state.weightFactor&&state.weightFactor>0)?state.weightFactor:1;
+}
 function dayScore(sid,dk){
   if(isArchived(dk))return 0;
   if(!isSchoolDay(parseDate(dk),dk))return 0;
   const base=(state.baseOff&&state.baseOff[dk])?0:10;
-  return Math.round((base+state.items.reduce((a,it)=>a+cellVal(sid,it.id,dk),0))*weightF()*100)/100;
+  return Math.round((base+state.items.reduce((a,it)=>a+cellVal(sid,it.id,dk),0))*weightF(dk)*100)/100;
 }
 function dayGroupTotal(dk){return Math.round(state.students.reduce((a,st)=>a+dayScore(st.id,dk),0)*100)/100;}
 function weekTotal(sid,monday){let t=0;for(let i=0;i<7;i++){const d=addDays(monday,i);const dk=fmt(d);if(isSchoolDay(d,dk))t+=dayScore(sid,dk);}return Math.round(t*100)/100;}
 function monthTotal(sid,y,m){let t=0;const n=monthDays(y,m);for(let d=1;d<=n;d++){const dt=new Date(y,m,d);const dk=fmt(dt);if(isSchoolDay(dt,dk))t+=dayScore(sid,dk);}return Math.round(t*100)/100;}
 function weekGroupTotal(monday){return Math.round(state.students.reduce((a,st)=>a+weekTotal(st.id,monday),0)*100)/100;}
 function monthGroupTotal(y,m){return Math.round(state.students.reduce((a,st)=>a+monthTotal(st.id,y,m),0)*100)/100;}
-function itemWeekSum(sid,iid,monday){let t=0;for(let i=0;i<7;i++){const d=addDays(monday,i);const dk=fmt(d);if(isSchoolDay(d,dk))t+=cellVal(sid,iid,dk);}return Math.round(t*weightF()*100)/100;}
-function itemMonthSum(sid,iid,y,m){let t=0;const n=monthDays(y,m);for(let d=1;d<=n;d++){const dt=new Date(y,m,d);const dk=fmt(dt);if(isSchoolDay(dt,dk))t+=cellVal(sid,iid,dk);}return Math.round(t*weightF()*100)/100;}
+function itemWeekSum(sid,iid,monday){let t=0;for(let i=0;i<7;i++){const d=addDays(monday,i);const dk=fmt(d);if(isSchoolDay(d,dk))t+=cellVal(sid,iid,dk)*weightF(dk);}return Math.round(t*100)/100;}
+function itemMonthSum(sid,iid,y,m){let t=0;const n=monthDays(y,m);for(let d=1;d<=n;d++){const dt=new Date(y,m,d);const dk=fmt(dt);if(isSchoolDay(dt,dk))t+=cellVal(sid,iid,dk)*weightF(dk);}return Math.round(t*100)/100;}
 function studentName(id){const s=state.students.find(x=>x.id===id);return s?s.name:'(已删除)';}
 function allTimeTotal(sid){
   const dks=Object.keys(state.scores||{}).filter(dk=>/^\d{4}-\d{2}-\d{2}$/.test(dk)).sort();
@@ -2903,7 +2924,7 @@ function cellText(sid,iid,dk){
   return parts.join('、');
 }
 function cellTextSimple(sid,iid,dk){
-  const v=Math.round(cellVal(sid,iid,dk)*weightF()*100)/100;
+  const v=Math.round(cellVal(sid,iid,dk)*weightF(dk)*100)/100;
   if(v===0)return '';
   return v>0?'+'+v:v;
 }
@@ -4212,30 +4233,87 @@ function exportConfig(){
   download('积分配置.json',JSON.stringify({groupName:state.groupName,items:state.items},null,2),'application/json');
   toast('配置已导出');
 }
+let _tempWeekWeights=null;
 function openWeightModal(){
   document.getElementById('weightModal').style.display='flex';
   const now=document.getElementById('weightFactorNow');
   if(now)now.textContent='×'+Math.round(weightF()*1000)/1000;
-  // 滑块初始值 = 当前系数对应的百分比
   const curPct=Math.round((weightF()-1)*100);
   const slider=document.getElementById('weightPercent');
   const val=document.getElementById('weightPercentVal');
   if(slider){slider.value=Math.max(0,Math.min(12,curPct));}
   if(val){val.textContent=Math.max(0,Math.min(12,curPct))+'%';}
+  _tempWeekWeights=state.weekWeights?{...state.weekWeights}:{};
+  renderWeekWeightList();
 }
 function closeWeightModal(){
   document.getElementById('weightModal').style.display='none';
+  _tempWeekWeights=null;
+}
+function renderWeekWeightList(){
+  const list=document.getElementById('weekWeightList');
+  if(!list)return;
+  const dks=Object.keys(state.scores||{}).filter(dk=>/^\d{4}-\d{2}-\d{2}$/.test(dk)).sort();
+  if(!dks.length){list.innerHTML='<div style="text-align:center;color:var(--ink-soft);font-size:12px;padding:20px;">暂无数据</div>';return;}
+  const first=getMonday(parseDate(dks[0]));
+  const lastDate=parseDate(dks[dks.length-1]);
+  const today=new Date();
+  const end=lastDate>today?lastDate:today;
+  const weeks=[];
+  for(let d=new Date(first);d<=end;d=addDays(d,7)){
+    const monday=new Date(d);
+    const sunday=addDays(monday,6);
+    const mk=fmt(monday);
+    let hasSchoolDay=false;
+    for(let i=0;i<7;i++){
+      const dd=addDays(monday,i);
+      if(isSchoolDay(dd,fmt(dd))){hasSchoolDay=true;break;}
+    }
+    if(hasSchoolDay){
+      const wf=_tempWeekWeights&&_tempWeekWeights[mk]>0?_tempWeekWeights[mk]:null;
+      const pct=wf?Math.round((wf-1)*100):'';
+      weeks.push({mk,label:(monday.getMonth()+1)+'/'+monday.getDate()+'-'+(sunday.getMonth()+1)+'/'+sunday.getDate(),pct});
+    }
+  }
+  if(!weeks.length){list.innerHTML='<div style="text-align:center;color:var(--ink-soft);font-size:12px;padding:20px;">暂无教学周</div>';return;}
+  list.innerHTML=weeks.map((w,i)=>{
+    const factor=w.pct===''?weightF():(1+Number(w.pct)/100);
+    return '<div style="display:flex;align-items:center;gap:10px;padding:7px 2px;border-bottom:1px solid var(--line);'+(i===weeks.length-1?'border-bottom:none':'')+'">'+
+      '<span style="font-size:12px;color:var(--ink);min-width:88px;font-weight:600;flex:none;">第'+(i+1)+'周 '+w.label+'</span>'+
+      '<select id="wks_'+w.mk+'" style="flex:1;padding:6px 8px;border:1px solid var(--line);border-radius:6px;font-size:12px;background:#fff;outline:none;cursor:pointer;" onchange="onWeekWeightChange(\''+w.mk+'\',this.value)">'+
+        '<option value=""'+(w.pct===''?' selected':'')+'>默认（全局）</option>'+
+        Array.from({length:13},(_,p)=>'<option value="'+p+'"'+(w.pct===p?' selected':'')+'>'+p+'%</option>').join('')+
+      '</select>'+
+      '<span id="wkf_'+w.mk+'" style="font-size:12px;font-family:monospace;color:var(--ink-soft);min-width:42px;text-align:right;flex:none;">×'+Math.round(factor*1000)/1000+'</span>'+
+    '</div>';
+  }).join('');
+}
+function onWeekWeightChange(mk,pct){
+  if(!_tempWeekWeights)_tempWeekWeights={};
+  if(pct===''){delete _tempWeekWeights[mk];}
+  else{_tempWeekWeights[mk]=Math.round((1+Number(pct)/100)*1000)/1000;}
+  const factorEl=document.getElementById('wkf_'+mk);
+  if(factorEl){
+    const f=pct===''?weightF():(1+Number(pct)/100);
+    factorEl.textContent='×'+Math.round(f*1000)/1000;
+  }
+}
+function clearAllWeekWeights(){
+  _tempWeekWeights={};
+  renderWeekWeightList();
 }
 function applyWeight(){
   const p=parseFloat(document.getElementById('weightPercent').value);
   if(p<0||p>12){toast('加权百分比仅限0%-12%');return;}
-  // 直接设置成目标系数，不在当前系数上累加
   const nf=Math.round((1+p/100)*1000)/1000;
   if(nf<=0){toast('无法设置为0以下');return;}
   state.weightFactor=nf;
+  state.weekWeights=(_tempWeekWeights&&Object.keys(_tempWeekWeights).length)?{..._tempWeekWeights}:null;
+  _tempWeekWeights=null;
   save();render();
   closeWeightModal();
-  toast('已设置加权，全部总分 ×'+Math.round(nf*1000)/1000);
+  const wkCount=state.weekWeights?Object.keys(state.weekWeights).length:0;
+  toast('已设置加权：全局 ×'+Math.round(nf*1000)/1000+(wkCount?'，'+wkCount+'周独立设置':''));
 }
 function exportData(){
   download('积分数据备份_'+fmt(new Date())+'.json',JSON.stringify(state,null,2),'application/json');
