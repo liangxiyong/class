@@ -2808,6 +2808,7 @@ function toggleAddAcc(){
   document.getElementById('btnShowAddAcc').textContent=show?'取消添加':'＋ 添加账号';
 }
 function addAccount(){
+  try{
   const name=document.getElementById('newAccName').value.trim();
   const pwd=document.getElementById('newAccPwd').value;
   if(!name||!pwd){toast('请输入用户名和密码');return;}
@@ -2820,6 +2821,7 @@ function addAccount(){
   document.getElementById('newAccPwd').value='';
   toggleAddAcc();
   toast('已添加账号：'+name);
+  }catch(e){toast('添加失败：'+e.message);console.error(e);}
 }
 function removeAccount(name){
   if(!confirm('确定删除账号「'+name+'」吗？'))return;
