@@ -1567,13 +1567,13 @@ async function ensureStudentAccount(name){
   try{
     const email=emailOf(name);
     const gid=memberGroupOf(name);
-    const resp=await fetch(SUPABASE_URL+'/rest/v1/rpc/admin_create_user',{
+    const resp=await fetch(SUPABASE_URL+'/create-user',{
       method:'POST',
-      headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken,'Content-Type':'application/json'},
-      body:JSON.stringify({p_email:email,p_password:'123456',p_username:name,p_role:'user',p_group_id:gid})
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email,password:'123456',username:name,role:'user',group_id:gid})
     });
-    const result=await resp.text();
-    if(!resp.ok||!result.includes('ok')){console.error('创建云端账号失败:',result);}
+    const result=await resp.json();
+    if(!resp.ok||result.status!=='ok'){console.error('创建云端账号失败:',result.message||result.error);}
   }catch(e){console.error('创建云端账号异常:',e.message);}
   const salt=genSalt();
   state.accounts=state.accounts||[];
@@ -2824,17 +2824,17 @@ async function addAccount(){
   const pwd=document.getElementById('newAccPwd').value;
   if(!name||!pwd){toast('请输入用户名和密码');return;}
   if(findAccount(name)){toast('该用户名已存在');return;}
-  /* 调用 Supabase RPC 创建云端账号 */
+  /* 调用代理接口创建云端账号 */
   const email=emailOf(name);
   const gid=memberGroupOf(name);
-  const resp=await fetch(SUPABASE_URL+'/rest/v1/rpc/admin_create_user',{
+  const resp=await fetch(SUPABASE_URL+'/create-user',{
     method:'POST',
-    headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+sbAccessToken,'Content-Type':'application/json'},
-    body:JSON.stringify({p_email:email,p_password:pwd,p_username:name,p_role:'user',p_group_id:gid})
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({email,password:pwd,username:name,role:'user',group_id:gid})
   });
-  const result=await resp.text();
-  if(!resp.ok||!result.includes('ok')){
-    toast('创建云端账号失败：'+result.substring(0,80));
+  const result=await resp.json();
+  if(!resp.ok||result.status!=='ok'){
+    toast('创建云端账号失败：'+(result.message||result.error||'').substring(0,80));
     return;
   }
   /* 保存到本地 state.accounts（用于显示账号列表） */
