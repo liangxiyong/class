@@ -1549,7 +1549,13 @@ async function toggleAdmin2(){
     toast('操作失败：无法连接云端');
   }
 }
-function ensureStudentAccount(name){}
+function ensureStudentAccount(name){
+  if(!name)return;
+  if(findAccount(name))return;
+  const salt=genSalt();
+  state.accounts=state.accounts||[];
+  state.accounts.push({name,pwdHash:hashPwd('123456',salt),salt,role:'user',createdAt:Date.now()});
+}
 function setBatchRangeToday(prefix){
   const dk=fmt(new Date());
   const s=document.getElementById(prefix+'Start');
@@ -1669,6 +1675,7 @@ async function adminResetPwd(){
 }
 function isLeader(){return !!(currentUser&&currentUser.role==='leader');}
 function isAdmin2(){return !!(currentUser&&currentUser.role==='admin2');}
+function isReadOnly(){return !!(currentUser&&(currentUser.role==='user'||currentUser.role==='admin2'));}
 // 个人模式：已停用（第三组学生与组长同权，均查看/修改全组；保留函数以便将来启用）
 function isPersonalMode(){return false;}
 // 保存前恢复完整学生名单，防止个人模式把整组覆盖成只剩自己
@@ -1716,6 +1723,10 @@ function updateNavForRole(){
   if(pi)pi.style.display=isPersonalMode()?'none':'';
   const ic=document.getElementById('panelItemsCfg');
   if(ic)ic.style.display=(isPersonalMode()||isLeader())?'none':'';
+  const wb=document.getElementById('weightBtn');
+  if(wb)wb.style.display=isReadOnly()?'none':'';
+  const groupSel=document.getElementById('groupSelect');
+  if(groupSel)groupSel.style.display=(isReadOnly()||isAdmin2())?'none':'';
 }
 function mkEvent(v,label){return {v,label,by:currentUser?currentUser.name:'本地',ts:Date.now(),id:uid()};}
 function renderSidebarUser(){
@@ -2242,6 +2253,12 @@ function leaderGroupOf(name){
   const l=groupLeaders.find(x=>x.name===name);
   if(l)return l.group_id;
   return LEADER_GROUP[name]||null;
+}
+function memberGroupOf(name){
+  for(const gid in GROUP_MEMBERS){
+    if(GROUP_MEMBERS[gid].includes(name))return gid;
+  }
+  return null;
 }
 function openChangePwdModal(){
   if(!currentUser){toast('请先登录');return;}
@@ -3042,7 +3059,9 @@ function renderDaily(){
         const evs=cellEvents(st.id,it.id,dk);
         const evBadge=evs.length>1?`<span class="ev-count">${evs.length}</span>`:'';
         const hasNote=(state.notes[dk]||{})[st.id]?.[it.id]?'<span class="note-dot" title="有备注"></span>':'';
-        h+=`<td class="cell" onclick="openScoreModal('${st.id}','${it.id}')"><span class="val ${cls}">${disp}</span>${evBadge}${hasNote}</td>`;
+        const cellClick=isReadOnly()?'':`onclick="openScoreModal('${st.id}','${it.id}')"`;
+        const cellStyle=isReadOnly()?'style="cursor:default"':'';
+        h+=`<td class="cell" ${cellClick} ${cellStyle}><span class="val ${cls}">${disp}</span>${evBadge}${hasNote}</td>`;
       });
       h+=`</tr>`;
     });
@@ -3072,7 +3091,9 @@ function renderDaily(){
       const evs=cellEvents(st.id,it.id,dk);
       const evBadge=evs.length>1?`<span class="ev-count">${evs.length}</span>`:'';
       const hasNote=(state.notes[dk]||{})[st.id]?.[it.id]?'<span class="note-dot" title="有备注"></span>':'';
-      h+=`<td class="cell" onclick="openScoreModal('${st.id}','${it.id}')"><span class="val ${cls}">${disp}</span>${evBadge}${hasNote}</td>`;
+      const cellClick2=isReadOnly()?'':`onclick="openScoreModal('${st.id}','${it.id}')"`;
+      const cellStyle2=isReadOnly()?'style="cursor:default"':'';
+      h+=`<td class="cell" ${cellClick2} ${cellStyle2}><span class="val ${cls}">${disp}</span>${evBadge}${hasNote}</td>`;
     });
     const t=dayScore(st.id,dk);
     const tcls=t>0?'pos':(t<0?'neg':'zero');
@@ -3106,6 +3127,7 @@ function targets(){
 
 /* ================= 评分弹窗 ================= */
 function openScoreModal(sid,iid){
+  if(isReadOnly()){toast('只读模式，仅管理员可修改积分');return;}
   activeCell={sid,iid};
   const item=state.items.find(i=>i.id===iid);
   const dk=fmt(currentDate);
@@ -4235,6 +4257,7 @@ function exportConfig(){
 }
 let _tempWeekWeights=null;
 function openWeightModal(){
+  if(isReadOnly()){toast('只读模式，仅管理员可加权');return;}
   document.getElementById('weightModal').style.display='flex';
   const now=document.getElementById('weightFactorNow');
   if(now)now.textContent='×'+Math.round(weightF()*1000)/1000;
@@ -5044,6 +5067,7 @@ if(currentUser)render();
     else if(currentUser.role==='teacher')gid=currentGroupId||'1';
     else if(currentUser.role==='admin2')gid='1';
     else if(currentUser.role==='leader')gid=currentUser.groupId||leaderGroupOf(currentUser.name);
+    else if(currentUser.role==='user')gid=currentUser.groupId||memberGroupOf(currentUser.name);
     console.log('[初始化] 用户角色=',currentUser.role,'，加载组 gid=',gid);
     if(!gid){console.log('[初始化] gid为空，跳登录页');requireLogin();return;}
     console.log('[初始化] 开始 loadGroupIntoState...');
