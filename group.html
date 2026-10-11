@@ -1293,38 +1293,7 @@ td.total-col.zero{color:#cfc4b4}
 <div class="toast" id="toast"></div>
 <div id="printArea"></div>
 
-<script>
-/* 多CDN自动加载Supabase（依次尝试，失败自动切换） */
-(function(){
-  var cdns=[
-    'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2',
-    'https://unpkg.com/@supabase/supabase-js@2.117.2',
-    'https://cdnjs.cloudflare.com/ajax/libs/supabase-js/2.117.2/supabase.min.js',
-    'https://cdn.bootcdn.net/ajax/libs/supabase-js/2.117.2/supabase.min.js',
-    'https://lib.baomitu.com/supabase-js/2.117.2/supabase.min.js'
-  ];
-  var idx=0;
-  function loadNext(){
-    if(idx>=cdns.length){
-      console.error('[CDN] 所有Supabase CDN均加载失败');
-      document.body.innerHTML='<div style="padding:40px;text-align:center;font-family:sans-serif;"><h2>网络异常</h2><p>Supabase库加载失败，请刷新页面或切换网络后重试。</p><button onclick="location.reload()" style="padding:10px 24px;font-size:16px;cursor:pointer;">刷新页面</button></div>';
-      return;
-    }
-    var s=document.createElement('script');
-    s.src=cdns[idx++];
-    s.onload=function(){
-      console.log('[CDN] Supabase加载成功:',s.src);
-      if(typeof startApp==='function')startApp();
-    };
-    s.onerror=function(){
-      console.warn('[CDN] 加载失败，尝试下一个:',s.src);
-      loadNext();
-    };
-    document.head.appendChild(s);
-  }
-  loadNext();
-})();
-</script>
+<script src="lib/supabase-2.117.2.min.js"></script>
 <script>
 // 临时维护提示
 const MAINT_DATE='2026-09-21';
@@ -1404,26 +1373,21 @@ const SUPABASE_URL='https://jfz-proxy-api.pages.dev';
 
 const SUPABASE_ANON_KEY='sb_publishable_B5VRNPT7oJaoX-x6IeprIg_bb5LZCJX';
 
-let SB=null;
-function initSB(){
-  if(!window.supabase){console.warn('[SB] supabase未加载');return;}
-  SB=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{
-    auth:{
-      persistSession:true,
-      autoRefreshToken:true,
-      detectSessionInUrl:true
+const SB=window.supabase?window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{
+  auth:{
+    persistSession:true,
+    autoRefreshToken:true,
+    detectSessionInUrl:true
+  },
+  realtime:{
+    reconnectAfterMs:function(tries){
+      var backoff=[5000,8000,12000,20000,30000];
+      return backoff[Math.min(tries-1,backoff.length-1)];
     },
-    realtime:{
-      reconnectAfterMs:function(tries){
-        var backoff=[5000,8000,12000,20000,30000];
-        return backoff[Math.min(tries-1,backoff.length-1)];
-      },
-      timeout:15000,
-      heartbeatIntervalMs:8000
-    }
-  });
-  console.log('[SB] 初始化完成');
-}
+    timeout:15000,
+    heartbeatIntervalMs:8000
+  }
+}):null;
 let sbAccessToken='';
 var ensureSbTokenCallCount=0;
 async function ensureSbToken(){
@@ -2100,7 +2064,8 @@ function startPolling(){
 function stopPolling(){
   if(pollTimer){clearInterval(pollTimer);pollTimer=null;log('poll','⏸️ 轮询已暂停（网络离线）','warn');}
 }
-// 轮询系统在 startApp() 中初始化（等 SB 就绪后）
+log('poll','🚀 轮询系统初始化','init');
+startPolling();
 // 手动全局刷新：强制从云端重新拉取当前组数据（不允许空覆盖）
 async function forceRefresh(){
   if(!currentGroupId)return;
@@ -5062,7 +5027,7 @@ renderSidebarUser();
 updateNavForRole();
 const adminBtn=document.getElementById('adminBtn');
 if(adminBtn)adminBtn.style.display=(isAdmin()||isAdmin2())?'':'none';
-// loadAdmin2Enabled() 移到 startApp() 中（等会话就绪后）
+if(isAdmin())loadAdmin2Enabled();
 setSyncStatus(cloudCfg.lastSync?('上次同步：'+new Date(cloudCfg.lastSync).toLocaleString('zh-CN')):'尚未同步','var(--ink-soft)');
 (function(){
   const now=new Date();
@@ -5088,11 +5053,10 @@ if(currentUser)render();
     }
   }catch(e){}
 })();
-async function startApp(){
+(async function(){
   console.log('[初始化] 页面加载开始，时间:',new Date().toLocaleString('zh-CN'));
   try{
     console.log('[初始化] 检查 SB 对象...');
-    if(!SB&&typeof initSB==='function')initSB();
     if(!SB){console.log('[初始化] SB为空，跳登录页');requireLogin();return;}
     console.log('[初始化] 获取会话...');
     const {data:sd}=await SB.auth.getSession();
@@ -5125,7 +5089,6 @@ async function startApp(){
     await loadLeaders();
     console.log('[初始化] 组长列表加载完成，共',groupLeaders.length,'人');
     if(!currentUser){console.log('[初始化] currentUser为空，跳登录页');requireLogin();return;}
-    if(isAdmin())loadAdmin2Enabled();
     var nowD=new Date();
     console.log('[初始化] 维护时间检查，当前时间=',nowD.toLocaleTimeString('zh-CN'));
     if(nowD.getHours()===0 && nowD.getMinutes()<30){
@@ -5160,15 +5123,13 @@ async function startApp(){
     console.log('[初始化] 启动维护检测定时器（每60秒）');
     checkMaintenance();
     setInterval(checkMaintenance,60000);
-    log('poll','🚀 轮询系统初始化','init');
-    startPolling();
     console.log('[初始化] 页面加载完成！');
   }catch(e){
     console.error('[初始化] 异常:',e.message,e.stack);
     render();
     toast('加载数据失败：'+errMsg(e));
   }
-}
+})();
 
 /* 电脑端自动全屏：用户第一次点击时进入全屏（浏览器安全策略要求必须由用户手势触发） */
 (function(){
