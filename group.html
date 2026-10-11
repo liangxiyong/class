@@ -1314,7 +1314,6 @@ td.total-col.zero{color:#cfc4b4}
     s.src=cdns[idx++];
     s.onload=function(){
       console.log('[CDN] Supabase加载成功:',s.src);
-      if(typeof initSB==='function')initSB();
       if(typeof startApp==='function')startApp();
     };
     s.onerror=function(){
@@ -5094,6 +5093,7 @@ async function startApp(){
   console.log('[初始化] 页面加载开始，时间:',new Date().toLocaleString('zh-CN'));
   try{
     console.log('[初始化] 检查 SB 对象...');
+    if(!SB&&typeof initSB==='function')initSB();
     if(!SB){console.log('[初始化] SB为空，跳登录页');requireLogin();return;}
     console.log('[初始化] 获取会话...');
     const {data:sd}=await SB.auth.getSession();

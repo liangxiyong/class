@@ -466,6 +466,7 @@ function onLoginNameInput(){
 }
 
 async function doLogin(){
+  if(!SB&&typeof initSB==='function')initSB();
   if(!SB){const btn=document.getElementById('loginBtn');btn.disabled=false;btn.textContent='登录';alert('Supabase库正在加载，请稍候再试');return;}
   const btn=document.getElementById('loginBtn');
   btn.disabled=true;
