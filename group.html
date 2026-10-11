@@ -1293,7 +1293,39 @@ td.total-col.zero{color:#cfc4b4}
 <div class="toast" id="toast"></div>
 <div id="printArea"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2"></script>
+<script>
+/* 多CDN自动加载Supabase（依次尝试，失败自动切换） */
+(function(){
+  var cdns=[
+    'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2',
+    'https://unpkg.com/@supabase/supabase-js@2.117.2',
+    'https://cdnjs.cloudflare.com/ajax/libs/supabase-js/2.117.2/supabase.min.js',
+    'https://cdn.bootcdn.net/ajax/libs/supabase-js/2.117.2/supabase.min.js',
+    'https://lib.baomitu.com/supabase-js/2.117.2/supabase.min.js'
+  ];
+  var idx=0;
+  function loadNext(){
+    if(idx>=cdns.length){
+      console.error('[CDN] 所有Supabase CDN均加载失败');
+      document.body.innerHTML='<div style="padding:40px;text-align:center;font-family:sans-serif;"><h2>网络异常</h2><p>Supabase库加载失败，请刷新页面或切换网络后重试。</p><button onclick="location.reload()" style="padding:10px 24px;font-size:16px;cursor:pointer;">刷新页面</button></div>';
+      return;
+    }
+    var s=document.createElement('script');
+    s.src=cdns[idx++];
+    s.onload=function(){
+      console.log('[CDN] Supabase加载成功:',s.src);
+      if(typeof initSB==='function')initSB();
+      if(typeof startApp==='function')startApp();
+    };
+    s.onerror=function(){
+      console.warn('[CDN] 加载失败，尝试下一个:',s.src);
+      loadNext();
+    };
+    document.head.appendChild(s);
+  }
+  loadNext();
+})();
+</script>
 <script>
 // 临时维护提示
 const MAINT_DATE='2026-09-21';
@@ -1373,21 +1405,26 @@ const SUPABASE_URL='https://jfz-proxy-api.pages.dev';
 
 const SUPABASE_ANON_KEY='sb_publishable_B5VRNPT7oJaoX-x6IeprIg_bb5LZCJX';
 
-const SB=window.supabase?window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{
-  auth:{
-    persistSession:true,
-    autoRefreshToken:true,
-    detectSessionInUrl:true
-  },
-  realtime:{
-    reconnectAfterMs:function(tries){
-      var backoff=[5000,8000,12000,20000,30000];
-      return backoff[Math.min(tries-1,backoff.length-1)];
+let SB=null;
+function initSB(){
+  if(!window.supabase){console.warn('[SB] supabase未加载');return;}
+  SB=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{
+    auth:{
+      persistSession:true,
+      autoRefreshToken:true,
+      detectSessionInUrl:true
     },
-    timeout:15000,
-    heartbeatIntervalMs:8000
-  }
-}):null;
+    realtime:{
+      reconnectAfterMs:function(tries){
+        var backoff=[5000,8000,12000,20000,30000];
+        return backoff[Math.min(tries-1,backoff.length-1)];
+      },
+      timeout:15000,
+      heartbeatIntervalMs:8000
+    }
+  });
+  console.log('[SB] 初始化完成');
+}
 let sbAccessToken='';
 var ensureSbTokenCallCount=0;
 async function ensureSbToken(){
@@ -5053,7 +5090,7 @@ if(currentUser)render();
     }
   }catch(e){}
 })();
-(async function(){
+async function startApp(){
   console.log('[初始化] 页面加载开始，时间:',new Date().toLocaleString('zh-CN'));
   try{
     console.log('[初始化] 检查 SB 对象...');
@@ -5129,7 +5166,7 @@ if(currentUser)render();
     render();
     toast('加载数据失败：'+errMsg(e));
   }
-})();
+}
 
 /* 电脑端自动全屏：用户第一次点击时进入全屏（浏览器安全策略要求必须由用户手势触发） */
 (function(){
