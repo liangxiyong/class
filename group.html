@@ -5062,7 +5062,7 @@ renderSidebarUser();
 updateNavForRole();
 const adminBtn=document.getElementById('adminBtn');
 if(adminBtn)adminBtn.style.display=(isAdmin()||isAdmin2())?'':'none';
-if(isAdmin())loadAdmin2Enabled();
+// loadAdmin2Enabled() 移到 startApp() 中（等会话就绪后）
 setSyncStatus(cloudCfg.lastSync?('上次同步：'+new Date(cloudCfg.lastSync).toLocaleString('zh-CN')):'尚未同步','var(--ink-soft)');
 (function(){
   const now=new Date();
@@ -5125,6 +5125,7 @@ async function startApp(){
     await loadLeaders();
     console.log('[初始化] 组长列表加载完成，共',groupLeaders.length,'人');
     if(!currentUser){console.log('[初始化] currentUser为空，跳登录页');requireLogin();return;}
+    if(isAdmin())loadAdmin2Enabled();
     var nowD=new Date();
     console.log('[初始化] 维护时间检查，当前时间=',nowD.toLocaleTimeString('zh-CN'));
     if(nowD.getHours()===0 && nowD.getMinutes()<30){
