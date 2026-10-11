@@ -1625,8 +1625,9 @@ async function exportAllGroupsExcel(){
         rows.push([]);
       }
       if(rows.length){
-        const ws=workbook.addWorksheet(safeSheetName(GROUP_NAMES[gid]));
-        rowsToXlsxSheet(ws,rows,GROUP_NAMES[gid]);
+        const gName=data.groupName||GROUP_NAMES[gid]||('第'+gid+'组');
+        const ws=workbook.addWorksheet(safeSheetName(gName));
+        rowsToXlsxSheet(ws,rows,gName);
         count++;
       }
     }
@@ -2885,8 +2886,10 @@ function parseDate(s){const p=s.split('-').map(Number);return new Date(p[0],p[1]
 function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x;}
 function startOfWeek(d){
   const x=new Date(d);
-  const dow=d.getDay();
-  x.setDate(d.getDate()-dow);
+  const dow=d.getDay();  // 周日=0, 周一=1, ..., 周六=6
+  const diff=(dow+6)%7;  // 周日→6天前, 周一→0, 周二→1, ...
+  x.setDate(d.getDate()-diff);
+  x.setHours(0,0,0,0);
   return x;
 }
 function formatCN(d){return d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日';}
@@ -4754,7 +4757,7 @@ async function doExportExcel(){
     const monday=(currentView==='daily')?startOfWeek(currentDate):currentWeek;
     const dates=weekDates(monday);
     const weekNum=weekOfDate(monday);
-    const groupName=GROUP_NAMES[currentGroupId]||state.groupName||'小组';
+    const groupName=state.groupName||GROUP_NAMES[currentGroupId]||'小组';
     groups.forEach(g=>{
       const sts=stsOf(g);
       const rows=[];
