@@ -2100,8 +2100,7 @@ function startPolling(){
 function stopPolling(){
   if(pollTimer){clearInterval(pollTimer);pollTimer=null;log('poll','⏸️ 轮询已暂停（网络离线）','warn');}
 }
-log('poll','🚀 轮询系统初始化','init');
-startPolling();
+// 轮询系统在 startApp() 中初始化（等 SB 就绪后）
 // 手动全局刷新：强制从云端重新拉取当前组数据（不允许空覆盖）
 async function forceRefresh(){
   if(!currentGroupId)return;
@@ -5160,6 +5159,8 @@ async function startApp(){
     console.log('[初始化] 启动维护检测定时器（每60秒）');
     checkMaintenance();
     setInterval(checkMaintenance,60000);
+    log('poll','🚀 轮询系统初始化','init');
+    startPolling();
     console.log('[初始化] 页面加载完成！');
   }catch(e){
     console.error('[初始化] 异常:',e.message,e.stack);
