@@ -105,8 +105,6 @@ input{font-family:var(--font-song);color:inherit}
   .choose-btn{min-height:46px}
 }
 </style>
-<!-- Cloudflare Turnstile 人机验证 -->
-<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body>
 
@@ -127,9 +125,7 @@ input{font-family:var(--font-song);color:inherit}
       <div class="login-remember">
         <label><input type="checkbox" id="rememberMe"> 记住我，下次自动登录</label>
       </div>
-      <!-- Turnstile 人机验证组件 -->
-      <div id="turnstileWidget" style="display:flex;justify-content:center;margin:12px 0;"></div>
-      <button class="login-btn" id="loginBtn" onclick="doLogin()" disabled style="opacity:0.5;cursor:not-allowed;">登 录</button>
+      <button class="login-btn" id="loginBtn" onclick="doLogin()">登 录</button>
       <div class="login-err" id="loginErr"></div>
       <div class="tip-box">
         <div class="tip-title">登录说明</div>
@@ -160,68 +156,6 @@ const SUPABASE_ANON_KEY='sb_publishable_B5VRNPT7oJaoX-x6IeprIg_bb5LZCJX';
 
 /* 高德地图 IP 定位 Key（Web服务） */
 const AMAP_KEY='8a663ae5117598bc86588e3418cc572e';
-
-/* ================= Cloudflare Turnstile 人机验证 ================= */
-const TURNSTILE_SITE_KEY='0x4AAAAAAFMym-bVxn7VE__p'; // managed模式
-let turnstileWidgetId=null;
-let turnstileVerified=false;
-
-/* Turnstile 验证成功回调 */
-function onTurnstileSuccess(token){
-  console.log('[Turnstile] 验证成功，token前10位=',token.substring(0,10));
-  turnstileVerified=true;
-  const btn=document.getElementById('loginBtn');
-  if(btn){btn.disabled=false;btn.style.opacity='1';btn.style.cursor='pointer';}
-}
-
-/* Turnstile 验证失败回调 */
-function onTurnstileError(errorCode){
-  console.error('[Turnstile] 验证失败：',errorCode);
-  turnstileVerified=false;
-  const btn=document.getElementById('loginBtn');
-  if(btn){btn.disabled=true;btn.style.opacity='0.5';btn.style.cursor='not-allowed';}
-}
-
-/* Turnstile 过期回调 */
-function onTurnstileExpire(){
-  console.log('[Turnstile] 验证已过期，需要重新验证');
-  turnstileVerified=false;
-  const btn=document.getElementById('loginBtn');
-  if(btn){btn.disabled=true;btn.style.opacity='0.5';btn.style.cursor='not-allowed';}
-  // 自动重新渲染
-  if(turnstileWidgetId&&window.turnstile){
-    try{window.turnstile.reset(turnstileWidgetId);}catch(e){}
-  }
-}
-
-/* 初始化 Turnstile（等SDK加载完成后调用） */
-function initTurnstile(){
-  const container=document.getElementById('turnstileWidget');
-  if(!container||!window.turnstile){return;}
-  if(turnstileWidgetId){return;} // 已初始化
-  try{
-    turnstileWidgetId=window.turnstile.render('#turnstileWidget',{
-      sitekey:TURNSTILE_SITE_KEY,
-      callback:onTurnstileSuccess,
-      'error-callback':onTurnstileError,
-      'expired-callback':onTurnstileExpire,
-      theme:'light',
-      language:'zh-CN'
-    });
-    console.log('[Turnstile] 组件初始化成功，widgetId=',turnstileWidgetId);
-  }catch(e){
-    console.error('[Turnstile] 初始化失败：',e);
-  }
-}
-
-/* 轮询等待 Turnstile SDK 加载完成，然后初始化 */
-(function waitForTurnstile(){
-  if(window.turnstile){
-    initTurnstile();
-  }else{
-    setTimeout(waitForTurnstile,200);
-  }
-})();
 
 /* Supabase 客户端：auth + realtime 优化参数 */
 const SB=window.supabase?window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{
@@ -442,14 +376,6 @@ async function doLogin(){
   if(!name){btn.disabled=false;btn.textContent='登 录';err.textContent='请输入用户名';return;}
   if(!pwd){btn.disabled=false;btn.textContent='登 录';err.textContent='请输入密码';return;}
   if(!SB){btn.disabled=false;btn.textContent='登 录';err.textContent='无法连接认证服务，请检查网络后重试';return;}
-
-  /* Turnstile 人机验证检查 */
-  if(!turnstileVerified){
-    btn.disabled=false;
-    btn.textContent='登 录';
-    err.textContent='请先完成人机验证';
-    return;
-  }
 
   /* 组长密码自动补0到6位：输入"3" → "000003" */
   if(isLeaderName(name)){
